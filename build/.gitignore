@@ -1,0 +1,3 @@
+*
+!.gitignore
+!cmake_install.cmake

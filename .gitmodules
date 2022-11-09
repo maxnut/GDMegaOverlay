@@ -1,0 +1,15 @@
+[submodule "libs/cocos-headers"]
+	path = libs/cocos-headers
+	url = https://github.com/HJfod/cocos-headers
+[submodule "libs/gd.h"]
+	path = libs/gd.h
+	url = https://github.com/maxnut/gd.h
+[submodule "libs/detours"]
+	path = libs/detours
+	url = https://github.com/microsoft/detours
+[submodule "libs/imgui-hook"]
+	path = libs/imgui-hook
+	url = https://github.com/yrenum/imgui-hook
+[submodule "libs/minhook"]
+	path = libs/minhook
+	url = https://github.com/TsudaKageyu/minhook
