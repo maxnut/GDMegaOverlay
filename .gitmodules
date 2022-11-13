@@ -10,3 +10,9 @@
 [submodule "libs/minhook"]
 	path = libs/minhook
 	url = https://github.com/TsudaKageyu/minhook
+[submodule "libs/--force"]
+	path = libs/--force
+	url = https://github.com/maxnut/imgui-hook
+[submodule "libs/imgui-hook"]
+	path = libs/imgui-hook
+	url = https://github.com/maxnut/imgui-hook
