@@ -5,6 +5,7 @@
 
 HacksStr hacks;
 Labels labels;
+Debug debug;
 
 bool firstCall = false;
 

@@ -7,11 +7,22 @@ extern struct HacksStr hacks;
 extern struct HacksStr hacks;
 bool g_disable_render = false;
 float g_left_over = 0.f;
+gd::PauseLayer* pauseLayer;
 
 void(__thiscall* CCScheduler_update)(CCScheduler*, float);
 void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt) {
+
     auto& rs = ReplayPlayer::getInstance();
     const auto play_layer = gd::GameManager::sharedState()->getPlayLayer();
+
+    auto d = CCDirector::sharedDirector();
+
+    if(play_layer && d->getRunningScene()->getChildrenCount() > 1)
+    {
+        pauseLayer = static_cast<gd::PauseLayer*>(d->getRunningScene()->getChildren()->objectAtIndex(1));
+        pauseLayer->setVisible(!hacks.hidePause);
+    }
+
     if (play_layer && (rs.IsRecording() || rs.IsPlaying()) && !play_layer->m_bIsPaused) {
         const auto fps = hacks.fps;
         auto speedhack = CCDirector::sharedDirector()->getScheduler()->getTimeScale();

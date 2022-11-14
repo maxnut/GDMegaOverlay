@@ -12,7 +12,7 @@ void __fastcall LevelEditorLayer::drawHook(gd::LevelEditorLayer *self, void *)
 	HitboxNode::getInstance()->clear();
 	LevelEditorLayer::draw(self);
 
-	if (hacks.showHitboxes)
+	if (hacks.showHitboxes && !hacks.onlyOnDeath)
 	{
 		HitboxNode::getInstance()->setVisible(true);
 		if (self->m_pPlayer1)

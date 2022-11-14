@@ -33,7 +33,7 @@ struct HacksStr
     int stepCount, stepIndex;
     bool botTextEnabled;
     int actionStart;
-    float hitboxThickness = 0.5f, fontSize = 1;
+    float hitboxThickness = 0.5f, menuSize = 1;
     float titleColor[4] = {0.75f, 0.157f, 0.157f, 1.0f}, borderColor[4] = {0, 0, 0, 1.0f}, borderSize = 0, windowRounding;
     bool autoDeafen, fixPractice, onlyInRuns, hitboxOnly;
     char message[30];
@@ -43,16 +43,28 @@ struct HacksStr
     bool clickbot = false;
     float baseVolume = 1.0f, minPitch = 0.97f, maxPitch = 1.03f, minTimeDifference = 0.03f;
     double playMediumClicksAt = 0.07;
-    bool confirmQuit, autoSyncMusic, hidePause;
+    bool confirmQuit, autoSyncMusic, hidePause = false;
     int musicMaxDesync = 80, hitboxOpacity = 200, borderOpacity = 255, hitboxKeyIndex;
     float clickColor[3] = {1.0f, 0.0f, 0.0f};
+    bool onlyRainbowOutline = false;
 };
+
+enum position {TR, TL, BR, BL};
 
 struct Labels
 {
     bool statuses[11];
-    float poscale[11][3];
+    float scale[11];
     float opacity[11];
     int fonts[11];
     int styles[2];
+    position positions[11];
+    float labelSpacing = 20.0f;
+};
+
+struct Debug
+{
+    bool enabled = false;
+    float debugNumber;
+    std::string debugString;
 };

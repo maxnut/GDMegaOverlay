@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <sstream>
 #include "ExitAlert.h"
+#include "Shortcuts.h"
 
 #define STATUSSIZE 11
 
@@ -18,6 +19,7 @@ using namespace porcodio;
 float percent;
 extern struct HacksStr hacks;
 extern struct Labels labels;
+extern struct Debug debug;
 ExitAlert a;
 
 CCSize size;
@@ -65,6 +67,8 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	bool result = PlayLayer::init(self, level);
 
 	playlayer = self;
+
+	Hacks::AnticheatBypass();
 
 	auto director = CCDirector::sharedDirector();
 	size = director->getWinSize();
@@ -393,16 +397,89 @@ void PlayLayer::UpdatePositions(int index)
 {
 	if (playlayer == nullptr)
 		return;
+
+	auto director = CCDirector::sharedDirector();
+	auto size = director->getWinSize();
+
 	auto ptr = static_cast<CCLabelBMFont *>(statuses[index]);
-	statuses[index]->setPosition(labels.poscale[index][0], labels.poscale[index][1]);
+
+	float tr = 0, tl = 0, br = 0, bl = 0, thisLabel;
+
+	for (size_t i = 0; i < 11; i++)
+	{
+		if (!labels.statuses[i] || i == 8 && hacks.onlyInRuns && !(playlayer->m_isTestMode || playlayer->m_isPracticeMode))
+			continue;
+
+		switch (labels.positions[i])
+		{
+		case TR:
+			if (index == i)
+				thisLabel = tr;
+			tr += 1.0f * labels.scale[i];
+			break;
+		case TL:
+			if (index == i)
+				thisLabel = tl;
+			tl += 1.0f * labels.scale[i];
+			break;
+		case BR:
+			if (index == i)
+				thisLabel = br;
+			br += 1.0f * labels.scale[i];
+			break;
+		case BL:
+			if (index == i)
+				thisLabel = bl;
+			bl += 1.0f * labels.scale[i];
+			break;
+		}
+	}
+
+	float height = 0, x = 0;
+
+	switch (labels.positions[index])
+	{
+	case TR:
+		height = size.height - 10 - (thisLabel * labels.labelSpacing);
+		x = size.width - 5;
+		break;
+	case TL:
+		height = size.height - 10 - (thisLabel * labels.labelSpacing);
+		x = 5.0f;
+		break;
+	case BR:
+		height = 10.0f + (thisLabel * labels.labelSpacing);
+		x = size.width - 5;
+		break;
+	case BL:
+		height = 10.0f + (thisLabel * labels.labelSpacing);
+		x = 5.0f;
+		break;
+	}
+
+	statuses[index]->setPosition(x, height);
+
 	if (index != 0)
 	{
 		ptr->setFntFile(actualFonts[labels.fonts[index]]);
 		ptr->setOpacity(labels.opacity[index]);
 	}
-	if (labels.poscale[index][2] < 0.1f)
-		labels.poscale[index][2] = 1.0f;
-	statuses[index]->setScale(labels.poscale[index][2]);
+	if (labels.scale[index] < 0.1f || labels.scale[index] > 1.5f)
+		labels.scale[index] = 1.0f;
+
+	float sc = labels.scale[index] * 0.45f;
+
+	switch (labels.fonts[index])
+	{
+	case 1:
+		sc *= 1.65f;
+		break;
+	case 13:
+		sc *= 1.1f;
+		break;
+	}
+
+	statuses[index]->setScale(sc);
 	if (labels.opacity[index] < 1)
 		labels.opacity[index] = 255;
 	else if (labels.opacity[index] > 255)
@@ -507,18 +584,28 @@ void Update(gd::PlayLayer *self, float dt)
 		float r, g, b;
 		ImGui::ColorConvertHSVtoRGB(self->m_totalTime * hacks.rainbowSpeed, 1, 1, r, g, b);
 		const ccColor3B col = {(GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f)};
-		self->m_pPlayer1->setColor(col);
-		self->m_pPlayer1->m_iconSprite->setColor(col);
-		self->m_pPlayer1->m_vehicleSprite->setColor(col);
-		self->m_pPlayer1->m_spiderSprite->setColor(col);
-		self->m_pPlayer1->m_robotSprite->setColor(col);
-		self->m_pPlayer2->setColor(col);
-		self->m_pPlayer2->m_iconSprite->setColor(col);
-		self->m_pPlayer2->m_vehicleSprite->setColor(col);
-		self->m_pPlayer2->m_spiderSprite->setColor(col);
-		self->m_pPlayer2->m_robotSprite->setColor(col);
+
+		if (!hacks.onlyRainbowOutline)
+		{
+			self->m_pPlayer1->setColor(col);
+			self->m_pPlayer1->m_iconSprite->setColor(col);
+			self->m_pPlayer1->m_vehicleSprite->setColor(col);
+			self->m_pPlayer1->m_spiderSprite->setColor(col);
+			self->m_pPlayer1->m_robotSprite->setColor(col);
+			self->m_pPlayer2->setColor(col);
+			self->m_pPlayer2->m_iconSprite->setColor(col);
+			self->m_pPlayer2->m_vehicleSprite->setColor(col);
+			self->m_pPlayer2->m_spiderSprite->setColor(col);
+			self->m_pPlayer2->m_robotSprite->setColor(col);
+			self->m_pPlayer1->m_iconGlow->setColor(col);
+			self->m_pPlayer1->m_vehicleGlow->setColor(col);
+		}
+		self->m_pPlayer1->m_vehicleGlow->setChildColor(col);
+		self->m_pPlayer1->m_vehicleGlow->setChildOpacity(255);
+		self->m_pPlayer2->m_vehicleGlow->setChildColor(col);
+		self->m_pPlayer2->m_vehicleGlow->setChildOpacity(255);
 	}
-	else if (hacks.dashOrbFix)
+	if (hacks.dashOrbFix && !hacks.rainbowIcons || hacks.dashOrbFix && hacks.onlyRainbowOutline)
 	{
 		self->m_pPlayer1->setColor(iconCol);
 		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
@@ -688,6 +775,9 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	Hacks::noclip(hacks.noclip);
 	clicksArr.clear();
 
+	for (size_t i = 0; i < STATUSSIZE; i++)
+		UpdatePositions(i);
+
 	if (replayPlayer && replayPlayer->IsPlaying())
 	{
 		Hacks::safemode(true);
@@ -772,20 +862,28 @@ void __fastcall PlayLayer::lightningFlashHook(gd::PlayLayer *self, void *edx, CC
 void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, bool down)
 {
 	dispatchKeyboardMSG(self, key, down);
+	static int debugNum = 0;
+	if (key == 'L' && down)
+	{
+		debugNum++;
+		if(debugNum >= 10) debug.enabled = true;
+	}
+	
+	const int numbers[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x14, 0x11, 0x12, 0x10, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B};
+
+	for(size_t i = 0; i < Shortcuts::shortcuts.size(); i++)
+	{
+		if(key == numbers[Shortcuts::shortcuts[i].key] && down)
+		{
+			Shortcuts::OnPress(Shortcuts::shortcuts[i].shortcutIndex);
+		}
+	}
 
 	if (!playlayer)
 		return;
 
-	const int numbers[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x14, 0x11, 0x12, 0x10, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B};
-
-	if (key == numbers[hacks.respawnIndex] && down)
-		PlayLayer::resetLevelHook(playlayer, nullptr);
-	else if (key == numbers[hacks.stepIndex] && down)
+	if (key == numbers[hacks.stepIndex] && down)
 		steps = hacks.stepCount;
-	else if (key == numbers[hacks.messageIndex] && down)
-		labels.statuses[9] = !labels.statuses[9];
-	else if (key == numbers[hacks.hitboxKeyIndex] && down)
-		hacks.showHitboxes = !hacks.showHitboxes;
 
 	if (!hacks.startPosSwitcher)
 		return;
@@ -797,12 +895,22 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 			startPosIndex++;
 			Change();
 		}
+		else
+		{
+			startPosIndex = -1;
+			Change();
+		}
 	}
 	else if (down && key == VK_LEFT)
 	{
 		if (startPosIndex >= 0)
 		{
 			startPosIndex--;
+			Change();
+		}
+		else
+		{
+			startPosIndex = (int)sp.size() - 1;
 			Change();
 		}
 	}
