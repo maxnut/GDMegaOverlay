@@ -13,8 +13,6 @@
 #include "speedhack.h"
 #include <shellapi.h>
 #include "Shortcuts.h"
-#include <ShlObj_core.h>
-#pragma comment(lib, "shell32")
 
 bool show = false;
 bool applied = false;
@@ -25,6 +23,9 @@ float screenSize;
 
 int deafenInt = 0, shortcutIndex, shortcutIndexKey;
 char fileName[30];
+std::vector<std::string> Hacks::musicPaths;
+std::filesystem::path Hacks::path;
+std::vector<const char *> musicPathsVet;
 
 const char *style[] = {"Number and text", "Number Only"};
 const char *positions[] = {"Top Right", "Top Left", "Bottom Right", "Bottom Left"};
@@ -33,9 +34,9 @@ const char *trail[] = {"Normal", "Always Off", "Always On", "Inversed"};
 const char *fonts[] = {"Big Font", "Chat Font", "Font 01", "Font 02", "Font 03", "Font 04", "Font 05", "Font 06", "Font 07", "Font 08", "Font 09", "Font 10", "Font 11", "Gold Font"};
 const char *alphabet[] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Caps", "CTRL", "Alt", "Shift", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12"};
 
-void HelpMarker(const char *desc)
+void Marker(const char *marker, const char *desc)
 {
-    ImGui::TextDisabled("(?)");
+    ImGui::TextDisabled(marker);
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
@@ -44,6 +45,13 @@ void HelpMarker(const char *desc)
         ImGui::PopTextWrapPos();
         ImGui::EndTooltip();
     }
+}
+
+char *convert(const std::string &s)
+{
+    char *pc = new char[s.size() + 1];
+    std::strcpy(pc, s.c_str());
+    return pc;
 }
 
 void TextSettings(int index, bool font)
@@ -123,21 +131,16 @@ void SetStyle()
 bool closed = true;
 char nameBuf[20];
 
-static std::string utf16ToUTF8(const std::wstring &s)
-{
-    const int size = ::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), -1, NULL, 0, 0, NULL);
-
-    std::vector<char> buf(size);
-    ::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), -1, &buf[0], size, 0, NULL);
-
-    return std::string(&buf[0]);
-}
-
 void Init()
 {
     if (!std::filesystem::is_directory("GDMenu") || !std::filesystem::exists("GDMenu"))
     {
         std::filesystem::create_directory("GDMenu");
+    }
+
+    if (!std::filesystem::is_directory("GDMenu/renders") || !std::filesystem::exists("GDMenu/renders"))
+    {
+        std::filesystem::create_directory("GDMenu/renders");
     }
 
     ImGuiIO &io = ImGui::GetIO();
@@ -149,7 +152,19 @@ void Init()
     auto director = CCDirector::sharedDirector();
     auto size = director->getWinSize();
     screenSize = (size.width * size.height) / 182080.0f;
-    Hacks::writeOutput(std::to_string(size.width * size.height));
+
+    for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
+    {
+        if (loop.path().extension().string() == ".mp3")
+        {
+            Hacks::musicPaths.push_back(loop.path().string());
+        }
+    }
+
+    for (size_t i = 0; i < Hacks::musicPaths.size(); i++)
+    {
+        musicPathsVet.push_back(Hacks::musicPaths[i].c_str());
+    }
 
     std::ifstream f;
     f.open("GDMenu/settings.bin", std::fstream::binary);
@@ -200,6 +215,7 @@ void Init()
         Hacks::transparentLists(hacks.transparentList);
         Hacks::transparentMenus(hacks.transparentMenus);
         deafenInt = hacks.curChar;
+        hacks.recording = false;
 
         if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
         {
@@ -239,6 +255,13 @@ void Init()
 void RenderMain()
 {
     bool resetWindows = false;
+
+    if (!gd::GameManager::sharedState()->getPlayLayer())
+        {
+            hacks.recording = false;
+            if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture && ReplayPlayer::getInstance().recorder.m_recording)
+                ReplayPlayer::getInstance().recorder.stop();
+        }
 
     if (show)
     {
@@ -338,6 +361,27 @@ void RenderMain()
         if (ImGui::Checkbox("Transparent Menu", &hacks.transparentMenus))
             Hacks::transparentMenus(hacks.transparentMenus);
         ImGui::Checkbox("Hide Pause Menu", &hacks.hidePause);
+
+        ImGui::Checkbox("Custom Menu Music", &hacks.replaceMenuMusic);
+        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        if (ImGui::ArrowButton("custmm", 1))
+            ImGui::OpenPopup("Custom Menu Music Settings");
+
+        if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+            ImGui::Combo("Song File", &hacks.musicIndex, musicPathsVet.data(), Hacks::musicPaths.size());
+            ImGui::PopItemWidth();
+            ImGui::Checkbox("Random Menu Music", &hacks.randomMusic);
+            if (Hacks::path.empty())
+                Hacks::path = Hacks::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
+            ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
+            if (ImGui::Button("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
 
         ImGui::End();
 
@@ -705,7 +749,6 @@ void RenderMain()
         ImGui::End();
 
         ImGui::Begin("Shortcuts", 0, ImGuiWindowFlags_AlwaysAutoResize);
-
         if (resetWindows)
             ImGui::SetWindowPos({340, 570});
 
@@ -757,24 +800,41 @@ void RenderMain()
             gd::OptionsLayer::addToCurrentScene(false);
         if (ImGui::Button("Open Song Folder"))
         {
-            std::filesystem::path path;
-            PWSTR path_tmp;
-            auto get_folder_path_ret = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &path_tmp);
+            ShellExecute(0, NULL, Hacks::GetSongFolder().c_str(), NULL, NULL, SW_SHOW);
+        }
 
-            if (get_folder_path_ret != S_OK)
+        ImGui::End();
+
+        ImGui::Begin("Internal Recorder", 0, ImGuiWindowFlags_AlwaysAutoResize);
+
+        if (ImGui::Checkbox("Record", &hacks.recording))
+        {
+            if (!gd::GameManager::sharedState()->getPlayLayer())
+                return;
+
+            if (!hacks.recording)
             {
-                CoTaskMemFree(path_tmp);
+                if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture)
+                    ReplayPlayer::getInstance().recorder.stop();
             }
             else
             {
-                path = path_tmp;
-                path = path.parent_path();
-                path = path / "Local/GeometryDash";
-                std::string utf8String = utf16ToUTF8(path.c_str());
-                ShellExecute(0, NULL, utf8String.c_str(), NULL, NULL, SW_SHOW);
-                CoTaskMemFree(path_tmp);
+                ReplayPlayer::getInstance().recorder.start();
             }
         }
+        ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
+        ImGui::InputInt2("Video Size", hacks.videoDimenstions);
+        ImGui::InputInt("Framerate", &hacks.videoFps);
+        ImGui::InputFloat("Music Volume", &hacks.renderMusicVolume);
+        ImGui::InputFloat("Click Volume", &hacks.renderClickVolume);
+        ImGui::Checkbox("Include Clicks (only with macro)", &hacks.includeClicks);
+        ImGui::InputText("Bitrate", hacks.bitrate, 8);
+        ImGui::InputInt("Click Chunk Size", &hacks.clickSoundChunkSize);
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the whole rendered clicks, i have to split them to bypass the command character limit.\nTry increasing this if the clicks do not render.");
+        ImGui::InputFloat("Show End For", &hacks.afterEndDuration);
+        ImGui::PopItemWidth();
+
+        Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i integrated my clickbot into it");
 
         ImGui::End();
 
@@ -817,7 +877,7 @@ void RenderMain()
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
-            HelpMarker("Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
+            Marker("?", "Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
             ImGui::EndPopup();
         }
 
@@ -870,6 +930,7 @@ void RenderMain()
         if (ImGui::Button("Load"))
             ReplayPlayer::getInstance().Load(fileName);
         ImGui::PopStyleColor();
+
         ImGui::End();
 
         if (resetWindows)
@@ -891,7 +952,6 @@ DWORD WINAPI my_thread(void *hModule)
                                  { show = !show; });
     if (MH_Initialize() == MH_OK)
     {
-
         ImGuiHook::setupHooks([](void *target, void *hook, void **trampoline)
                               { MH_CreateHook(target, hook, trampoline); });
         SpeedhackAudio::init();
@@ -913,8 +973,11 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x20DDD0), CustomCheckpoint::createHook, reinterpret_cast<void **>(&CustomCheckpoint::create));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x253D60), PlayLayer::triggerObjectHook, reinterpret_cast<void **>(&PlayLayer::triggerObject));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1FFD80), PlayLayer::lightningFlashHook, reinterpret_cast<void **>(&PlayLayer::lightningFlash));
-
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x12ADF0), MenuLayer::onBackHook, reinterpret_cast<void **>(&MenuLayer::onBack));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x18CF40), MenuLayer::loadingStringHook, reinterpret_cast<void **>(&MenuLayer::loadingString));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xC4BD0), LevelEditorLayer::fadeMusicHook, reinterpret_cast<void **>(&LevelEditorLayer::fadeMusic));
         Setup();
         // Speedhack::Setup();
 

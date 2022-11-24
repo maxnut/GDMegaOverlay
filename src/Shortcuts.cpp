@@ -322,7 +322,6 @@ void Shortcuts::OnPress(int index)
         break;
     case 59:
         PlayLayer::resetLevelHook(gd::GameManager::sharedState()->getPlayLayer(), 0);
-        Hacks::SaveSettings();
         break;
     case 60:
         labels.statuses[0] = !labels.statuses[0];

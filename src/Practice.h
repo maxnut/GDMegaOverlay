@@ -15,7 +15,7 @@ struct CheckpointData
         return cd;
     }
 
-    void Apply(gd::PlayerObject *p) const;
+    void Apply(gd::PlayerObject *p, bool addedAction) const;
 };
 
 struct Checkpoint
@@ -43,14 +43,14 @@ public:
 
     Checkpoint GetLast();
 
-    void ApplyCheckpoint()
+    void ApplyCheckpoint(bool addedAction)
     {
         auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
         if (playLayer)
         {
             const Checkpoint c = GetLast();
-            c.p1.Apply(playLayer->m_pPlayer1);
-            c.p2.Apply(playLayer->m_pPlayer2);
+            c.p1.Apply(playLayer->m_pPlayer1, addedAction);
+            c.p2.Apply(playLayer->m_pPlayer2, addedAction);
         }
     }
 };

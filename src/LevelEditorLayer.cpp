@@ -52,3 +52,14 @@ void __fastcall LevelEditorLayer::drawHook(gd::LevelEditorLayer *self, void *)
 		}
 	}
 }
+
+void __fastcall LevelEditorLayer::exitHook(CCLayer *self, void *, CCObject* sender)
+{
+	LevelEditorLayer::exit(self, sender);
+	Hacks::MenuMusic();
+}
+
+void __fastcall LevelEditorLayer::fadeMusicHook(gd::GameManager* self, void*, char* idk)
+{
+	if(!hacks.replaceMenuMusic) LevelEditorLayer::fadeMusic(self, idk);
+}

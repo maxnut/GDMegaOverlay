@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "Replay.h"
 #include "Practice.h"
+#include "record.hpp"
 
 class ReplayPlayer
 {
@@ -46,4 +47,6 @@ class ReplayPlayer
     void StartPlaying(gd::PlayLayer* playLayer);
     void Reset(gd::PlayLayer* playLayer);
     void Update(gd::PlayLayer* playLayer);
+
+    Recorder recorder;
 };

@@ -1,5 +1,6 @@
 #include "LevelSearchLayer.h"
 #include "FetchDemonlist.h"
+#include "Hacks.h"
 
 bool __fastcall LevelSearchLayer::hook(CCLayer* self)
 {

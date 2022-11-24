@@ -5,15 +5,61 @@
 #include <fstream>
 #include "speedhack.h"
 #include "bools.h"
+#include "fmod.hpp"
+#include "ReplayPlayer.h"
+#include "filesystem"
+#include <ShlObj_core.h>
+#pragma comment(lib, "shell32")
+#include <shellapi.h>
 
 static DWORD libcocosbase = (DWORD)GetModuleHandleA("libcocos2d.dll");
 extern struct HacksStr hacks;
 extern struct Labels labels;
+extern struct Debug debug;
 
 namespace Hacks
 {
 
+    extern std::vector<std::string> musicPaths;
+    extern std::filesystem::path path;
+
+    extern int amountOfClicks, amountOfReleases, amountOfMediumClicks;
+
+    static std::string utf16ToUTF8(const std::wstring &s)
+    {
+        const int size = ::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), -1, NULL, 0, 0, NULL);
+
+        std::vector<char> buf(size);
+        ::WideCharToMultiByte(CP_UTF8, 0, s.c_str(), -1, &buf[0], size, 0, NULL);
+
+        return std::string(&buf[0]);
+    }
+
     static void writeOutput(std::string out)
+    {
+        std::ofstream file("output.log", std::fstream::app);
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+        std::ostringstream s;
+        s << std::put_time(&tm, "%H:%M:%S");
+        file << "\n"
+             << s.str() << " " << out;
+        file.close();
+    }
+
+    static void writeOutput(int out)
+    {
+        std::ofstream file("output.log", std::fstream::app);
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+        std::ostringstream s;
+        s << std::put_time(&tm, "%H:%M:%S");
+        file << "\n"
+             << s.str() << " " << out;
+        file.close();
+    }
+
+    static void writeOutput(float out)
     {
         std::ofstream file("output.log", std::fstream::app);
         auto t = std::time(nullptr);
@@ -496,6 +542,12 @@ namespace Hacks
 
     static void safemode(bool active)
     {
+        if(!active && ReplayPlayer::getInstance().IsPlaying())
+        {
+            hacks.safemode = true;
+            return;
+        }
+
         if (active)
         {
             writeBytes(gd::base + 0x20A3B2, {0xE9, 0x9A, 0x01, 0x00, 0x00, 0x90, 0x90});
@@ -742,5 +794,44 @@ namespace Hacks
         if (f)
             f.write((char *)&labels, sizeof(HacksStr));
         f.close();
+    }
+
+    static std::string GetSongFolder()
+    {
+        std::filesystem::path path;
+        PWSTR path_tmp;
+        auto get_folder_path_ret = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &path_tmp);
+
+        if (get_folder_path_ret != S_OK)
+        {
+            CoTaskMemFree(path_tmp);
+        }
+        else
+        {
+            path = path_tmp;
+            path = path.parent_path();
+            path = path / "Local/GeometryDash";
+            CoTaskMemFree(path_tmp);
+            return utf16ToUTF8(path.c_str());
+        }
+        return "";
+    }
+
+    static void MenuMusic()
+    {
+        if (hacks.replaceMenuMusic)
+        {
+            path.clear();
+            gd::GameSoundManager::sharedState()->stopBackgroundMusic();
+            if (hacks.randomMusic)
+            {
+                hacks.randomMusicIndex = rand() % musicPaths.size();
+                gd::GameSoundManager::sharedState()->playBackgroundMusic(true, musicPaths[hacks.randomMusicIndex]);
+            }
+            else
+            {
+                gd::GameSoundManager::sharedState()->playBackgroundMusic(true, musicPaths[hacks.musicIndex]);
+            }
+        }
     }
 }

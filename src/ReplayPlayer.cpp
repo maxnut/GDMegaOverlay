@@ -10,6 +10,10 @@ FMOD::System *sys;
 std::vector<FMOD::Sound *> clicks, releases, mediumclicks;
 FMOD::Channel *channel = 0, *channel2 = 0;
 
+int Hacks::amountOfClicks = 0;
+int Hacks::amountOfMediumClicks = 0;
+int Hacks::amountOfReleases = 0;
+
 double oldTime = 0;
 
 uint32_t ReplayPlayer::GetFrame()
@@ -45,6 +49,7 @@ ReplayPlayer::ReplayPlayer()
         filestr = "GDMenu/clicks/clicks/" + std::to_string(i) + ".wav";
         exist = std::filesystem::exists(filestr);
     }
+    Hacks::amountOfClicks = clicks.size();
 
     exist = std::filesystem::exists("GDMenu/clicks/releases/1.wav");
     i = 1;
@@ -58,6 +63,7 @@ ReplayPlayer::ReplayPlayer()
         filestr = "GDMenu/clicks/releases/" + std::to_string(i) + ".wav";
         exist = std::filesystem::exists(filestr);
     }
+    Hacks::amountOfReleases = releases.size();
 
     exist = std::filesystem::exists("GDMenu/clicks/mediumclicks/1.wav");
     i = 1;
@@ -71,6 +77,7 @@ ReplayPlayer::ReplayPlayer()
         filestr = "GDMenu/clicks/mediumclicks/" + std::to_string(i) + ".wav";
         exist = std::filesystem::exists(filestr);
     }
+    Hacks::amountOfMediumClicks = mediumclicks.size();
 }
 
 void ReplayPlayer::ToggleRecording()
@@ -78,7 +85,7 @@ void ReplayPlayer::ToggleRecording()
     playing = false;
     recording = !recording;
 
-    if (replay.GetActionsSize() > 0 && IsRecording())
+    if (replay.GetActionsSize() > 0 && IsRecording() && hacks.actionStart <= 0)
     {
         replay.ClearActions();
     }
@@ -89,6 +96,8 @@ void ReplayPlayer::TogglePlaying()
     recording = false;
     playing = !playing;
     Hacks::FPSBypass(hacks.fps);
+    hacks.safemode = playing;
+    Hacks::safemode(hacks.safemode);
 }
 
 void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
@@ -96,6 +105,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
     oldTime = 0;
     UpdateFrameOffset();
     actionIndex = hacks.actionStart;
+    bool addedAction = false;
 
     bool hasCheckpoint = playLayer->m_checkpoints->count() > 0;
     const auto checkpoint = practice.GetLast();
@@ -130,6 +140,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
         if ((holding && actions.empty()) || (!actions.empty() && ac.press != holding && !ac.dummy))
         {
             RecordAction(holding, playLayer->m_pPlayer1, true, false);
+            addedAction = true;
             if (playLayer->m_bIsDualMode)
                 RecordAction(holding, playLayer->m_pPlayer2, false, false);
             if (holding)
@@ -154,6 +165,10 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
                 PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
                 PlayLayer::pushButton(playLayer->m_pPlayer2, 0);
             }
+            RecordAction(true, playLayer->m_pPlayer1, true, false);
+            addedAction = true;
+            if (playLayer->m_bIsDualMode)
+                RecordAction(true, playLayer->m_pPlayer2, false, false);
         }
     }
     else if (IsPlaying())
@@ -163,7 +178,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
     }
 
     if (IsRecording() || hacks.fixPractice)
-        practice.ApplyCheckpoint();
+        practice.ApplyCheckpoint(addedAction);
 }
 
 void ReplayPlayer::Load(std::string name)
@@ -178,8 +193,8 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
     if (actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0)
         return;
     auto ac = replay.getActions()[actionIndex];
-    // ac.player2 ^= playLayer->m_isFlipped;
-    if (ac.player2 && GetFrame() >= ac.frame || playLayer->m_pPlayer1->m_position.x >= ac.px)
+
+    if (GetFrame() >= ac.frame || playLayer->m_pPlayer1->m_position.x >= ac.px)
     {
         if (!ac.player2)
         {
@@ -228,7 +243,7 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 {
                     sys->playSound(releases[rr], nullptr, false, &channel);
                     channel2->setPitch(p);
-                    channel2->setVolume(v + 1.0f);
+                    channel2->setVolume(v + 0.5f);
                     oldTime = playLayer->m_time;
                 }
                 ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);

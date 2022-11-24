@@ -505,7 +505,7 @@ void Update(gd::PlayLayer *self, float dt)
 		unsigned int *pos = &p;
 		float offset = self->m_pLevelSettings->m_songStartOffset * 1000;
 		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
-		if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && percent < 98.0f)
+		if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !self->m_hasCompletedLevel)
 		{
 			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition((uint32_t)(f * 1000) + (uint32_t)offset, FMOD_TIMEUNIT_MS);
 		}
@@ -633,6 +633,9 @@ void Update(gd::PlayLayer *self, float dt)
 
 	if (replayPlayer && replayPlayer->IsPlaying())
 		replayPlayer->Update(self);
+
+	if(replayPlayer->recorder.m_recording)
+        replayPlayer->recorder.handle_recording(self, dt);
 
 	PlayLayer::update(self, dt);
 
@@ -778,15 +781,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	for (size_t i = 0; i < STATUSSIZE; i++)
 		UpdatePositions(i);
 
-	if (replayPlayer && replayPlayer->IsPlaying())
-	{
-		Hacks::safemode(true);
-	}
-	else
-	{
-		Hacks::safemode(hacks.safemode);
-	}
-
 	// unmute
 	if (pressed)
 	{
@@ -812,7 +806,10 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	PlayLayer::resetLevel(self);
 
 	if (replayPlayer)
+	{
 		replayPlayer->Reset(self);
+		replayPlayer->recorder.update_song_offset(self);
+	}
 }
 
 void __fastcall PlayLayer::togglePracticeModeHook(gd::PlayLayer *self, void *edx, bool on)
@@ -834,8 +831,7 @@ void __fastcall PlayLayer::onQuitHook(gd::PlayLayer *self, void *)
 		gd::FLAlertLayer::create(&a, "Alert", "No", "Yes", "Do you really want to quit?")->show();
 	else
 	{
-		PlayLayer::onQuit(self);
-		playlayer = nullptr;
+		PlayLayer::Quit();
 	}
 }
 
@@ -843,6 +839,7 @@ void PlayLayer::Quit()
 {
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
+	Hacks::MenuMusic();
 }
 
 bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd::GJGameLevel *lvl)
@@ -885,7 +882,7 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 	if (key == numbers[hacks.stepIndex] && down)
 		steps = hacks.stepCount;
 
-	if (!hacks.startPosSwitcher)
+	if (!hacks.startPosSwitcher || sp.size() <= 0)
 		return;
 
 	if (down && key == VK_RIGHT)

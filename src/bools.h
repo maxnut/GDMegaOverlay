@@ -46,7 +46,17 @@ struct HacksStr
     bool confirmQuit, autoSyncMusic, hidePause = false;
     int musicMaxDesync = 80, hitboxOpacity = 200, borderOpacity = 255, hitboxKeyIndex;
     float clickColor[3] = {1.0f, 0.0f, 0.0f};
-    bool onlyRainbowOutline = false;
+    bool onlyRainbowOutline = false, replaceMenuMusic = false, randomMusic = false;
+    int musicIndex, randomMusicIndex;
+
+    bool recording = false;
+    int videoDimenstions[2] = {1280, 720};
+    int videoFps = 60;
+    float renderMusicVolume = 0.45f, renderClickVolume = 0.74f;
+    bool includeClicks;
+    char bitrate[8] = "30M";
+    int clickSoundChunkSize = 20;
+    float afterEndDuration = 1.0f;
 };
 
 enum position {TR, TL, BR, BL};

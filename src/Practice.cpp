@@ -36,13 +36,13 @@ CustomCheckpoint *CustomCheckpoint::createHook()
     return cc;
 }
 
-void CheckpointData::Apply(gd::PlayerObject *p) const
+void CheckpointData::Apply(gd::PlayerObject *p, bool addedAction) const
 {
     p->m_yAccel = yAccel;
     p->setRotation(rotation);
     auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
 
-    if (ReplayPlayer::getInstance().IsRecording())
+    if (ReplayPlayer::getInstance().IsRecording() && !addedAction)
     {
         if (p == playLayer->m_pPlayer1)
             ReplayPlayer::getInstance().RecordAction(true, p, true, true);

@@ -14,17 +14,6 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 	auto gm = gd::GameManager::sharedState();
 	bool result = MenuLayer::init(self);
 
-	auto director = CCDirector::sharedDirector();
-	auto size = director->getWinSize();
-	
-
- 	CCLabelBMFont* pipi = CCLabelBMFont::create("Running - made by maxnut", "bigFont-uhd.fnt");
-	pipi->setZOrder(1000);
-	pipi->setScale(0.2f);
-	pipi->setOpacity(150.0f);
-	pipi->setPosition(size.width / 2, 10);
-	self->addChild(pipi);
-
 	if(hacks.icons && !firstCall)
 	{
 		firstCall = true;
@@ -41,9 +30,19 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 		gm->setPlayerDeathEffect(hacks.iconIds[9]);
 		gm->setPlayerGlow(hacks.iconIds[10]);
 		gm->setPlayerStreak(hacks.iconIds[11]);
+
+		srand(time(NULL));
+		Hacks::MenuMusic();
 	}
-	else if(hacks.icons)
+
+	return result;
+}
+
+void __fastcall MenuLayer::onBackHook(CCLayer* self, void*, cocos2d::CCObject* sender)
+{
+	if(hacks.icons)
 	{
+		auto gm = gd::GameManager::sharedState();
 		hacks.iconIds[0] = gm->getPlayerFrame();
 		hacks.iconIds[1] = gm->getPlayerShip();
 		hacks.iconIds[2] = gm->getPlayerBall();
@@ -58,10 +57,14 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 		hacks.iconIds[11] = gm->getPlayerStreak();
 
 		std::ofstream f;
-        f.open("settings.bin", std::fstream::binary);
+        f.open("GDMenu/settings.bin", std::fstream::binary);
         if(f) f.write((char*) &hacks, sizeof(HacksStr));
         f.close();
 	}
+	MenuLayer::onBack(self, sender);
+}
 
-	return result;
+const char* __fastcall MenuLayer::loadingStringHook(CCLayer* self, void*)
+{
+	return "GD Mod Menu - Made by maxnut";
 }
