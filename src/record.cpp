@@ -12,34 +12,6 @@
 
 extern struct HacksStr hacks;
 
-std::string narrow(const wchar_t *str)
-{
-    int size = WideCharToMultiByte(CP_UTF8, 0, str, -1, nullptr, 0, nullptr, nullptr);
-    if (size <= 0)
-    { /* fuck */
-    }
-    auto buffer = new char[size];
-    WideCharToMultiByte(CP_UTF8, 0, str, -1, buffer, size, nullptr, nullptr);
-    std::string result(buffer, size_t(size) - 1);
-    delete[] buffer;
-    return result;
-}
-inline auto narrow(const std::wstring &str) { return narrow(str.c_str()); }
-
-std::wstring widen(const char *str)
-{
-    int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
-    if (size <= 0)
-    { /* fuck */
-    }
-    auto buffer = new wchar_t[size];
-    MultiByteToWideChar(CP_UTF8, 0, str, -1, buffer, size);
-    std::wstring result(buffer, size_t(size) - 1);
-    delete[] buffer;
-    return result;
-}
-inline auto widen(const std::string &str) { return widen(str.c_str()); }
-
 Recorder::Recorder() : m_width(1280), m_height(720), m_fps(60) {}
 
 void Recorder::start()
@@ -129,11 +101,11 @@ void Recorder::start()
                     if (!m_include_audio || !std::filesystem::exists(song_file))
                         return;
                     wchar_t buffer[MAX_PATH];
-                    if (!GetTempFileNameW(widen(std::filesystem::temp_directory_path().string()).c_str(), L"rec", 0, buffer))
+                    if (!GetTempFileNameW(Hacks::widen(std::filesystem::temp_directory_path().string()).c_str(), L"rec", 0, buffer))
                     {
                         return;
                     }
-                    auto temp_path = narrow(buffer) + "." + std::filesystem::path(notfinalpath).filename().string();
+                    auto temp_path = Hacks::narrow(buffer) + "." + std::filesystem::path(notfinalpath).filename().string();
                     std::filesystem::rename(buffer, temp_path);
                     auto total_time = m_last_frame_t; // 1 frame too short?
 
@@ -157,8 +129,8 @@ void Recorder::start()
                         }
                     }
 
-                    std::filesystem::remove(widen(notfinalpath));
-                    std::filesystem::rename(temp_path, widen(notfinalpath));
+                    std::filesystem::remove(Hacks::widen(notfinalpath));
+                    std::filesystem::rename(temp_path, Hacks::widen(notfinalpath));
 
                     if (!hacks.includeClicks || !hacks.recording)
                         return;
@@ -288,7 +260,7 @@ void Recorder::start()
 
                     for (size_t i = hacks.clickSoundChunkSize; i <= actionTracker; i += hacks.clickSoundChunkSize)
                     {
-                        std::filesystem::remove(widen(gdpath + "/rendered_clicks" + std::to_string(i) + ".mp3"));
+                        std::filesystem::remove(Hacks::widen(gdpath + "/rendered_clicks" + std::to_string(i) + ".mp3"));
                     } })
         .detach();
 }

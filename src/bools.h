@@ -57,6 +57,13 @@ struct HacksStr
     char bitrate[8] = "30M";
     int clickSoundChunkSize = 20;
     float afterEndDuration = 1.0f;
+
+    bool solidWavePulse = false, hitboxTrail = false;
+    float hitboxTrailLength = 50.0f, hitboxMultiplier, noclipRedRate = 1.0f, noclipRedLimit = 100.0f, noclipRedRateDown = 1.0f;
+    bool noclipRed = false;
+    float noclipColor[3] = {1.0f, 0.0f, 0.0f};
+    bool noMirrorPortal = false, zorder = false, guardVault = false, keymasterVault = false, keymasterBasement = false, basementBypass = false, challengeBypass = false, treasureRoom = false, potbarShop = false, scratchShop = false, gatekeeperVault = false, backupStar = false
+    , showExtraInfo = true;
 };
 
 enum position {TR, TL, BR, BL};

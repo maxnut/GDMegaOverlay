@@ -1,4 +1,5 @@
 #include "PlayLayer.h"
+#include "EndLevelLayer.h"
 #include "ReplayPlayer.h"
 #include "Hacks.h"
 #include "bools.h"
@@ -16,19 +17,17 @@
 
 using namespace porcodio;
 
-float percent;
 extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
+
 ExitAlert a;
 
-CCSize size;
 HitboxNode *drawer;
 gd::PlayLayer *playlayer;
 
-CCNode *testmode;
+float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 0;
 
-float startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP, pressTimer = 0, releaseTimer = 0;
 std::string bestRun = "Best Run: none", text;
 
 std::vector<float> clicksArr;
@@ -44,6 +43,9 @@ unsigned int songLength;
 CCNode *statuses[STATUSSIZE];
 CCLabelBMFont *startPosText, *macroText;
 CCScheduler *scheduler;
+CCNode *testmode;
+CCSize size;
+CCSprite *noclipRed;
 
 ReplayPlayer *replayPlayer;
 
@@ -93,15 +95,26 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	maxRun = 0;
 	bestRun = "Best Run: none";
 	text = "Accuracy: 100.00%";
+	EndLevelLayer::accuracy = text;
 	noClipDeaths = 0;
 	totalClicks = 0;
 	actualDeaths = 0;
+	EndLevelLayer::deaths = 0;
 	delta = 0;
 	dead = false;
 	clicksArr.clear();
 
 	pressTimer = 0;
 	releaseTimer = hacks.releaseTime;
+
+	const ccColor3B noclipColor = {hacks.noclipColor[0] * 255, hacks.noclipColor[1] * 255, hacks.noclipColor[2] * 255};
+	noclipRed = CCSprite::createWithSpriteFrameName("block005b_05_001.png");
+	noclipRed->setPosition({size.width / 2, size.height / 2});
+	noclipRed->setScale(1000.0f);
+	noclipRed->setColor(noclipColor);
+	noclipRed->setOpacity(0);
+	noclipRed->setZOrder(1000);
+	self->addChild(noclipRed);
 
 	statuses[0] = CCSprite::createWithSpriteFrameName("edit_eToggleBtn2_001.png");
 	statuses[0]->setZOrder(1000);
@@ -189,7 +202,7 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 		if ((int)startPercent != (int)endPercent && run > maxRun)
 		{
 			maxRun = run;
-			bestRun = "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent);
+			bestRun = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
 		}
 	}
 	PlayLayer::destroyPlayer(self, player, obj);
@@ -202,7 +215,7 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 	if (run > maxRun)
 	{
 		maxRun = run;
-		bestRun = "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent);
+		bestRun = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
 	}
 
 	if (pressed)
@@ -219,7 +232,7 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 
 void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrangers)
 {
-	if (delta > 0.2f)
+	if (delta > 0.2f && (percent - startPercent) * playlayer->m_levelLength > 0.04f * playlayer->m_levelLength)
 	{
 		dead = true;
 		hitboxDead = true;
@@ -239,7 +252,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[0] && scheduler)
 	{
 		spritePtr->setOpacity(labels.opacity[0]);
-		if (hacks.noclip || hacks.freezeplayer || hacks.jumphack || hacks.instantcomplete || hacks.hitboxType > 0 || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode)
+		if (hacks.fps > 360.0f || hacks.noclip || hacks.freezeplayer || hacks.jumphack || hacks.instantcomplete || hacks.hitboxType > 0 || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.showHitboxes && !hacks.onlyOnDeath)
 			spritePtr->setColor(red);
 		else if (hacks.safemode)
 			spritePtr->setColor(yellow);
@@ -291,18 +304,9 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	if (labels.statuses[3])
 	{
-		if (noClipDeaths == 0)
-			text = "Accuracy: 100.00%";
-		else
+		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
-			float p = (float)(frames - noClipDeaths) / (float)frames;
-			std::stringstream stream;
-			stream << "Accuracy: " << std::fixed << std::setprecision(2) << p * 100.f << "%";
-			text = stream.str();
-			if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
-			{
-				Hacks::noclip(false);
-			}
+			Hacks::noclip(false);
 		}
 		fontPtr->setColor(dead ? red : white);
 		fontPtr->setString(text.c_str());
@@ -495,7 +499,11 @@ void Update(gd::PlayLayer *self, float dt)
 	self->m_attemptLabel->setVisible(!hacks.hideattempts);
 
 	if (dead && !lastFrameDead)
+	{
 		actualDeaths++;
+		EndLevelLayer::deaths++;
+	}
+
 	lastFrameDead = dead;
 
 	if (hacks.autoSyncMusic)
@@ -509,6 +517,20 @@ void Update(gd::PlayLayer *self, float dt)
 		{
 			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition((uint32_t)(f * 1000) + (uint32_t)offset, FMOD_TIMEUNIT_MS);
 		}
+	}
+
+	if (noClipDeaths == 0)
+	{
+		text = "Accuracy: 100.00%";
+		EndLevelLayer::accuracy = text;
+	}
+	else if (labels.statuses[3] || hacks.showExtraInfo)
+	{
+		p = (float)(frames - noClipDeaths) / (float)frames;
+		std::stringstream stream;
+		stream << "Accuracy: " << std::fixed << std::setprecision(2) << p * 100.f << "%";
+		text = stream.str();
+		EndLevelLayer::accuracy = text;
 	}
 
 	if (hacks.platformer)
@@ -579,6 +601,9 @@ void Update(gd::PlayLayer *self, float dt)
 	}
 	prevP = self->m_pPlayer1->getPositionX();
 
+	if (startPosText && delta > 0.5f && startPosText->getOpacity() > 0)
+		startPosText->setOpacity(startPosText->getOpacity() - 2);
+
 	if (hacks.rainbowIcons)
 	{
 		float r, g, b;
@@ -622,10 +647,26 @@ void Update(gd::PlayLayer *self, float dt)
 	if (testmode)
 		testmode->setVisible(!(hacks.hideTestmode && self->m_isTestMode));
 
-	if (dead)
+	if (dead && !self->m_hasCompletedLevel && hacks.noclip)
 	{
 		noClipDeaths++;
+		if (opacity < hacks.noclipRedLimit)
+			opacity += hacks.noclipRedRate;
+		else
+			opacity = hacks.noclipRedLimit;
 	}
+	else
+	{
+		if (opacity > 0)
+			opacity -= hacks.noclipRedRateDown;
+		else
+			opacity = 0;
+	}
+
+	if (!hacks.noclipRed)
+		opacity = 0;
+
+	noclipRed->setOpacity((int)opacity);
 
 	UpdateLabels(self);
 
@@ -634,10 +675,15 @@ void Update(gd::PlayLayer *self, float dt)
 	if (replayPlayer && replayPlayer->IsPlaying())
 		replayPlayer->Update(self);
 
-	if(replayPlayer->recorder.m_recording)
-        replayPlayer->recorder.handle_recording(self, dt);
+	if (replayPlayer->recorder.m_recording)
+		replayPlayer->recorder.handle_recording(self, dt);
 
 	PlayLayer::update(self, dt);
+
+	if (self->m_pPlayer1->m_waveTrail && hacks.solidWavePulse)
+		self->m_pPlayer1->m_waveTrail->m_pulseSize = hacks.waveSize;
+	if (self->m_pPlayer2->m_waveTrail && hacks.solidWavePulse)
+		self->m_pPlayer2->m_waveTrail->m_pulseSize = hacks.waveSize;
 
 	if (hacks.layoutMode)
 	{
@@ -672,10 +718,14 @@ void Update(gd::PlayLayer *self, float dt)
 		drawer->setVisible(true);
 		if (self->m_pPlayer1)
 		{
+			if (hacks.hitboxTrail)
+				drawer->addToPlayer1Queue(self->m_pPlayer1->getObjectRect());
 			drawer->drawForPlayer1(self->m_pPlayer1);
 		}
 		if (self->m_pPlayer2)
 		{
+			if (hacks.hitboxTrail)
+				drawer->addToPlayer2Queue(self->m_pPlayer2->getObjectRect());
 			drawer->drawForPlayer2(self->m_pPlayer2);
 		}
 
@@ -742,6 +792,9 @@ void __fastcall PlayLayer::triggerObjectHook(gd::EffectGameObject *self, void *,
 
 void Change()
 {
+	if (startPosText)
+		startPosText->setOpacity(150.0f);
+		
 	if (playlayer->unk330)
 		playlayer->unk330->release();
 	playlayer->unk330 = nullptr;
@@ -759,6 +812,22 @@ void Change()
 	}
 }
 
+void PlayLayer::SetHitboxSize(float size)
+{
+	static std::vector<cocos2d::CCSize> sizes;
+	if (!playlayer || size < 0.1f)
+		return;
+
+	for (size_t i = 0; i < playlayer->getAllObjects()->count(); i++)
+	{
+		auto obj = static_cast<gd::GameObject *>(playlayer->getAllObjects()->objectAtIndex(i));
+		if (sizes.size() <= i)
+			sizes.push_back(obj->m_obObjectRect2.size);
+
+		obj->m_obObjectRect2.size.setSize(sizes[i].width * size, sizes[i].height * size);
+	}
+}
+
 void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 {
 	hitboxDead = false;
@@ -766,17 +835,21 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	// reset stuff
 	totalClicks = 0;
 	actualDeaths = 0;
+	EndLevelLayer::deaths = 0;
 	lastFrameDead = false;
 	noClipDeaths = 0;
 	delta = 0;
 	steps = 0;
 	pressTimer = 0;
+	opacity = 0;
 	releaseTimer = hacks.releaseTime;
 	clickType = true;
 	dead = false;
 	frames = 0;
 	Hacks::noclip(hacks.noclip);
 	clicksArr.clear();
+	if (drawer)
+		drawer->clearQueue();
 
 	for (size_t i = 0; i < STATUSSIZE; i++)
 		UpdatePositions(i);
@@ -840,11 +913,14 @@ void PlayLayer::Quit()
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
 	Hacks::MenuMusic();
+	drawer->clearQueue();
 }
 
 bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd::GJGameLevel *lvl)
 {
 	playlayer = nullptr;
+	if (drawer)
+		drawer->clearQueue();
 	bool res = PlayLayer::editorInit(self, lvl);
 	self->getObjectLayer()->addChild(HitboxNode::getInstance(), 32);
 	return res;
@@ -863,14 +939,15 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 	if (key == 'L' && down)
 	{
 		debugNum++;
-		if(debugNum >= 10) debug.enabled = true;
+		if (debugNum >= 10)
+			debug.enabled = true;
 	}
-	
+
 	const int numbers[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x14, 0x11, 0x12, 0x10, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B};
 
-	for(size_t i = 0; i < Shortcuts::shortcuts.size(); i++)
+	for (size_t i = 0; i < Shortcuts::shortcuts.size(); i++)
 	{
-		if(key == numbers[Shortcuts::shortcuts[i].key] && down)
+		if (key == numbers[Shortcuts::shortcuts[i].key] && down)
 		{
 			Shortcuts::OnPress(Shortcuts::shortcuts[i].shortcutIndex);
 		}

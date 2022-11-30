@@ -6,8 +6,9 @@
 #include "MenuLayer.h"
 #include "LevelSearchLayer.h"
 #include "LevelEditorLayer.h"
+#include "EndLevelLayer.h"
 #include "Hacks.h"
-#include "FpsMult.h"
+#include "CCSchedulerHook.h"
 #include "ReplayPlayer.h"
 #include <fstream>
 #include "speedhack.h"
@@ -19,9 +20,9 @@ bool applied = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
-float screenSize;
+float screenSize, pitch;
 
-int deafenInt = 0, shortcutIndex, shortcutIndexKey;
+int deafenInt = 0, shortcutIndex, shortcutIndexKey, pitchName;
 char fileName[30];
 std::vector<std::string> Hacks::musicPaths;
 std::filesystem::path Hacks::path;
@@ -133,6 +134,7 @@ char nameBuf[20];
 
 void Init()
 {
+    srand(time(NULL));
     if (!std::filesystem::is_directory("GDMenu") || !std::filesystem::exists("GDMenu"))
     {
         std::filesystem::create_directory("GDMenu");
@@ -166,16 +168,18 @@ void Init()
         musicPathsVet.push_back(Hacks::musicPaths[i].c_str());
     }
 
+    Hacks::AnticheatBypass();
+
     std::ifstream f;
     f.open("GDMenu/settings.bin", std::fstream::binary);
     if (f)
     {
         f.read((char *)&hacks, sizeof(HacksStr));
+        hacks.safemode = false;
         Hacks::FPSBypass(hacks.fps);
         Hacks::noTransition(hacks.notransition);
         Hacks::unlockIcons(hacks.icons);
         Hacks::MainLevels(hacks.mainLevels);
-        Hacks::AnticheatBypass();
         Hacks::accuratepercentage(hacks.accuratepercentage);
         Hacks::nopulse(hacks.nopulse);
         Hacks::practicemusic(hacks.practicemusic);
@@ -214,6 +218,18 @@ void Init()
         Hacks::WriteRef(gd::base + 0x20A677, hacks.respawnTime);
         Hacks::transparentLists(hacks.transparentList);
         Hacks::transparentMenus(hacks.transparentMenus);
+        Hacks::noMirrorPortal(hacks.noMirrorPortal);
+        Hacks::zorder(hacks.zorder);
+        Hacks::guardVault(hacks.guardVault);
+        Hacks::keymasterVault(hacks.keymasterVault);
+        Hacks::keymasterBasement(hacks.keymasterBasement);
+        Hacks::basementBypass(hacks.basementBypass);
+        Hacks::challengeBypass(hacks.challengeBypass);
+        Hacks::treasureRoom(hacks.treasureRoom);
+        Hacks::potbarShop(hacks.potbarShop);
+        Hacks::scratchShop(hacks.scratchShop);
+        Hacks::gatekeeperVault(hacks.gatekeeperVault);
+        Hacks::backupStar(hacks.backupStar);
         deafenInt = hacks.curChar;
         hacks.recording = false;
 
@@ -257,15 +273,15 @@ void RenderMain()
     bool resetWindows = false;
 
     if (!gd::GameManager::sharedState()->getPlayLayer())
-        {
-            hacks.recording = false;
-            if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture && ReplayPlayer::getInstance().recorder.m_recording)
-                ReplayPlayer::getInstance().recorder.stop();
-        }
+    {
+        hacks.recording = false;
+        if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture && ReplayPlayer::getInstance().recorder.m_recording)
+            ReplayPlayer::getInstance().recorder.stop();
+    }
 
     if (show)
     {
-
+        cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
         SetStyle();
         closed = false;
 
@@ -282,7 +298,7 @@ void RenderMain()
         ImGui::Begin("Menu Settings", 0, ImGuiWindowFlags_AlwaysAutoResize);
         if (resetWindows)
             ImGui::SetWindowPos({340, 300});
-        ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+        ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         ImGui::InputFloat("Menu UI Size", &hacks.menuSize);
         if (hacks.menuSize > 3)
             hacks.menuSize = 3;
@@ -305,7 +321,7 @@ void RenderMain()
 
         if (resetWindows)
             ImGui::SetWindowPos({20, 20});
-        ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+        ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         ImGui::InputFloat("FPS Bypass Value", &hacks.fps);
         ImGui::InputFloat("Speedhack Value", &hacks.speed);
         ImGui::PopItemWidth();
@@ -326,13 +342,13 @@ void RenderMain()
         if (resetWindows)
             ImGui::SetWindowPos({340, 20});
         ImGui::Checkbox("Auto Deafen", &hacks.autoDeafen);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(170 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("autod", 1))
             ImGui::OpenPopup("Auto Deafen Settings");
 
         if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+            ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
             ImGui::InputFloat("Auto Deafen %", &hacks.percentage);
 
             if (ImGui::Combo("Deafen Char", &deafenInt, alphabet, IM_ARRAYSIZE(alphabet)))
@@ -363,13 +379,13 @@ void RenderMain()
         ImGui::Checkbox("Hide Pause Menu", &hacks.hidePause);
 
         ImGui::Checkbox("Custom Menu Music", &hacks.replaceMenuMusic);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("custmm", 1))
             ImGui::OpenPopup("Custom Menu Music Settings");
 
         if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+            ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
             ImGui::Combo("Song File", &hacks.musicIndex, musicPathsVet.data(), Hacks::musicPaths.size());
             ImGui::PopItemWidth();
             ImGui::Checkbox("Random Menu Music", &hacks.randomMusic);
@@ -392,7 +408,7 @@ void RenderMain()
         ImGui::Checkbox("StartPos Switcher", &hacks.startPosSwitcher);
 
         ImGui::Checkbox("Show Hitboxes", &hacks.showHitboxes);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("hit", 1))
             ImGui::OpenPopup("Hitbox Settings");
 
@@ -401,6 +417,8 @@ void RenderMain()
             ImGui::Checkbox("Only on Death", &hacks.onlyOnDeath);
             ImGui::Checkbox("Show Decorations", &hacks.showDecorations);
             ImGui::Checkbox("Hitboxes only", &hacks.hitboxOnly);
+            ImGui::Checkbox("Hitbox trail", &hacks.hitboxTrail);
+            ImGui::InputFloat("Trail Length", &hacks.hitboxTrailLength);
             ImGui::InputInt("Hitbox Opacity", &hacks.borderOpacity);
             ImGui::InputInt("Fill Opacity", &hacks.hitboxOpacity);
             ImGui::InputFloat("Hitbox Thickness", &hacks.hitboxThickness);
@@ -442,7 +460,7 @@ void RenderMain()
             ImGui::SetTooltip("Activate this if you want the practice fixes to be active even if macrobot is not recording");
 
         ImGui::Checkbox("Auto Sync Music", &hacks.autoSyncMusic);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("ausm", 1))
             ImGui::OpenPopup("Auto Sync Music Settings");
 
@@ -457,6 +475,7 @@ void RenderMain()
         }
 
         ImGui::Checkbox("Confirm Quit", &hacks.confirmQuit);
+        ImGui::Checkbox("Show Endscreen Info", &hacks.showExtraInfo);
 
         ImGui::End();
 
@@ -473,6 +492,28 @@ void RenderMain()
             Hacks::TextLength(hacks.textLength);
         if (ImGui::Checkbox("Filter Bypass", &hacks.filterBypass))
             Hacks::FilterBypass(hacks.filterBypass);
+        if (ImGui::Checkbox("Guard Vault", &hacks.guardVault))
+            Hacks::guardVault(hacks.guardVault);
+        if (ImGui::Checkbox("Keymaster Vault", &hacks.keymasterVault))
+            Hacks::keymasterVault(hacks.keymasterVault);
+        if (ImGui::Checkbox("Keymaster Basement", &hacks.keymasterBasement))
+            Hacks::keymasterBasement(hacks.keymasterBasement);
+        if (ImGui::Checkbox("Basement Bypass", &hacks.basementBypass))
+            Hacks::basementBypass(hacks.basementBypass);
+        if (ImGui::Checkbox("Challenge Bypass", &hacks.challengeBypass))
+            Hacks::challengeBypass(hacks.challengeBypass);
+        if (ImGui::Checkbox("Treasure Room", &hacks.treasureRoom))
+            Hacks::treasureRoom(hacks.treasureRoom);
+        if (ImGui::Checkbox("Potbar Shop", &hacks.potbarShop))
+            Hacks::potbarShop(hacks.potbarShop);
+        if (ImGui::Checkbox("Scratch Shop", &hacks.scratchShop))
+            Hacks::scratchShop(hacks.scratchShop);
+        if (ImGui::Checkbox("Gatekeeper Vault", &hacks.gatekeeperVault))
+            Hacks::gatekeeperVault(hacks.gatekeeperVault);
+        if (ImGui::Checkbox("Backup Star Limit", &hacks.backupStar))
+            Hacks::backupStar(hacks.backupStar);
+        if (ImGui::Button("Anticheat Bypass"))
+            Hacks::AnticheatBypass();
 
         ImGui::End();
 
@@ -481,6 +522,27 @@ void RenderMain()
             ImGui::SetWindowPos({650, 20});
         if (ImGui::Checkbox("Noclip", &hacks.noclip))
             Hacks::noclip(hacks.noclip);
+
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
+        if (ImGui::ArrowButton("noc", 1))
+            ImGui::OpenPopup("Noclip Settings");
+
+        if (ImGui::BeginPopupModal("Noclip Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Checkbox("Enable Screen Effect", &hacks.noclipRed);
+            ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
+            ImGui::InputFloat("Opacity Limit", &hacks.noclipRedLimit);
+            ImGui::InputFloat("Opacity Rate Up", &hacks.noclipRedRate);
+            ImGui::InputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
+            ImGui::ColorEdit3("Overlay Color", hacks.noclipColor, ImGuiColorEditFlags_NoInputs);
+            ImGui::PopItemWidth();
+            if (ImGui::Button("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+
         if (ImGui::Checkbox("Freeze player", &hacks.freezeplayer))
             Hacks::freezeplayer(hacks.freezeplayer);
         if (ImGui::Checkbox("Jump Hack", &hacks.jumphack))
@@ -494,14 +556,14 @@ void RenderMain()
         if (ImGui::Checkbox("Same Dual Color", &hacks.sameDualColor))
             Hacks::samedualcolor(hacks.sameDualColor);
         ImGui::Checkbox("Rainbow Icons", &hacks.rainbowIcons);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("rain", 1))
             ImGui::OpenPopup("Rainbow Icons Settings");
 
         if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Checkbox("Only Rainbow Glow", &hacks.onlyRainbowOutline);
-            ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+            ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
             ImGui::InputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
             ImGui::PopItemWidth();
             if (ImGui::Button("Close"))
@@ -511,13 +573,17 @@ void RenderMain()
             ImGui::EndPopup();
         }
 
+        if (ImGui::Checkbox("Instant Mirror Portal", &hacks.noMirrorPortal))
+            Hacks::noMirrorPortal(hacks.noMirrorPortal);
+
         ImGui::Checkbox("Dash Orb Color Fix", &hacks.dashOrbFix);
-        ImGui::PushItemWidth(130 * screenSize * hacks.menuSize);
+        ImGui::Checkbox("No Wave Pulse", &hacks.solidWavePulse);
+        ImGui::PushItemWidth(90 * screenSize * hacks.menuSize);
         if (ImGui::Combo("Hitbox Type", &hacks.hitboxType, items, IM_ARRAYSIZE(items)))
             Hacks::hitboxType(hacks.hitboxType);
         if (ImGui::Combo("Trail Type", &hacks.trailType, trail, IM_ARRAYSIZE(trail)))
             Hacks::trailType(hacks.trailType);
-        if (ImGui::InputFloat("Wave Pulse Size", &hacks.waveSize))
+        if (ImGui::InputFloat("Wave Trail Size", &hacks.waveSize))
             Hacks::Write<float>(gd::base + 0x2E63A0, hacks.waveSize);
         if (ImGui::InputFloat("Respawn Time", &hacks.respawnTime))
             Hacks::WriteRef(gd::base + 0x20A677, hacks.respawnTime);
@@ -540,6 +606,8 @@ void RenderMain()
             Hacks::zoomhack(hacks.zoomhack);
         if (ImGui::Checkbox("Verify Hack", &hacks.verifyhack))
             Hacks::verifyhack(hacks.verifyhack);
+        if (ImGui::Checkbox("Z Order Bypass", &hacks.zorder))
+            Hacks::zorder(hacks.zorder);
         if (ImGui::Checkbox("Default Song Bypass", &hacks.defaultsong))
             Hacks::defaultsong(hacks.defaultsong);
         if (ImGui::Checkbox("Editor Extension", &hacks.extension))
@@ -752,7 +820,7 @@ void RenderMain()
         if (resetWindows)
             ImGui::SetWindowPos({340, 570});
 
-        ImGui::PushItemWidth(150.0f);
+        ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
         ImGui::Combo("Hack", &shortcutIndex, hackNames, IM_ARRAYSIZE(hackNames));
         ImGui::Combo("Key", &shortcutIndexKey, alphabet, IM_ARRAYSIZE(alphabet));
 
@@ -805,6 +873,36 @@ void RenderMain()
 
         ImGui::End();
 
+        ImGui::Begin("Pitch Shift", 0, ImGuiWindowFlags_AlwaysAutoResize);
+
+        ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
+        ImGui::Combo("Song File", &pitchName, musicPathsVet.data(), Hacks::musicPaths.size());
+        ImGui::InputFloat("Pitch", &pitch);
+        ImGui::PopItemWidth();
+
+        if (ImGui::Button("Render"))
+            Hacks::ChangePitch(pitchName, pitch);
+
+        if (ImGui::Button("Get Paths"))
+        {
+            Hacks::musicPaths.clear();
+            musicPathsVet.clear();
+            for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
+            {
+                if (loop.path().extension().string() == ".mp3")
+                {
+                    Hacks::musicPaths.push_back(loop.path().string());
+                }
+            }
+
+            for (size_t i = 0; i < Hacks::musicPaths.size(); i++)
+            {
+                musicPathsVet.push_back(Hacks::musicPaths[i].c_str());
+            }
+        }
+
+        ImGui::End();
+
         ImGui::Begin("Internal Recorder", 0, ImGuiWindowFlags_AlwaysAutoResize);
 
         if (ImGui::Checkbox("Record", &hacks.recording))
@@ -822,7 +920,7 @@ void RenderMain()
                 ReplayPlayer::getInstance().recorder.start();
             }
         }
-        ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
+        ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
         ImGui::InputInt2("Video Size", hacks.videoDimenstions);
         ImGui::InputInt("Framerate", &hacks.videoFps);
         ImGui::InputFloat("Music Volume", &hacks.renderMusicVolume);
@@ -830,7 +928,8 @@ void RenderMain()
         ImGui::Checkbox("Include Clicks (only with macro)", &hacks.includeClicks);
         ImGui::InputText("Bitrate", hacks.bitrate, 8);
         ImGui::InputInt("Click Chunk Size", &hacks.clickSoundChunkSize);
-        if(ImGui::IsItemHovered()) ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the whole rendered clicks, i have to split them to bypass the command character limit.\nTry increasing this if the clicks do not render.");
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the whole rendered clicks, i have to split them to bypass the command character limit.\nTry increasing this if the clicks do not render.");
         ImGui::InputFloat("Show End For", &hacks.afterEndDuration);
         ImGui::PopItemWidth();
 
@@ -858,7 +957,7 @@ void RenderMain()
         ImGui::Checkbox("Show Replay Label", &hacks.botTextEnabled);
 
         ImGui::Checkbox("Click sounds", &hacks.clickbot);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("clicks", 1))
             ImGui::OpenPopup("Click sounds settings");
         if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
@@ -882,7 +981,7 @@ void RenderMain()
         }
 
         ImGui::Checkbox("Autoclicker", &hacks.autoclicker);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("aut", 1))
             ImGui::OpenPopup("Autoclicker Settings");
 
@@ -898,7 +997,7 @@ void RenderMain()
         }
 
         ImGui::Checkbox("Frame Step", &hacks.frameStep);
-        ImGui::SameLine(250 * screenSize * hacks.menuSize, -10);
+        ImGui::SameLine(200 * screenSize * hacks.menuSize, -10);
         if (ImGui::ArrowButton("fra", 1))
             ImGui::OpenPopup("Frame Step Settings");
 
@@ -913,7 +1012,7 @@ void RenderMain()
             ImGui::EndPopup();
         }
 
-        ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
+        ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         ImGui::InputInt("Start At Action", &hacks.actionStart);
         ImGui::PopItemWidth();
 
@@ -922,7 +1021,7 @@ void RenderMain()
             ReplayPlayer::getInstance().ClearActions();
 
         ImGui::Spacing();
-        ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
+        ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         ImGui::InputText("Replay Name", fileName, 30);
         ImGui::PopItemWidth();
         if (ImGui::Button("Save"))
@@ -939,6 +1038,8 @@ void RenderMain()
     else if (!closed)
     {
         closed = true;
+        auto p = gd::GameManager::sharedState()->getPlayLayer();
+        if(p && !p->m_bIsPaused && !p->m_hasCompletedLevel) cocos2d::CCEGLView::sharedOpenGLView()->showCursor(false);
         Hacks::SaveSettings();
     }
 }
@@ -978,6 +1079,8 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xC4BD0), LevelEditorLayer::fadeMusicHook, reinterpret_cast<void **>(&LevelEditorLayer::fadeMusic));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1695A0), LevelEditorLayer::onPlaytestHook, reinterpret_cast<void **>(&LevelEditorLayer::onPlaytest));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x94CB0), EndLevelLayer::customSetupHook, reinterpret_cast<void **>(&EndLevelLayer::customSetup));
         Setup();
         // Speedhack::Setup();
 

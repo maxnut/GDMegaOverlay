@@ -321,7 +321,7 @@ void Shortcuts::OnPress(int index)
         Hacks::SaveSettings();
         break;
     case 59:
-        PlayLayer::resetLevelHook(gd::GameManager::sharedState()->getPlayLayer(), 0);
+        if (gd::GameManager::sharedState()->getPlayLayer()) PlayLayer::resetLevelHook(gd::GameManager::sharedState()->getPlayLayer(), 0);
         break;
     case 60:
         labels.statuses[0] = !labels.statuses[0];
@@ -387,6 +387,10 @@ void Shortcuts::OnPress(int index)
         labels.statuses[10] = !labels.statuses[10];
         for (size_t i = 0; i < 11; i++)
             PlayLayer::UpdatePositions(i);
+        Hacks::SaveSettings();
+        break;
+    case 71:
+        hacks.hitboxTrail = !hacks.hitboxTrail;
         Hacks::SaveSettings();
         break;
     }

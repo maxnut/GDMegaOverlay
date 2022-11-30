@@ -17,10 +17,12 @@ void __fastcall LevelEditorLayer::drawHook(gd::LevelEditorLayer *self, void *)
 		HitboxNode::getInstance()->setVisible(true);
 		if (self->m_pPlayer1)
 		{
+			HitboxNode::getInstance()->addToPlayer1Queue(self->m_pPlayer1->getObjectRect());
 			HitboxNode::getInstance()->drawForPlayer1(self->m_pPlayer1);
 		}
 		if (self->m_pPlayer2)
 		{
+			HitboxNode::getInstance()->addToPlayer2Queue(self->m_pPlayer2->getObjectRect());
 			HitboxNode::getInstance()->drawForPlayer2(self->m_pPlayer2);
 		}
 
@@ -53,10 +55,17 @@ void __fastcall LevelEditorLayer::drawHook(gd::LevelEditorLayer *self, void *)
 	}
 }
 
+void __fastcall LevelEditorLayer::onPlaytestHook(gd::LevelEditorLayer* self, void*)
+{
+	HitboxNode::getInstance()->clearQueue();
+	LevelEditorLayer::onPlaytest(self);
+}
+
 void __fastcall LevelEditorLayer::exitHook(CCLayer *self, void *, CCObject* sender)
 {
 	LevelEditorLayer::exit(self, sender);
 	Hacks::MenuMusic();
+	HitboxNode::getInstance()->clearQueue();
 }
 
 void __fastcall LevelEditorLayer::fadeMusicHook(gd::GameManager* self, void*, char* idk)

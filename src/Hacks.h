@@ -8,6 +8,7 @@
 #include "fmod.hpp"
 #include "ReplayPlayer.h"
 #include "filesystem"
+#include "subprocess.hpp"
 #include <ShlObj_core.h>
 #pragma comment(lib, "shell32")
 #include <shellapi.h>
@@ -105,6 +106,34 @@ namespace Hacks
         *reinterpret_cast<float **>(vaddress) = x;
     }
 
+    static std::string narrow(const wchar_t *str)
+    {
+        int size = WideCharToMultiByte(CP_UTF8, 0, str, -1, nullptr, 0, nullptr, nullptr);
+        if (size <= 0)
+        { /* fuck */
+        }
+        auto buffer = new char[size];
+        WideCharToMultiByte(CP_UTF8, 0, str, -1, buffer, size, nullptr, nullptr);
+        std::string result(buffer, size_t(size) - 1);
+        delete[] buffer;
+        return result;
+    }
+    static inline auto narrow(const std::wstring &str) { return narrow(str.c_str()); }
+
+    static std::wstring widen(const char *str)
+    {
+        int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+        if (size <= 0)
+        { /* fuck */
+        }
+        auto buffer = new wchar_t[size];
+        MultiByteToWideChar(CP_UTF8, 0, str, -1, buffer, size);
+        std::wstring result(buffer, size_t(size) - 1);
+        delete[] buffer;
+        return result;
+    }
+    static inline auto widen(const std::string &str) { return widen(str.c_str()); }
+
     //---------------PLAYER--------------------
 
     static void noclip(bool active)
@@ -121,6 +150,14 @@ namespace Hacks
             writeBytes(gd::base + 0x205347, {0x75});
         else
             writeBytes(gd::base + 0x205347, {0x74});
+    }
+
+    static void noMirrorPortal(bool active)
+    {
+        if (active)
+            writeBytes(gd::base + 0x20ACA3, {0xC7, 0x04, 0x24, 0x00, 0x00, 0x00, 0x00});
+        else
+            writeBytes(gd::base + 0x20ACA3, {0xC7, 0x04, 0x24, 0x00, 0x00, 0x00, 0x3F});
     }
 
     static void nohitbox(bool active)
@@ -391,6 +428,130 @@ namespace Hacks
             writeBytes(gd::base + 0x188CE1, {0x0F, 0x8E, 0x89, 0x00, 0x00, 0x00});
     }
 
+    static void guardVault(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x1DE1DA, {0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x1DE1DA, {0x7C, 0x4A});
+        }
+    }
+
+    static void keymasterVault(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x4F268, {0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x4F268, {0x7C, 0x4A});
+        }
+    }
+
+    static void basementBypass(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x226E19, {0xE9, 0x59, 0x01, 0x00, 0x00, 0x90});
+            writeBytes(gd::base + 0x226FB8, {0xE9, 0x59, 0x01, 0x00, 0x00, 0x90});
+            writeBytes(gd::base + 0x227157, {0xE9, 0x30, 0x02, 0x00, 0x00, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x226E19, {0x0F, 0x85, 0x58, 0x01, 0x00, 0x00});
+            writeBytes(gd::base + 0x226FB8, {0x0F, 0x85, 0x58, 0x01, 0x00, 0x00});
+            writeBytes(gd::base + 0x227157, {0x0F, 0x85, 0x2F, 0x02, 0x00, 0x00});
+        }
+    }
+
+    static void challengeBypass(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x2214E0, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x2214E0, {0x0F, 0x84, 0x87, 0x00, 0x00, 0x00});
+        }
+    }
+
+    static void treasureRoom(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x4F631, {0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x4F631, {0x74, 0x4A});
+        }
+    }
+
+    static void potbarShop(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x15706B, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x15706B, {0x0F, 0x8C, 0xB4, 0x01, 0x00, 0x00, 0x00});
+        }
+    }
+
+    static void scratchShop(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x1562D3, {0x90, 0x90, 0x90, 0x90, 0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x1562D3, {0x0F, 0x8C, 0xAF, 0x01, 0x00, 0x00, 0x00});
+        }
+    }
+
+    static void keymasterBasement(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x221759, {0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x221759, {0x7C, 0x4A});
+        }
+    }
+
+    static void gatekeeperVault(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x188836, {0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x188836, {0x74, 0x61});
+        }
+    }
+
+    static void backupStar(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x3928E, {0xEB, 0x3E});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x3928E, {0x7D, 0x3E});
+        }
+    }
+
     static void TextLength(bool active)
     {
         if (active)
@@ -542,7 +703,7 @@ namespace Hacks
 
     static void safemode(bool active)
     {
-        if(!active && ReplayPlayer::getInstance().IsPlaying())
+        if (!active && ReplayPlayer::getInstance().IsPlaying())
         {
             hacks.safemode = true;
             return;
@@ -607,6 +768,20 @@ namespace Hacks
             writeBytes(gd::base + 0x179B8E, {0x75, 0x0E});
             writeBytes(gd::base + 0x176F5C, {0x0F, 0x44, 0xCA});
             writeBytes(gd::base + 0x176FE5, {0x0F, 0x95, 0xC0});
+        }
+    }
+
+    static void zorder(bool active)
+    {
+        if (active)
+        {
+            writeBytes(gd::base + 0x22DEDE, {0x90, 0x90, 0x90});
+            writeBytes(gd::base + 0x22DEE8, {0x90, 0x90, 0x90});
+        }
+        else
+        {
+            writeBytes(gd::base + 0x22DEDE, {0x0F, 0x4C, 0xC1});
+            writeBytes(gd::base + 0x22DEE8, {0x0F, 0x4C, 0xC1});
         }
     }
 
@@ -833,5 +1008,24 @@ namespace Hacks
                 gd::GameSoundManager::sharedState()->playBackgroundMusic(true, musicPaths[hacks.musicIndex]);
             }
         }
+    }
+
+    static void ChangePitch(int name, float pitch)
+    {
+        std::string path = musicPaths[name];
+        std::thread([&, path, pitch]()
+                    {
+        {
+            std::stringstream stream;
+            stream << "ffmpeg -y -i " << '"' << path << '"' << " -af " << '"' << "rubberband=pitch=" << pitch << ":pitchq=consistency:smoothing=on" << '"' << " " << '"' << GetSongFolder() << "/out.mp3" << '"';
+            auto process = subprocess::Popen(stream.str());
+            if (process.close())
+            {
+                return;
+            }
+        }
+        std::filesystem::remove(Hacks::widen(path));
+        std::filesystem::rename(GetSongFolder() + "/out.mp3", Hacks::widen(path)); })
+            .detach();
     }
 }

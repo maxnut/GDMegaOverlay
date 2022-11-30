@@ -50,6 +50,7 @@ namespace PlayLayer
 	inline void(__thiscall* death)(void* self, void* go, void* powerrangers);
 	void __fastcall hkDeath(void* self, void*, void* go, void* powerrangers);
 
+	void SetHitboxSize(float size);
 
 	void UpdatePositions(int index);
 

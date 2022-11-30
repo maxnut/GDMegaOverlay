@@ -31,7 +31,6 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 		gm->setPlayerGlow(hacks.iconIds[10]);
 		gm->setPlayerStreak(hacks.iconIds[11]);
 
-		srand(time(NULL));
 		Hacks::MenuMusic();
 	}
 
