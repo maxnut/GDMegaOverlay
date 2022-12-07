@@ -50,6 +50,12 @@ namespace PlayLayer
 	inline void(__thiscall* death)(void* self, void* go, void* powerrangers);
 	void __fastcall hkDeath(void* self, void*, void* go, void* powerrangers);
 
+	inline void(__thiscall* uiOnPause)(gd::UILayer* self, CCObject *obj);
+	void __fastcall uiOnPauseHook(gd::UILayer* self, void*, CCObject *obj);
+
+	inline void(__thiscall* uiTouchBegan)(gd::UILayer* self, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
+	void __fastcall uiTouchBeganHook(gd::UILayer* self, void*, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
+
 	void SetHitboxSize(float size);
 
 	void UpdatePositions(int index);

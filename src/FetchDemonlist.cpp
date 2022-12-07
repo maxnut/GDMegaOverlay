@@ -53,7 +53,6 @@ void FetchDemonlist::callback(CCObject *)
             info = readBuffer.c_str();
             level_id = "";
             json data = json::parse(info);
-            auto s = data.dump();
 
             for (int i = 0; i < 100; i++)
             {

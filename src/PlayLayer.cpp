@@ -13,7 +13,7 @@
 #include "ExitAlert.h"
 #include "Shortcuts.h"
 
-#define STATUSSIZE 11
+#define STATUSSIZE 13
 
 using namespace porcodio;
 
@@ -32,34 +32,132 @@ std::string bestRun = "Best Run: none", text;
 
 std::vector<float> clicksArr;
 std::vector<gd::StartPosObject *> sp;
+std::vector<gd::GameObject *> gravityPortals, dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
+std::vector<bool> willFlip;
 
-bool add = false, pressing, dead = false, hitboxDead = false, setup = false, clickType = true, right, left, lentezza, pressed = false, reset = true;
+bool add = false, pressing, dead = false, hitboxDead = false, clickType = true, pressed = false, reset = true;
 
 ccColor3B iconCol, secIconCol;
 
 int totalClicks, startPosIndex, noClipDeaths, actualDeaths, frames, steps = 0;
 unsigned int songLength;
+int hackAmts[5];
 
 CCNode *statuses[STATUSSIZE];
 CCLabelBMFont *startPosText, *macroText;
 CCScheduler *scheduler;
-CCNode *testmode;
 CCSize size;
 CCSprite *noclipRed;
 
 ReplayPlayer *replayPlayer;
 
 void UpdateLabels(gd::PlayLayer *self);
+void Change();
 
 void SetupLabel(gd::PlayLayer *self, int index)
 {
 	auto st = static_cast<CCLabelBMFont *>(statuses[index]);
-	st = CCLabelBMFont::create("", "bigFont-uhd.fnt");
+	st = CCLabelBMFont::create("", "bigFont.fnt");
 	st->setZOrder(1000);
 	st->setScale(0.5f);
 	st->setOpacity(150.0f);
 	self->addChild(st);
 	statuses[index] = st;
+}
+
+void SmartStartPosSetup(gd::PlayLayer *self)
+{
+	willFlip.resize(gravityPortals.size());
+	for (gd::StartPosObject *startPos : sp)
+	{
+		for (size_t i = 0; i < gravityPortals.size(); i++)
+		{
+			if (gravityPortals[i]->getPositionX() > startPos->getPositionX())
+				break;
+			if (gravityPortals[i]->getPositionX() < startPos->getPositionX())
+				willFlip[i] = gravityPortals[i]->m_nObjectID == 11;
+		}
+
+		startPos->m_levelSettings->m_startDual = self->m_pLevelSettings->m_startDual;
+		for (size_t i = 0; i < dualPortals.size(); i++)
+		{
+			if (dualPortals[i]->getPositionX() > startPos->getPositionX())
+				break;
+			if (dualPortals[i]->getPositionX() < startPos->getPositionX())
+				startPos->m_levelSettings->m_startDual = dualPortals[i]->m_nObjectID == 286;
+		}
+
+		startPos->m_levelSettings->m_startGamemode = self->m_pLevelSettings->m_startGamemode;
+		for (size_t i = 0; i < gamemodePortals.size(); i++)
+		{
+			if (gamemodePortals[i]->getPositionX() > startPos->getPositionX())
+				break;
+			if (gamemodePortals[i]->getPositionX() < startPos->getPositionX())
+			{
+				switch (gamemodePortals[i]->m_nObjectID)
+				{
+				case 12:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeCube;
+					break;
+				case 13:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeShip;
+					break;
+				case 47:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeBall;
+					break;
+				case 111:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeUfo;
+					break;
+				case 660:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeWave;
+					break;
+				case 745:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeRobot;
+					break;
+				case 1331:
+					startPos->m_levelSettings->m_startGamemode = gd::Gamemode::kGamemodeSpider;
+					break;
+				}
+			}
+		}
+
+		startPos->m_levelSettings->m_startMini = self->m_pLevelSettings->m_startMini;
+		for (size_t i = 0; i < miniPortals.size(); i++)
+		{
+			if (miniPortals[i]->getPositionX() > startPos->getPositionX())
+				break;
+			if (miniPortals[i]->getPositionX() < startPos->getPositionX())
+				startPos->m_levelSettings->m_startMini = miniPortals[i]->m_nObjectID == 101;
+		}
+
+		startPos->m_levelSettings->m_startSpeed = self->m_pLevelSettings->m_startSpeed;
+		for (size_t i = 0; i < speedChanges.size(); i++)
+		{
+			if (speedChanges[i]->getPositionX() > startPos->getPositionX())
+				break;
+			if (speedChanges[i]->getPositionX() < startPos->getPositionX())
+			{
+				switch (speedChanges[i]->m_nObjectID)
+				{
+				case 200:
+					startPos->m_levelSettings->m_startSpeed = gd::Speed::kSpeedSlow;
+					break;
+				case 201:
+					startPos->m_levelSettings->m_startSpeed = gd::Speed::kSpeedNormal;
+					break;
+				case 202:
+					startPos->m_levelSettings->m_startSpeed = gd::Speed::kSpeedFast;
+					break;
+				case 203:
+					startPos->m_levelSettings->m_startSpeed = gd::Speed::kSpeedFaster;
+					break;
+				case 1334:
+					startPos->m_levelSettings->m_startSpeed = gd::Speed::kSpeedFastest;
+					break;
+				}
+			}
+		}
+	}
 }
 
 bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel *level)
@@ -75,18 +173,66 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	auto director = CCDirector::sharedDirector();
 	size = director->getWinSize();
 
-	setup = false;
-
 	sp.clear();
+	gamemodePortals.clear();
+	mirrorPortals.clear();
+	miniPortals.clear();
+	dualPortals.clear();
+	speedChanges.clear();
+	gravityPortals.clear();
+	willFlip.clear();
 	hitboxDead = false;
 	CCObject *obje;
 
 	CCARRAY_FOREACH(self->m_pObjects, obje)
 	{
-		auto g = reinterpret_cast<gd::StartPosObject *>(obje);
+		auto g = reinterpret_cast<gd::GameObject *>(obje);
+
 		if (g->m_nObjectID == 31)
 			sp.push_back(reinterpret_cast<gd::StartPosObject *>(obje));
+
+		if (hacks.smartStartPos)
+		{
+			switch (g->m_nObjectID)
+			{
+			case 10:
+			case 11:
+				gravityPortals.push_back(g);
+				break;
+			case 12:
+			case 13:
+			case 47:
+			case 111:
+			case 660:
+			case 745:
+			case 1331:
+				gamemodePortals.push_back(g);
+				break;
+			case 45:
+			case 46:
+				mirrorPortals.push_back(g);
+				break;
+			case 99:
+			case 101:
+				miniPortals.push_back(g);
+				break;
+			case 286:
+			case 287:
+				dualPortals.push_back(g);
+				break;
+			case 200:
+			case 201:
+			case 202:
+			case 203:
+			case 1334:
+				speedChanges.push_back(g);
+				break;
+			}
+		}
 	}
+
+	if (hacks.smartStartPos)
+		SmartStartPosSetup(self);
 
 	startPosIndex = sp.size() - 1;
 
@@ -124,7 +270,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	for (size_t i = 1; i < STATUSSIZE; i++)
 		SetupLabel(self, i);
 
-	macroText = CCLabelBMFont::create("ciao", "bigFont-uhd.fnt");
+	macroText = CCLabelBMFont::create("ciao", "bigFont.fnt");
 	macroText->setZOrder(1000);
 	macroText->setScale(0.5f);
 	macroText->setOpacity(150.0f);
@@ -137,7 +283,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 	if (sp.size() > 0)
 	{
-		startPosText = CCLabelBMFont::create("", "bigFont-uhd.fnt");
+		startPosText = CCLabelBMFont::create("", "bigFont.fnt");
 		startPosText->setZOrder(1000);
 		startPosText->setScale(0.5f);
 		startPosText->setOpacity(150.0f);
@@ -147,10 +293,6 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	}
 
 	UpdateLabels(self);
-
-	auto test = self->getChildren()->objectAtIndex(10);
-	if (test)
-		testmode = static_cast<CCNode *>(test);
 
 	auto gm = gd::GameManager::sharedState();
 
@@ -167,6 +309,8 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 	unsigned int *pos = &songLength;
 	gd::FMODAudioEngine::sharedEngine()->m_pSound->getLength(pos, FMOD_TIMEUNIT_MS);
+
+	Change();
 
 	return result;
 }
@@ -195,7 +339,7 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 
 void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::PlayerObject *player, gd::GameObject *obj)
 {
-	if (delta > 0.15f && !hacks.noclip)
+	if (delta > 0.15f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"])
 	{
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
@@ -222,8 +366,8 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 	{
 		pressed = false;
 		keybd_event(VK_MENU, 0x38, 0, 0);
-		keybd_event(hacks.mute, 0x50, KEYEVENTF_EXTENDEDKEY | 0, 0);
-		keybd_event(hacks.mute, 0x50, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		keybd_event(hacks.muteKey, 0x50, KEYEVENTF_EXTENDEDKEY | 0, 0);
+		keybd_event(hacks.muteKey, 0x50, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 		keybd_event(VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
 	}
 
@@ -241,6 +385,44 @@ void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrang
 	PlayLayer::death(self, go, powerrangers);
 }
 
+bool IsCheating()
+{
+	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
+	{
+		if (Hacks::bypass["mods"][i]["toggle"].get<bool>() && Hacks::bypass["mods"][i]["cheat"].get<bool>())
+			return true;
+	}
+
+	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
+	{
+		if (Hacks::creator["mods"][i]["toggle"].get<bool>() && Hacks::creator["mods"][i]["cheat"].get<bool>())
+			return true;
+	}
+
+	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
+	{
+		if (Hacks::global["mods"][i]["toggle"].get<bool>() && Hacks::global["mods"][i]["cheat"].get<bool>())
+			return true;
+	}
+
+	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
+	{
+		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::level["mods"][i]["cheat"].get<bool>())
+			return true;
+	}
+
+	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
+	{
+		if (Hacks::player["mods"][i]["toggle"].get<bool>() && Hacks::player["mods"][i]["cheat"].get<bool>())
+			return true;
+	}
+
+	if (hacks.fps > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.showHitboxes && !hacks.onlyOnDeath)
+		return true;
+
+	return false;
+}
+
 void UpdateLabels(gd::PlayLayer *self)
 {
 	auto spritePtr = static_cast<CCSprite *>(statuses[0]);
@@ -252,9 +434,9 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[0] && scheduler)
 	{
 		spritePtr->setOpacity(labels.opacity[0]);
-		if (hacks.fps > 360.0f || hacks.noclip || hacks.freezeplayer || hacks.jumphack || hacks.instantcomplete || hacks.hitboxType > 0 || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.showHitboxes && !hacks.onlyOnDeath)
+		if (IsCheating())
 			spritePtr->setColor(red);
-		else if (hacks.safemode)
+		else if (Hacks::level["mods"][24]["toggle"])
 			spritePtr->setColor(yellow);
 		else
 			spritePtr->setColor(green);
@@ -306,7 +488,10 @@ void UpdateLabels(gd::PlayLayer *self)
 	{
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
-			Hacks::noclip(false);
+			bool t = Hacks::player["mods"][0]["toggle"];
+			Hacks::player["mods"][0]["toggle"] = true;
+			Hacks::ToggleJSONHack(Hacks::player, 0, false);
+			Hacks::player["mods"][0]["toggle"] = t;
 		}
 		fontPtr->setColor(dead ? red : white);
 		fontPtr->setString(text.c_str());
@@ -382,6 +567,25 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
+	fontPtr = static_cast<CCLabelBMFont *>(statuses[11]);
+
+	if (labels.statuses[11])
+	{
+		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->m_nLevelID)).c_str());
+	}
+	else
+		fontPtr->setString("");
+
+	fontPtr = static_cast<CCLabelBMFont *>(statuses[12]);
+
+	if (labels.statuses[12])
+	{
+		if (!self->m_hasCompletedLevel)
+			fontPtr->setString((std::to_string(self->m_attemptJumpCount) + " Jumps").c_str());
+	}
+	else
+		fontPtr->setString("");
+
 	if (replayPlayer && hacks.botTextEnabled && macroText)
 	{
 		if (replayPlayer->IsRecording())
@@ -395,7 +599,7 @@ void UpdateLabels(gd::PlayLayer *self)
 		macroText->setString("");
 }
 
-const char *actualFonts[] = {"bigFont-uhd.fnt", "chatFont-uhd.fnt", "gjFont01-uhd.fnt", "gjFont02-uhd.fnt", "gjFont03-uhd.fnt", "gjFont04-uhd.fnt", "gjFont05-uhd.fnt", "gjFont06-uhd.fnt", "gjFont07-uhd.fnt", "gjFont08-uhd.fnt", "gjFont09-uhd.fnt", "gjFont10-uhd.fnt", "gjFont11-uhd.fnt", "goldFont-uhd.fnt"};
+const char *actualFonts[] = {"bigFont.fnt", "chatFont.fnt", "gjFont01.fnt", "gjFont02.fnt", "gjFont03.fnt", "gjFont04.fnt", "gjFont05.fnt", "gjFont06.fnt", "gjFont07.fnt", "gjFont08.fnt", "gjFont09.fnt", "gjFont10.fnt", "gjFont11.fnt", "goldFont.fnt"};
 
 void PlayLayer::UpdatePositions(int index)
 {
@@ -409,7 +613,7 @@ void PlayLayer::UpdatePositions(int index)
 
 	float tr = 0, tl = 0, br = 0, bl = 0, thisLabel;
 
-	for (size_t i = 0; i < 11; i++)
+	for (size_t i = 0; i < STATUSSIZE; i++)
 	{
 		if (!labels.statuses[i] || i == 8 && hacks.onlyInRuns && !(playlayer->m_isTestMode || playlayer->m_isPracticeMode))
 			continue;
@@ -498,6 +702,8 @@ void Update(gd::PlayLayer *self, float dt)
 	percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
 	self->m_attemptLabel->setVisible(!hacks.hideattempts);
 
+	debug.debugNumber = self->m_pPlayer1->getScale();
+
 	if (dead && !lastFrameDead)
 	{
 		actualDeaths++;
@@ -533,9 +739,6 @@ void Update(gd::PlayLayer *self, float dt)
 		EndLevelLayer::accuracy = text;
 	}
 
-	if (hacks.platformer)
-		self->m_pPlayer1->m_xAccel = (right - left) * (lentezza ? 2.85f : 5.7f);
-
 	if (drawer)
 		drawer->clear();
 
@@ -543,8 +746,8 @@ void Update(gd::PlayLayer *self, float dt)
 	{
 		pressed = true;
 		keybd_event(VK_MENU, 0x38, 0, 0);
-		keybd_event(hacks.mute, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
-		keybd_event(hacks.mute, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		keybd_event(hacks.muteKey, 0, KEYEVENTF_EXTENDEDKEY | 0, 0);
+		keybd_event(hacks.muteKey, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 		keybd_event(VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
 	}
 
@@ -580,11 +783,11 @@ void Update(gd::PlayLayer *self, float dt)
 		clickType = true;
 	}
 
-	if (sp.size() > 0 && hacks.startPosSwitcher)
+	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText)
 	{
 		startPosText->setString((std::to_string(startPosIndex + 1) + "/" + std::to_string(sp.size())).c_str());
 	}
-	else if (sp.size() > 0)
+	else if (sp.size() > 0 && startPosText)
 		startPosText->setString("");
 
 	if (add)
@@ -630,24 +833,8 @@ void Update(gd::PlayLayer *self, float dt)
 		self->m_pPlayer2->m_vehicleGlow->setChildColor(col);
 		self->m_pPlayer2->m_vehicleGlow->setChildOpacity(255);
 	}
-	if (hacks.dashOrbFix && !hacks.rainbowIcons || hacks.dashOrbFix && hacks.onlyRainbowOutline)
-	{
-		self->m_pPlayer1->setColor(iconCol);
-		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
-		self->m_pPlayer2->setColor(secIconCol);
-		self->m_pPlayer2->m_iconSprite->setColor(iconCol);
-		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
-		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
-		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
-	}
 
-	if (testmode)
-		testmode->setVisible(!(hacks.hideTestmode && self->m_isTestMode));
-
-	if (dead && !self->m_hasCompletedLevel && hacks.noclip)
+	if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] || dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
 	{
 		noClipDeaths++;
 		if (opacity < hacks.noclipRedLimit)
@@ -705,7 +892,7 @@ void Update(gd::PlayLayer *self, float dt)
 				auto o = static_cast<gd::GameObject *>(section->objectAtIndex(i));
 
 				if (o->getType() == gd::GameObjectType::kGameObjectTypeDecoration && o->isVisible() &&
-					(o->m_nObjectID != 749 && o->m_nObjectID != 12 && o->m_nObjectID != 38 && o->m_nObjectID != 47 && o->m_nObjectID != 111 && o->m_nObjectID != 8 && o->m_nObjectID != 13 && o->m_nObjectID != 660 && o->m_nObjectID != 745 && o->m_nObjectID != 101 && o->m_nObjectID != 99 && o->m_nObjectID != 1331))
+					(o->m_nObjectID != 44 && o->m_nObjectID != 749 && o->m_nObjectID != 12 && o->m_nObjectID != 38 && o->m_nObjectID != 47 && o->m_nObjectID != 111 && o->m_nObjectID != 8 && o->m_nObjectID != 13 && o->m_nObjectID != 660 && o->m_nObjectID != 745 && o->m_nObjectID != 101 && o->m_nObjectID != 99 && o->m_nObjectID != 1331))
 				{
 					o->setVisible(false);
 				}
@@ -765,6 +952,23 @@ void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer *self, void *, bool idk)
 	PlayLayer::pauseGame(self, idk);
 }
 
+cocos2d::CCTouch *_touch = nullptr;
+cocos2d::CCEvent *_event = nullptr;
+
+void __fastcall PlayLayer::uiOnPauseHook(gd::UILayer *self, void *, CCObject *obj)
+{
+	if (hacks.voidClick && _touch)
+		self->ccTouchEnded(_touch, _event);
+	PlayLayer::uiOnPause(self, obj);
+}
+
+void __fastcall PlayLayer::uiTouchBeganHook(gd::UILayer *self, void *, cocos2d::CCTouch *touch, cocos2d::CCEvent *evnt)
+{
+	_touch = touch;
+	_event = evnt;
+	PlayLayer::uiTouchBegan(self, touch, evnt);
+}
+
 void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
 {
 
@@ -794,7 +998,7 @@ void Change()
 {
 	if (startPosText)
 		startPosText->setOpacity(150.0f);
-		
+
 	if (playlayer->unk330)
 		playlayer->unk330->release();
 	playlayer->unk330 = nullptr;
@@ -846,7 +1050,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	clickType = true;
 	dead = false;
 	frames = 0;
-	Hacks::noclip(hacks.noclip);
+	self->m_attemptJumpCount = 0;
+	Hacks::ToggleJSONHack(Hacks::player, 0, false);
 	clicksArr.clear();
 	if (drawer)
 		drawer->clearQueue();
@@ -859,8 +1064,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	{
 		pressed = false;
 		keybd_event(VK_MENU, 0x38, 0, 0);
-		keybd_event(hacks.mute, 0x50, KEYEVENTF_EXTENDEDKEY | 0, 0);
-		keybd_event(hacks.mute, 0x50, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+		keybd_event(hacks.muteKey, 0x50, KEYEVENTF_EXTENDEDKEY | 0, 0);
+		keybd_event(hacks.muteKey, 0x50, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 		keybd_event(VK_MENU, 0x38, KEYEVENTF_KEYUP, 0);
 	}
 
@@ -877,6 +1082,23 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	}
 
 	PlayLayer::resetLevel(self);
+
+	self->m_pPlayer1->setColor(iconCol);
+	self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
+	self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
+	self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
+	self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
+	self->m_pPlayer2->setColor(secIconCol);
+	self->m_pPlayer2->m_iconSprite->setColor(iconCol);
+	self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
+	self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
+	self->m_pPlayer2->m_robotSprite->setColor(iconCol);
+
+	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
+	{
+		self->m_pPlayer1->flipGravity(true, false);
+		self->m_pPlayer2->flipGravity(true, true);
+	}
 
 	if (replayPlayer)
 	{
@@ -900,8 +1122,8 @@ void __fastcall PlayLayer::togglePracticeModeHook(gd::PlayLayer *self, void *edx
 
 void __fastcall PlayLayer::onQuitHook(gd::PlayLayer *self, void *)
 {
-	if (hacks.confirmQuit && percent <= 99.9f)
-		gd::FLAlertLayer::create(&a, "Alert", "No", "Yes", "Do you really want to quit?")->show();
+	if (hacks.confirmQuit && !self->m_hasCompletedLevel)
+		gd::FLAlertLayer::create(&a, "Confirm", "No", "Yes", "Do you really want to quit?")->show();
 	else
 	{
 		PlayLayer::Quit();
@@ -912,6 +1134,7 @@ void PlayLayer::Quit()
 {
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
+	startPosText = nullptr;
 	Hacks::MenuMusic();
 	drawer->clearQueue();
 }
@@ -919,6 +1142,7 @@ void PlayLayer::Quit()
 bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd::GJGameLevel *lvl)
 {
 	playlayer = nullptr;
+	startPosText = nullptr;
 	if (drawer)
 		drawer->clearQueue();
 	bool res = PlayLayer::editorInit(self, lvl);
@@ -943,11 +1167,9 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 			debug.enabled = true;
 	}
 
-	const int numbers[] = {0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x14, 0x11, 0x12, 0x10, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B};
-
 	for (size_t i = 0; i < Shortcuts::shortcuts.size(); i++)
 	{
-		if (key == numbers[Shortcuts::shortcuts[i].key] && down)
+		if (key == Shortcuts::shortcuts[i].key && down)
 		{
 			Shortcuts::OnPress(Shortcuts::shortcuts[i].shortcutIndex);
 		}
@@ -956,7 +1178,7 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 	if (!playlayer)
 		return;
 
-	if (key == numbers[hacks.stepIndex] && down)
+	if (key == hacks.stepIndex && down)
 		steps = hacks.stepCount;
 
 	if (!hacks.startPosSwitcher || sp.size() <= 0)

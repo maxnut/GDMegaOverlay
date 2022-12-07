@@ -174,8 +174,9 @@ void Recorder::start()
                                 if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize() || actions[actionTracker + i].dummy)
                                     continue;
                                 
-                                float volume = ((actions[actionTracker + i].frame / hacks.fps) - prevClick) * 18.0f;
+                                float volume = ((actions[actionTracker + i].frame / hacks.fps) - prevClick) * 15.0f;
                                 if(volume > 1 || volume < 0) volume = 1;
+                                if(!actions[actionTracker + i].press) volume *= 2;
                                 stream << '[' << acti << ":a]atrim=start=0ms:end=1000ms,adelay=" << (actions[actionTracker + i].frame / hacks.fps) * 1000 << "ms:all=1,volume=" << volume << "[a" << acti << "];";
                                 acti++;
                                 if(actions[actionTracker + i].press) prevClick = actions[actionTracker + i].frame / hacks.fps;
@@ -250,7 +251,8 @@ void Recorder::start()
 
                     {
                         std::stringstream f;
-                        f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -i " << '"' << clickpath << '"' << " -filter_complex " << '"' << "amix=inputs=2:duration=longest" << '"' << " -map 0:v -c:v copy " << '"' << finalpath << '"';
+                        f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -i " << '"' << clickpath << '"' << " -filter_complex amix=inputs=2:duration=longest:weights=" << '"' << "1 0.75" << '"' << " -map 0:v -c:v copy -b:a 192k " << '"' << finalpath << '"';
+                        Hacks::writeOutput(f.str());
                         auto process = subprocess::Popen(f.str());
                         if (process.close())
                         {

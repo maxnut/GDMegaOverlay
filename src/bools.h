@@ -5,29 +5,19 @@ struct HacksStr
 
     bool start = false;
 
-    float fps = 360;
-    bool noclip, freezeplayer, jumphack, hideattempts, practicemusic, nopulse, ignoreesc, accuratepercentage, respawnBlink, deathEffect, coinsPractice, instantcomplete;
-    int hitboxType, trailType;
-    bool solidwavetrail, noFlash, noParticles, sameDualColor;
-    bool notransition, icons, sliderLimit, mainLevels, textLength, filterBypass;
-    bool noglow, fastalttab, safemode, practicepulse, noprogressbar;
+    float fps = 60;
     float percentage = 0;
-    bool freeResize;
-    bool copyhack, leveledit, nocmark, objectlimit, zoomhack, verifyhack, zoom, defaultsong, extension, placeover, hideui;
     float noClipAccuracyLimit;
 
     float speed = 1;
-    bool showHitboxes, onlyOnDeath, showDecorations, objectHack;
+    bool showHitboxes, onlyOnDeath, showDecorations, hideattempts;
 
     int iconIds[12];
 
     bool startPosSwitcher;
-    char mute = 'A';
-    int curChar;
+    int muteKey;
     float waveSize;
-    bool platformer, transparentList, transparentMenus, dashOrbFix;
     float respawnTime = 1.2f;
-    int respawnIndex;
     bool lastCheckpoint, autoclicker, frameStep;
     float clickTime, releaseTime;
     int stepCount, stepIndex;
@@ -37,9 +27,8 @@ struct HacksStr
     float titleColor[4] = {0.75f, 0.157f, 0.157f, 1.0f}, borderColor[4] = {0, 0, 0, 1.0f}, borderSize = 0, windowRounding;
     bool autoDeafen, fixPractice, onlyInRuns, hitboxOnly;
     char message[30];
-    bool rainbowIcons, hideTestmode, layoutMode;
+    bool rainbowIcons, layoutMode;
     float rainbowSpeed;
-    int messageIndex;
     bool clickbot = false;
     float baseVolume = 1.0f, minPitch = 0.97f, maxPitch = 1.03f, minTimeDifference = 0.03f;
     double playMediumClicksAt = 0.07;
@@ -52,30 +41,31 @@ struct HacksStr
     bool recording = false;
     int videoDimenstions[2] = {1280, 720};
     int videoFps = 60;
-    float renderMusicVolume = 0.45f, renderClickVolume = 0.74f;
-    bool includeClicks;
+    float renderMusicVolume = 0.7f, renderClickVolume = 0.5f;
+    bool includeClicks = true;
     char bitrate[8] = "30M";
-    int clickSoundChunkSize = 20;
+    int clickSoundChunkSize = 30;
     float afterEndDuration = 1.0f;
 
     bool solidWavePulse = false, hitboxTrail = false;
     float hitboxTrailLength = 50.0f, hitboxMultiplier, noclipRedRate = 1.0f, noclipRedLimit = 100.0f, noclipRedRateDown = 1.0f;
     bool noclipRed = false;
     float noclipColor[3] = {1.0f, 0.0f, 0.0f};
-    bool noMirrorPortal = false, zorder = false, guardVault = false, keymasterVault = false, keymasterBasement = false, basementBypass = false, challengeBypass = false, treasureRoom = false, potbarShop = false, scratchShop = false, gatekeeperVault = false, backupStar = false
-    , showExtraInfo = true;
+    bool showExtraInfo = true;
+    int windowSnap = 0, menuKey = 9;
+    bool snow = true, smartStartPos = false, gravityDetection = false, voidClick = true;
 };
 
 enum position {TR, TL, BR, BL};
 
 struct Labels
 {
-    bool statuses[11];
-    float scale[11];
-    float opacity[11];
-    int fonts[11];
+    bool statuses[13];
+    float scale[13];
+    float opacity[13];
+    int fonts[13];
     int styles[2];
-    position positions[11];
+    position positions[13];
     float labelSpacing = 20.0f;
 };
 

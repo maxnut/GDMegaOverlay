@@ -96,8 +96,8 @@ void ReplayPlayer::TogglePlaying()
     recording = false;
     playing = !playing;
     Hacks::FPSBypass(hacks.fps);
-    hacks.safemode = playing;
-    Hacks::safemode(hacks.safemode);
+    Hacks::level["mods"][24]["toggle"] = true;
+    Hacks::ToggleJSONHack(Hacks::level, 24, false);
 }
 
 void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
