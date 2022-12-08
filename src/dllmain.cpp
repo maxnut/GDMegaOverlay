@@ -21,7 +21,7 @@
 using json = nlohmann::json;
 
 bool show = false;
-bool applied = false, isDecember = false;
+bool isDecember = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
@@ -36,8 +36,6 @@ std::vector<std::string> Hacks::musicPaths;
 std::filesystem::path Hacks::path;
 std::vector<const char *> musicPathsVet;
 
-std::vector<Hack> hackList;
-
 const char *const style[] = {"Number and text", "Number Only"};
 const char *const positions[] = {"Top Right", "Top Left", "Bottom Right", "Bottom Left"};
 const char *const items[] = {"Normal", "No Spikes", "No Hitbox", "No Solid", "Force Block", "Everything Hurts"};
@@ -45,172 +43,7 @@ const char *const trail[] = {"Normal", "Always Off", "Always On", "Inversed"};
 const char *const fonts[] = {"Big Font", "Chat Font", "Font 01", "Font 02", "Font 03", "Font 04", "Font 05", "Font 06", "Font 07", "Font 08", "Font 09", "Font 10", "Font 11", "Gold Font"};
 
 const char *const KeyNames[] = {
-    "Unknown",
-    "Mouse 0",
-    "Mouse 1",
-    "Cancel",
-    "Mouse 3",
-    "Mouse 4",
-    "Mouse 5",
-    "Unknown",
-    "Backspace",
-    "Tab",
-    "Unknown",
-    "Unknown",
-    "Clear",
-    "Return",
-    "Unknown",
-    "Unknown",
-    "Shift",
-    "CTRL",
-    "Alt",
-    "Pause",
-    "Caps Lock",
-    "Kana",
-    "Unknown",
-    "Junja",
-    "Final",
-    "Kanji",
-    "Unknown",
-    "Esc",
-    "Convert",
-    "Nonconvert",
-    "Accept",
-    "Modechange",
-    "Space",
-    "Prior",
-    "Pgdn",
-    "End",
-    "Home",
-    "Left Arrow",
-    "Up Arrow",
-    "Right Arrow",
-    "Down Arrow",
-    "Select",
-    "Print",
-    "Execute",
-    "Print Screen",
-    "Insert",
-    "Canc",
-    "Help",
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-    "LWin",
-    "RWin",
-    "Apps",
-    "Unknown",
-    "Sleep",
-    "Num0",
-    "Num1",
-    "Num2",
-    "Num3",
-    "Num4",
-    "Num5",
-    "Num6",
-    "Num7",
-    "Num8",
-    "Num9",
-    "Multiply",
-    "Add",
-    "Separator",
-    "Subtract",
-    "Decimal",
-    "Divide",
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "F7",
-    "F8",
-    "F9",
-    "F10",
-    "F11",
-    "F12",
-    "F13",
-    "F14",
-    "F15",
-    "F16",
-    "F17",
-    "F18",
-    "F19",
-    "F20",
-    "F21",
-    "F22",
-    "F23",
-    "F24",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Numlock",
-    "ScrollLock",
-    "VK_OEM_NEC_EQUAL",
-    "VK_OEM_FJ_MASSHOU",
-    "VK_OEM_FJ_TOUROKU",
-    "VK_OEM_FJ_LOYA",
-    "VK_OEM_FJ_ROYA",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "Unknown",
-    "LShift",
-    "RShift",
-    "LCTRL",
-    "RCTRL",
-    "LAlt",
-    "RAlt"};
+    "Unknown","Mouse 0","Mouse 1","Cancel","Mouse 3","Mouse 4","Mouse 5","Unknown","Backspace","Tab","Unknown","Unknown","Clear","Return","Unknown","Unknown","Shift","CTRL","Alt","Pause","Caps Lock","Kana","Unknown","Junja","Final","Kanji","Unknown","Esc","Convert","Nonconvert","Accept","Modechange","Space","Prior","Pgdn","End","Home","Left Arrow","Up Arrow","Right Arrow","Down Arrow","Select","Print","Execute","Print Screen","Insert","Canc","Help","0","1","2","3","4","5","6","7","8","9","Unknown","Unknown","Unknown","Unknown","Unknown", "Unknown", "Unknown", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "LWin", "RWin", "Apps", "Unknown", "Sleep", "Num0", "Num1", "Num2", "Num3", "Num4", "Num5", "Num6", "Num7", "Num8", "Num9", "Multiply", "Add", "Separator", "Subtract", "Decimal", "Divide", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Numlock", "ScrollLock", "VK_OEM_NEC_EQUAL", "VK_OEM_FJ_MASSHOU", "VK_OEM_FJ_TOUROKU", "VK_OEM_FJ_LOYA", "VK_OEM_FJ_ROYA", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "LShift", "RShift", "LCTRL", "RCTRL", "LAlt", "RAlt"};
 
 bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
 {
@@ -250,7 +83,6 @@ bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
     {
         if (g.ActiveId != id)
         {
-            // Start edition
             *k = 0;
         }
         ImGui::SetActiveID(id, window);
@@ -258,7 +90,6 @@ bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
     }
     else if (io.MouseClicked[0])
     {
-        // Release focus when we click outside
         if (g.ActiveId == id)
             ImGui::ClearActiveID();
     }
@@ -292,9 +123,6 @@ bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
         }
     }
 
-    // Render
-    // Select which buffer we are going to display. When ImGuiInputTextFlags_NoLiveEdit is Set 'buf' might still be the old value. We Set buf to NULL to prevent accidental usage from now on.
-
     char buf_display[64] = "None";
 
     ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBg]), true, style.FrameRounding);
@@ -308,7 +136,7 @@ bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
         strcpy_s(buf_display, "<Press a key>");
     }
 
-    const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y); // Not using frame_bb.Max because we have adjusted size
+    const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y);
     ImVec2 render_pos = frame_bb.Min + style.FramePadding;
     ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding, buf_display, NULL, NULL, style.ButtonTextAlign, &clip_rect);
 
@@ -383,6 +211,8 @@ void TextSettings(int index, bool font)
             PlayLayer::UpdatePositions(i);
 }
 
+bool resetWindows = false;
+
 void SetStyle()
 {
     ImGuiStyle *style = &ImGui::GetStyle();
@@ -400,7 +230,7 @@ void SetStyle()
     style->GrabMinSize = 5.0f;
     style->GrabRounding = 3.0f;
     style->WindowBorderSize = hacks.borderSize;
-    
+
     style->ScaleAllSizes(screenSize * hacks.menuSize);
 
     style->Colors[ImGuiCol_Text] = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
@@ -442,7 +272,6 @@ void SetStyle()
 }
 
 bool closed = true;
-char nameBuf[20];
 
 void Init()
 {
@@ -457,6 +286,9 @@ void Init()
     {
         std::filesystem::create_directory("GDMenu/renders");
     }
+
+    if (!std::filesystem::exists("imgui.ini"))
+        resetWindows = true;
 
     ImGuiIO &io = ImGui::GetIO();
     auto font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Verdana.ttf", 14.0f);
@@ -544,7 +376,7 @@ void Init()
         hackNames.push_back(hackNamesString[i].c_str());
     }
 
-    for(size_t i = 0 ; i < sizeof(manualHackNames) / sizeof(const char *); i++)
+    for (size_t i = 0; i < sizeof(manualHackNames) / sizeof(const char *); i++)
     {
         hackNames.push_back(manualHackNames[i]);
     }
@@ -596,8 +428,6 @@ void Init()
     Shortcuts::Load();
 }
 
-bool resetWindows = false;
-
 void RenderMain()
 {
 
@@ -637,11 +467,8 @@ void RenderMain()
         ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
         ImGui::Begin("Menu Settings", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-        auto pPos = ImGui::GetWindowPos();
         if (resetWindows)
             ImGui::SetWindowPos({1210, 710});
-
-        resetWindows = false;
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -676,11 +503,6 @@ void RenderMain()
         ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
         ImGui::Begin("General Mods", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-        auto pPos2 = ImGui::GetWindowPos();
-        if(pPos.x == pPos2.x && pPos.y == pPos2.y)
-        {
-            resetWindows = true;
-        }
         if (resetWindows)
             ImGui::SetWindowPos({12, 12});
         if (hacks.windowSnap > 1)
@@ -691,7 +513,8 @@ void RenderMain()
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         ImGui::InputFloat("FPS Bypass", &hacks.fps);
-        if(ImGui::IsItemHovered()) ImGui::SetTooltip("Disable VSync both in gd and your gpu drivers for it to work.");
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Disable VSync both in gd and your gpu drivers for it to work.");
 
         ImGui::InputFloat("Speedhack", &hacks.speed);
         ImGui::PopItemWidth();
@@ -1425,7 +1248,9 @@ void RenderMain()
 
         ImGui::End();
 
-        if(resetWindows) ImGui::SaveIniSettingsToDisk("imgui.ini");
+        if (resetWindows)
+            ImGui::SaveIniSettingsToDisk("imgui.ini");
+        resetWindows = false;
     }
     else if (!closed)
     {
@@ -1451,7 +1276,7 @@ DWORD WINAPI my_thread(void *hModule)
         SpeedhackAudio::init();
         auto cocos = GetModuleHandleA("libcocos2d.dll");
         auto addr = GetProcAddress(cocos, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N@Z");
-        
+
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x01FB780), PlayLayer::initHook, reinterpret_cast<void **>(&PlayLayer::init));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x2029C0), PlayLayer::updateHook, reinterpret_cast<void **>(&PlayLayer::update));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x20D0D0), PlayLayer::togglePracticeModeHook, reinterpret_cast<void **>(&PlayLayer::togglePracticeMode));
@@ -1477,10 +1302,9 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1907B0), MenuLayer::hook, reinterpret_cast<void **>(&MenuLayer::init));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x17DA60), LevelSearchLayer::hook, reinterpret_cast<void **>(&LevelSearchLayer::init));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x20DDD0), CustomCheckpoint::createHook, reinterpret_cast<void **>(&CustomCheckpoint::create));
+        MH_CreateHook(addr, PlayLayer::dispatchKeyboardMSGHook, reinterpret_cast<void **>(&PlayLayer::dispatchKeyboardMSG));
         Setup();
         // Speedhack::Setup();
-
-        MH_CreateHook(addr, PlayLayer::dispatchKeyboardMSGHook, reinterpret_cast<void **>(&PlayLayer::dispatchKeyboardMSG));
 
         MH_EnableHook(MH_ALL_HOOKS);
     }

@@ -307,9 +307,6 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	if (drawer)
 		self->m_pObjectLayer->addChild(drawer, 32);
 
-	unsigned int *pos = &songLength;
-	gd::FMODAudioEngine::sharedEngine()->m_pSound->getLength(pos, FMOD_TIMEUNIT_MS);
-
 	Change();
 
 	return result;
@@ -339,7 +336,7 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 
 void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::PlayerObject *player, gd::GameObject *obj)
 {
-	if (delta > 0.15f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"])
+	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"])
 	{
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
@@ -387,34 +384,40 @@ void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrang
 
 bool IsCheating()
 {
+	size_t total = 0;
 	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
 	{
-		if (Hacks::bypass["mods"][i]["toggle"].get<bool>() && Hacks::bypass["mods"][i]["cheat"].get<bool>())
+		if (Hacks::bypass["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
 			return true;
+		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
 	{
-		if (Hacks::creator["mods"][i]["toggle"].get<bool>() && Hacks::creator["mods"][i]["cheat"].get<bool>())
+		if (Hacks::creator["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
 			return true;
+		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
 	{
-		if (Hacks::global["mods"][i]["toggle"].get<bool>() && Hacks::global["mods"][i]["cheat"].get<bool>())
+		if (Hacks::global["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
 			return true;
+		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
 	{
-		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::level["mods"][i]["cheat"].get<bool>())
+		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
 			return true;
+		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
 	{
-		if (Hacks::player["mods"][i]["toggle"].get<bool>() && Hacks::player["mods"][i]["cheat"].get<bool>())
+		if (Hacks::player["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
 			return true;
+		total++;
 	}
 
 	if (hacks.fps > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.showHitboxes && !hacks.onlyOnDeath)
@@ -597,6 +600,13 @@ void UpdateLabels(gd::PlayLayer *self)
 	}
 	else
 		macroText->setString("");
+
+	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText)
+	{
+		startPosText->setString((std::to_string(startPosIndex + 1) + "/" + std::to_string(sp.size())).c_str());
+	}
+	else if (sp.size() > 0 && startPosText)
+		startPosText->setString("");
 }
 
 const char *actualFonts[] = {"bigFont.fnt", "chatFont.fnt", "gjFont01.fnt", "gjFont02.fnt", "gjFont03.fnt", "gjFont04.fnt", "gjFont05.fnt", "gjFont06.fnt", "gjFont07.fnt", "gjFont08.fnt", "gjFont09.fnt", "gjFont10.fnt", "gjFont11.fnt", "goldFont.fnt"};
@@ -702,8 +712,6 @@ void Update(gd::PlayLayer *self, float dt)
 	percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
 	self->m_attemptLabel->setVisible(!hacks.hideattempts);
 
-	debug.debugNumber = self->m_pPlayer1->getScale();
-
 	if (dead && !lastFrameDead)
 	{
 		actualDeaths++;
@@ -782,13 +790,6 @@ void Update(gd::PlayLayer *self, float dt)
 		releaseTimer = hacks.releaseTime;
 		clickType = true;
 	}
-
-	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText)
-	{
-		startPosText->setString((std::to_string(startPosIndex + 1) + "/" + std::to_string(sp.size())).c_str());
-	}
-	else if (sp.size() > 0 && startPosText)
-		startPosText->setString("");
 
 	if (add)
 	{
@@ -947,7 +948,8 @@ void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer *self, void *, bool idk)
 	if (replayPlayer && replayPlayer->IsRecording())
 	{
 		replayPlayer->RecordAction(false, self->m_pPlayer1, true, false);
-		replayPlayer->RecordAction(false, self->m_pPlayer2, false, false);
+		if (self->m_pPlayer2)
+			replayPlayer->RecordAction(false, self->m_pPlayer2, false, false);
 	}
 	PlayLayer::pauseGame(self, idk);
 }
@@ -971,7 +973,6 @@ void __fastcall PlayLayer::uiTouchBeganHook(gd::UILayer *self, void *, cocos2d::
 
 void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
 {
-
 	if (hacks.frameStep)
 	{
 		if (steps > 0)
@@ -1016,7 +1017,7 @@ void Change()
 	}
 }
 
-void PlayLayer::SetHitboxSize(float size)
+/*void PlayLayer::SetHitboxSize(float size)
 {
 	static std::vector<cocos2d::CCSize> sizes;
 	if (!playlayer || size < 0.1f)
@@ -1030,7 +1031,7 @@ void PlayLayer::SetHitboxSize(float size)
 
 		obj->m_obObjectRect2.size.setSize(sizes[i].width * size, sizes[i].height * size);
 	}
-}
+}*/
 
 void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 {

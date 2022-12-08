@@ -21,21 +21,10 @@ extern struct Debug debug;
 
 using json = nlohmann::json;
 
-struct opcode
-{
-    int on, off, address;
-};
-
-struct Hack
-{
-    const char *name, *description;
-    std::vector<opcode> opcodes;
-
-    Hack();
-};
-
 namespace Hacks
 {
+
+    static const bool cheatList[] = {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,true,true,true,false,false,true,true,false,false,false,false,false,true,false,false,false,false,false,true,false,true,false,false,false,false,true,true,true,false,false,false,false,false,false,false,true,true,true,false,false,false,true,true,false,false,false,false,true,false,false,false,false,false,false,false,true,false};
 
     extern std::vector<std::string> musicPaths;
     extern std::filesystem::path path;
