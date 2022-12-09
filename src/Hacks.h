@@ -79,6 +79,18 @@ namespace Hacks
         file.close();
     }
 
+    static void writeOutput(double out)
+    {
+        std::ofstream file("output.log", std::fstream::app);
+        auto t = std::time(nullptr);
+        auto tm = *std::localtime(&t);
+        std::ostringstream s;
+        s << std::put_time(&tm, "%H:%M:%S");
+        file << "\n"
+             << s.str() << " " << out;
+        file.close();
+    }
+
     static bool writeBytes(std::uintptr_t const address, std::vector<uint8_t> const &bytes)
     {
         return WriteProcessMemory(
@@ -237,6 +249,28 @@ namespace Hacks
             if (f)
                 f << player;
             f.close();
+        }
+    }
+
+    static void Priority(int priority)
+    {
+        switch(priority)
+        {
+            case 0:
+                SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+                break;
+            case 1:
+                SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+                break;
+            case 2:
+                SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+                break;
+            case 3:
+                SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+                break;
+            case 4:
+                SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+                break;
         }
     }
 

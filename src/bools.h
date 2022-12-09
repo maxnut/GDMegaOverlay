@@ -54,6 +54,9 @@ struct HacksStr
     bool showExtraInfo = true;
     int windowSnap = 0, menuKey = 9;
     bool snow = true, smartStartPos = false, gravityDetection = false, voidClick = true;
+    int priority = 2;
+
+    float version = 1.0f;
 };
 
 enum position {TR, TL, BR, BL};
@@ -67,6 +70,7 @@ struct Labels
     int styles[2];
     position positions[13];
     float labelSpacing = 20.0f;
+    bool hideLabels;
 };
 
 struct Debug

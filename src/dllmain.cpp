@@ -36,6 +36,7 @@ std::vector<std::string> Hacks::musicPaths;
 std::filesystem::path Hacks::path;
 std::vector<const char *> musicPathsVet;
 
+const char *const priorities[] = {"Low", "Below Normal", "Normal", "Above Normal", "High"};
 const char *const style[] = {"Number and text", "Number Only"};
 const char *const positions[] = {"Top Right", "Top Left", "Bottom Right", "Bottom Left"};
 const char *const items[] = {"Normal", "No Spikes", "No Hitbox", "No Solid", "Force Block", "Everything Hurts"};
@@ -393,6 +394,8 @@ void Init()
         Hacks::WriteRef(gd::base + 0x20A677, hacks.respawnTime);
         hacks.recording = false;
 
+        Hacks::Priority(hacks.priority);
+
         if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
         {
             std::filesystem::create_directory("GDMenu/clicks");
@@ -517,6 +520,8 @@ void RenderMain()
             ImGui::SetTooltip("Disable VSync both in gd and your gpu drivers for it to work.");
 
         ImGui::InputFloat("Speedhack", &hacks.speed);
+
+        ImGui::Combo("Thread Priority", &hacks.priority, priorities, 5);
         ImGui::PopItemWidth();
         if (ImGui::Button("Apply##sv"))
         {
@@ -526,6 +531,7 @@ void RenderMain()
             if (hacks.speed <= 0)
                 hacks.speed = 1;
             Hacks::Speedhack(hacks.speed);
+            Hacks::Priority(hacks.priority);
         }
 
         ImGui::End();
@@ -757,6 +763,8 @@ void RenderMain()
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
         }
+        ImGui::Checkbox("Hide All", &labels.hideLabels);
+        
         if (ImGui::Checkbox("Cheat Indicator", &labels.statuses[0]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
@@ -1292,6 +1300,7 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1FFD80), PlayLayer::lightningFlashHook, reinterpret_cast<void **>(&PlayLayer::lightningFlash));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x25FAD0), PlayLayer::uiOnPauseHook, reinterpret_cast<void **>(&PlayLayer::uiOnPause));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x25FD20), PlayLayer::uiTouchBeganHook, reinterpret_cast<void **>(&PlayLayer::uiTouchBegan));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1F9640), PlayLayer::togglePlayerScaleHook, reinterpret_cast<void **>(&PlayLayer::togglePlayerScale));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xC4BD0), LevelEditorLayer::fadeMusicHook, reinterpret_cast<void **>(&LevelEditorLayer::fadeMusic));

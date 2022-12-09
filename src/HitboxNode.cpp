@@ -101,7 +101,7 @@ void HitboxNode::drawForPlayer1(gd::PlayerObject *obj)
 		}
 	}
 	this->drawPolygonHitbox(this->quadrilateralForObject(obj), ccc4(127, 0, 0, 255));
-	this->drawRectangleHitbox(obj->getScale() >= 1 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4), ccc4(0, 255, 0, 255));
+	this->drawRectangleHitbox(!m_isMini1 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4), ccc4(0, 255, 0, 255));
 }
 
 void HitboxNode::drawForPlayer2(gd::PlayerObject *obj)
@@ -116,7 +116,7 @@ void HitboxNode::drawForPlayer2(gd::PlayerObject *obj)
 		}
 	}
 	this->drawPolygonHitbox(this->quadrilateralForObject(obj), ccc4(127, 0, 0, 255));
-	this->drawRectangleHitbox(obj->getScale() >= 1 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4), ccc4(0, 255, 0, 255));
+	this->drawRectangleHitbox(!m_isMini2 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4), ccc4(0, 255, 0, 255));
 }
 
 std::vector<CCPoint> HitboxNode::triangleForObject(gd::GameObject *obj)

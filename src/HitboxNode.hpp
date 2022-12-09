@@ -26,6 +26,8 @@ namespace porcodio {
 		bool m_drawTrail;
 		bool m_noLimitTrail;
 
+		bool m_isMini1, m_isMini2;
+
 		virtual void clearQueue();
 		virtual void addToPlayer1Queue(cocos2d::CCRect const& rect);
 		virtual void addToPlayer2Queue(cocos2d::CCRect const& rect);

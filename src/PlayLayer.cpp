@@ -307,7 +307,8 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	if (drawer)
 		self->m_pObjectLayer->addChild(drawer, 32);
 
-	Change();
+	if (hacks.smartStartPos && sp.size() > 0)
+		Change();
 
 	return result;
 }
@@ -434,7 +435,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	const ccColor3B green = {0, 255, 0};
 	const ccColor3B yellow = {255, 165, 0};
 
-	if (labels.statuses[0] && scheduler)
+	if (labels.statuses[0] && scheduler && !labels.hideLabels)
 	{
 		spritePtr->setOpacity(labels.opacity[0]);
 		if (IsCheating())
@@ -449,7 +450,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	auto fontPtr = static_cast<CCLabelBMFont *>(statuses[1]);
 
-	if (labels.statuses[1])
+	if (labels.statuses[1] && !labels.hideLabels)
 	{
 		if (labels.styles[0] == 0)
 			fontPtr->setString((std::to_string((int)(ImGui::GetIO().Framerate)) + "FPS").c_str());
@@ -461,7 +462,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[2]);
 
-	if (labels.statuses[2])
+	if (labels.statuses[2] && !labels.hideLabels)
 	{
 		if (clicksArr.size() > 0)
 		{
@@ -487,7 +488,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[3]);
 
-	if (labels.statuses[3])
+	if (labels.statuses[3] && !labels.hideLabels)
 	{
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
@@ -504,7 +505,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[4]);
 
-	if (labels.statuses[4] && replayPlayer)
+	if (labels.statuses[4] && !labels.hideLabels)
 	{
 		fontPtr->setString(("Deaths: " + std::to_string(actualDeaths)).c_str());
 	}
@@ -513,7 +514,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[5]);
 
-	if (labels.statuses[5])
+	if (labels.statuses[5] && !labels.hideLabels)
 	{
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
@@ -527,7 +528,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[6]);
 
-	if (labels.statuses[6])
+	if (labels.statuses[6] && !labels.hideLabels)
 	{
 		fontPtr->setString(bestRun.c_str());
 	}
@@ -536,7 +537,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[7]);
 
-	if (labels.statuses[7])
+	if (labels.statuses[7] && !labels.hideLabels)
 	{
 		fontPtr->setString((std::to_string(self->m_level->m_nAttempts) + " Attempts").c_str());
 	}
@@ -545,7 +546,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[8]);
 
-	if (labels.statuses[8] && !hacks.onlyInRuns || labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns)
+	if (labels.statuses[8] && !hacks.onlyInRuns && !labels.hideLabels || labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns && !labels.hideLabels)
 	{
 		fontPtr->setString(("From " + std::to_string((int)startPercent) + "%").c_str());
 	}
@@ -554,7 +555,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[9]);
 
-	if (labels.statuses[9])
+	if (labels.statuses[9] && !labels.hideLabels)
 	{
 		fontPtr->setString(hacks.message);
 	}
@@ -563,7 +564,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[10]);
 
-	if (labels.statuses[10])
+	if (labels.statuses[10] && !labels.hideLabels)
 	{
 		fontPtr->setString(("Attempt " + std::to_string(self->m_currentAttempt)).c_str());
 	}
@@ -572,7 +573,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[11]);
 
-	if (labels.statuses[11])
+	if (labels.statuses[11] && !labels.hideLabels)
 	{
 		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->m_nLevelID)).c_str());
 	}
@@ -581,7 +582,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[12]);
 
-	if (labels.statuses[12])
+	if (labels.statuses[12] && !labels.hideLabels)
 	{
 		if (!self->m_hasCompletedLevel)
 			fontPtr->setString((std::to_string(self->m_attemptJumpCount) + " Jumps").c_str());
@@ -589,7 +590,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	if (replayPlayer && hacks.botTextEnabled && macroText)
+	if (replayPlayer && hacks.botTextEnabled && macroText && !labels.hideLabels)
 	{
 		if (replayPlayer->IsRecording())
 			macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize())).c_str());
@@ -601,7 +602,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		macroText->setString("");
 
-	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText)
+	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText && !labels.hideLabels)
 	{
 		startPosText->setString((std::to_string(startPosIndex + 1) + "/" + std::to_string(sp.size())).c_str());
 	}
@@ -727,7 +728,7 @@ void Update(gd::PlayLayer *self, float dt)
 		unsigned int *pos = &p;
 		float offset = self->m_pLevelSettings->m_songStartOffset * 1000;
 		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
-		if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !self->m_hasCompletedLevel)
+		if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !self->m_hasCompletedLevel && !self->m_isFlipped)
 		{
 			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition((uint32_t)(f * 1000) + (uint32_t)offset, FMOD_TIMEUNIT_MS);
 		}
@@ -948,8 +949,7 @@ void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer *self, void *, bool idk)
 	if (replayPlayer && replayPlayer->IsRecording())
 	{
 		replayPlayer->RecordAction(false, self->m_pPlayer1, true, false);
-		if (self->m_pPlayer2)
-			replayPlayer->RecordAction(false, self->m_pPlayer2, false, false);
+		replayPlayer->RecordAction(false, self->m_pPlayer2, false, false);
 	}
 	PlayLayer::pauseGame(self, idk);
 }
@@ -1055,7 +1055,11 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	Hacks::ToggleJSONHack(Hacks::player, 0, false);
 	clicksArr.clear();
 	if (drawer)
+	{
 		drawer->clearQueue();
+		drawer->m_isMini1 = self->m_pLevelSettings->m_startMini;
+		drawer->m_isMini2 = self->m_pLevelSettings->m_startMini;
+	}
 
 	for (size_t i = 0; i < STATUSSIZE; i++)
 		UpdatePositions(i);
@@ -1084,16 +1088,19 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 
 	PlayLayer::resetLevel(self);
 
-	self->m_pPlayer1->setColor(iconCol);
-	self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
-	self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
-	self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
-	self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
-	self->m_pPlayer2->setColor(secIconCol);
-	self->m_pPlayer2->m_iconSprite->setColor(iconCol);
-	self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
-	self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
-	self->m_pPlayer2->m_robotSprite->setColor(iconCol);
+	if (playlayer)
+	{
+		self->m_pPlayer1->setColor(iconCol);
+		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
+		self->m_pPlayer2->setColor(secIconCol);
+		self->m_pPlayer2->m_iconSprite->setColor(iconCol);
+		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
+		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
+		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
+	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
 	{
@@ -1155,6 +1162,15 @@ void __fastcall PlayLayer::lightningFlashHook(gd::PlayLayer *self, void *edx, CC
 {
 	if (!hacks.layoutMode)
 		PlayLayer::lightningFlash(self, p, c);
+}
+
+void __fastcall PlayLayer::togglePlayerScaleHook(gd::PlayerObject *self, void *, bool toggle)
+{
+	if (drawer && playlayer)
+	{
+		self == playlayer->m_pPlayer1 ? drawer->m_isMini1 = toggle : drawer->m_isMini2 = toggle;
+	}
+	PlayLayer::togglePlayerScale(self, toggle);
 }
 
 void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, bool down)

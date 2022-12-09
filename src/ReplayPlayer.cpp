@@ -165,10 +165,6 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
                 PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
                 PlayLayer::pushButton(playLayer->m_pPlayer2, 0);
             }
-            RecordAction(true, playLayer->m_pPlayer1, true, false);
-            addedAction = true;
-            if (playLayer->m_bIsDualMode)
-                RecordAction(true, playLayer->m_pPlayer2, false, false);
         }
     }
     else if (IsPlaying())
@@ -192,65 +188,72 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
 
     if (actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0)
         return;
-    auto ac = replay.getActions()[actionIndex];
 
-    if (GetFrame() >= ac.frame || playLayer->m_pPlayer1->m_position.x >= ac.px)
+    size_t limit = 1;
+    if(actionIndex + 1 < replay.getActions().size() && replay.getActions()[actionIndex + 1].player2) limit = 2;
+
+    for (size_t i = 0; i < limit; i++)
     {
-        if (!ac.player2)
+        auto ac = replay.getActions()[actionIndex];
+        if (GetFrame() >= ac.frame || playLayer->m_pPlayer1->m_position.x >= ac.px)
         {
-            playLayer->m_pPlayer1->m_position.x = ac.px;
-            playLayer->m_pPlayer1->m_yAccel = ac.yAccel;
-            playLayer->m_pPlayer1->m_position.y = ac.py;
-        }
-        else
-        {
-            playLayer->m_pPlayer2->m_position.x = ac.px;
-            playLayer->m_pPlayer2->m_yAccel = ac.yAccel;
-            playLayer->m_pPlayer2->m_position.y = ac.py;
-        }
-
-        if (!ac.dummy)
-        {
-            float v;
-            float p;
-            double t;
-            uint16_t rc, rr, rmc;
-
-            if (hacks.clickbot)
+            if (!ac.player2)
             {
-                rc = rand() % clicks.size();
-                rr = rand() % releases.size();
-                rmc = rand() % mediumclicks.size();
-                p = hacks.minPitch + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
-                t = playLayer->m_time - oldTime;
-                v = t >= hacks.playMediumClicksAt ? 0.5f * ((float)t * 6) * hacks.baseVolume : 0.6f * hacks.baseVolume;
-                if (v > 0.5f * hacks.baseVolume)
-                    v = 0.5f * hacks.baseVolume;
-            }
-            if (ac.press)
-            {
-                if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2)
-                {
-                    sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && mediumclicks.size() > 0 ? mediumclicks[rmc] : clicks[rc], nullptr, false, &channel);
-                    channel->setPitch(p);
-                    channel->setVolume(v);
-                }
-                ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
+                playLayer->m_pPlayer1->m_position.x = ac.px;
+                playLayer->m_pPlayer1->m_yAccel = ac.yAccel;
+                playLayer->m_pPlayer1->m_position.y = ac.py;
             }
             else
             {
-                if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2)
-                {
-                    sys->playSound(releases[rr], nullptr, false, &channel);
-                    channel2->setPitch(p);
-                    channel2->setVolume(v + 0.5f);
-                    oldTime = playLayer->m_time;
-                }
-                ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
+                playLayer->m_pPlayer2->m_position.x = ac.px;
+                playLayer->m_pPlayer2->m_yAccel = ac.yAccel;
+                playLayer->m_pPlayer2->m_position.y = ac.py;
             }
-        }
 
-        ++actionIndex;
+            if (!ac.dummy)
+            {
+                float v;
+                float p;
+                double t;
+                uint16_t rc, rr, rmc;
+
+                if (hacks.clickbot)
+                {
+                    rc = rand() % clicks.size();
+                    rr = rand() % releases.size();
+                    rmc = rand() % mediumclicks.size();
+                    p = hacks.minPitch + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
+                    t = playLayer->m_time - oldTime;
+                    v = t >= hacks.playMediumClicksAt ? 0.5f * ((float)t * 6) * hacks.baseVolume : 0.6f * hacks.baseVolume;
+                    if (v > 0.5f * hacks.baseVolume)
+                        v = 0.5f * hacks.baseVolume;
+                }
+                if (ac.press)
+                {
+                    if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2)
+                    {
+                        sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && mediumclicks.size() > 0 ? mediumclicks[rmc] : clicks[rc], nullptr, false, &channel);
+                        channel->setPitch(p);
+                        channel->setVolume(v);
+                    }
+                    oldTime = playLayer->m_time;
+                    ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
+                }
+                else
+                {
+                    if (hacks.clickbot && !ac.player2)
+                    {
+                        sys->playSound(releases[rr], nullptr, false, &channel);
+                        channel2->setPitch(p);
+                        channel2->setVolume(v + 0.5f);
+                    }
+                    oldTime = playLayer->m_time;
+                    ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
+                }
+            }
+
+            ++actionIndex;
+        }
     }
 }
 
