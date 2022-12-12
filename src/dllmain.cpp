@@ -17,6 +17,7 @@
 #include <shellapi.h>
 #include "Shortcuts.h"
 #include "json.hpp"
+#include "explorer.hpp"
 
 using json = nlohmann::json;
 
@@ -44,7 +45,7 @@ const char *const trail[] = {"Normal", "Always Off", "Always On", "Inversed"};
 const char *const fonts[] = {"Big Font", "Chat Font", "Font 01", "Font 02", "Font 03", "Font 04", "Font 05", "Font 06", "Font 07", "Font 08", "Font 09", "Font 10", "Font 11", "Gold Font"};
 
 const char *const KeyNames[] = {
-    "Unknown","Mouse 0","Mouse 1","Cancel","Mouse 3","Mouse 4","Mouse 5","Unknown","Backspace","Tab","Unknown","Unknown","Clear","Return","Unknown","Unknown","Shift","CTRL","Alt","Pause","Caps Lock","Kana","Unknown","Junja","Final","Kanji","Unknown","Esc","Convert","Nonconvert","Accept","Modechange","Space","Prior","Pgdn","End","Home","Left Arrow","Up Arrow","Right Arrow","Down Arrow","Select","Print","Execute","Print Screen","Insert","Canc","Help","0","1","2","3","4","5","6","7","8","9","Unknown","Unknown","Unknown","Unknown","Unknown", "Unknown", "Unknown", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "LWin", "RWin", "Apps", "Unknown", "Sleep", "Num0", "Num1", "Num2", "Num3", "Num4", "Num5", "Num6", "Num7", "Num8", "Num9", "Multiply", "Add", "Separator", "Subtract", "Decimal", "Divide", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Numlock", "ScrollLock", "VK_OEM_NEC_EQUAL", "VK_OEM_FJ_MASSHOU", "VK_OEM_FJ_TOUROKU", "VK_OEM_FJ_LOYA", "VK_OEM_FJ_ROYA", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "LShift", "RShift", "LCTRL", "RCTRL", "LAlt", "RAlt"};
+    "Unknown", "Mouse 0", "Mouse 1", "Cancel", "Mouse 3", "Mouse 4", "Mouse 5", "Unknown", "Backspace", "Tab", "Unknown", "Unknown", "Clear", "Return", "Unknown", "Unknown", "Shift", "CTRL", "Alt", "Pause", "Caps Lock", "Kana", "Unknown", "Junja", "Final", "Kanji", "Unknown", "Esc", "Convert", "Nonconvert", "Accept", "Modechange", "Space", "Prior", "Pgdn", "End", "Home", "Left Arrow", "Up Arrow", "Right Arrow", "Down Arrow", "Select", "Print", "Execute", "Print Screen", "Insert", "Canc", "Help", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "LWin", "RWin", "Apps", "Unknown", "Sleep", "Num0", "Num1", "Num2", "Num3", "Num4", "Num5", "Num6", "Num7", "Num8", "Num9", "Multiply", "Add", "Separator", "Subtract", "Decimal", "Divide", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Numlock", "ScrollLock", "VK_OEM_NEC_EQUAL", "VK_OEM_FJ_MASSHOU", "VK_OEM_FJ_TOUROKU", "VK_OEM_FJ_LOYA", "VK_OEM_FJ_ROYA", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "LShift", "RShift", "LCTRL", "RCTRL", "LAlt", "RAlt"};
 
 bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
 {
@@ -234,18 +235,39 @@ void SetStyle()
 
     style->ScaleAllSizes(screenSize * hacks.menuSize);
 
+    float r, g, b;
+    ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks.menuRainbowSpeed, hacks.menuRainbowBrightness, hacks.menuRainbowBrightness, r, g, b);
+
     style->Colors[ImGuiCol_Text] = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
     style->Colors[ImGuiCol_TextDisabled] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
     style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
     style->Colors[ImGuiCol_ChildBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
-    style->Colors[ImGuiCol_Border] = ImVec4(hacks.borderColor[0], hacks.borderColor[1], hacks.borderColor[2], hacks.borderColor[3]);
+
+    if (!hacks.rainbowMenu)
+        style->Colors[ImGuiCol_Border] = ImVec4(hacks.borderColor[0], hacks.borderColor[1], hacks.borderColor[2], hacks.borderColor[3]);
+    else
+        style->Colors[ImGuiCol_Border] = ImVec4(r, g, b, hacks.borderColor[3]);
+
     style->Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
     style->Colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
     style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
     style->Colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
-    style->Colors[ImGuiCol_TitleBg] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-    style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-    style->Colors[ImGuiCol_TitleBgActive] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+
+    if (!hacks.rainbowMenu)
+        style->Colors[ImGuiCol_TitleBg] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+    else
+        style->Colors[ImGuiCol_TitleBg] = ImVec4(r, g, b, hacks.titleColor[3]);
+
+    if (!hacks.rainbowMenu)
+        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+    else
+        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(r, g, b, hacks.titleColor[3]);
+
+    if (!hacks.rainbowMenu)
+        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+    else
+        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(r, g, b, hacks.titleColor[3]);
+
     style->Colors[ImGuiCol_MenuBarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.0f);
     style->Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.0f);
     style->Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
@@ -307,7 +329,7 @@ void Init()
 
     auto director = CCDirector::sharedDirector();
     auto size = director->getWinSize();
-    screenSize = (size.width * size.height) / 182080.0f;
+    screenSize = size.width / 569.0f;
 
     for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
     {
@@ -433,6 +455,11 @@ void Init()
 
 void RenderMain()
 {
+    const int windowWidth = 220;
+    const int arrowButtonPosition = windowWidth - 39;
+
+    const float size = screenSize * hacks.menuSize;
+    const float windowSize = windowWidth * size;
 
     if (!gd::GameManager::sharedState()->getPlayLayer())
     {
@@ -441,33 +468,49 @@ void RenderMain()
             ReplayPlayer::getInstance().recorder.stop();
     }
 
+    if (show || debug.enabled)
+        SetStyle();
+
+    if (debug.enabled)
+    {
+        ImGui::PushStyleColor(0, {1, 1, 1, 1});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
+        ImGui::Begin("Debug");
+
+        ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
+        if (hacks.windowSnap > 1)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        ImGui::InputFloat("N", &debug.debugNumber);
+        ImGui::Text(debug.debugString.c_str());
+
+        ImGui::End();
+
+        ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+        ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
+        if (resetWindows)
+            ImGui::SetWindowPos({732, 12});
+        if (hacks.windowSnap > 1)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        CocosExplorer::draw();
+
+        ImGui::End();
+        ImGui::PopStyleColor();
+    }
+
     if (show)
     {
         cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
-        SetStyle();
         closed = false;
 
-        const int windowWidth = 220;
-        const int arrowButtonPosition = windowWidth - 39;
-
-        if (debug.enabled)
-        {
-            ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
-            ImGui::Begin("Debug");
-            ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-            if (hacks.windowSnap > 1)
-            {
-                auto pos = ImGui::GetWindowPos();
-                ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-            }
-
-            ImGui::Text(std::to_string(debug.debugNumber).c_str());
-            ImGui::Text(debug.debugString.c_str());
-
-            ImGui::End();
-        }
-
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Menu Settings", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -480,7 +523,7 @@ void RenderMain()
         ImGui::PushItemWidth(70 * screenSize * hacks.menuSize);
         ImGui::InputFloat("Menu UI Size", &hacks.menuSize);
         if (hacks.menuSize > 3)
-            hacks.menuSize = 3;
+            hacks.menuSize = 1;
         else if (hacks.menuSize < 0.5f)
             hacks.menuSize = 0.5f;
         ImGui::InputFloat("Border Size", &hacks.borderSize);
@@ -501,9 +544,20 @@ void RenderMain()
         if (isDecember)
             ImGui::Checkbox("Snow", &hacks.snow);
 
+        ImGui::Checkbox("Rainbow Menu", &hacks.rainbowMenu);
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        if (ImGui::BeginMenu("##rain"))
+        {
+            ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
+            ImGui::InputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
+            ImGui::InputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
+            ImGui::PopItemWidth();
+            ImGui::EndMenu();
+        }
+
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("General Mods", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -536,7 +590,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Global", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -598,7 +652,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Level", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -678,7 +732,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Bypass", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -696,7 +750,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Player", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -738,7 +792,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Creator", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -753,7 +807,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Status", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -764,7 +818,17 @@ void RenderMain()
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
         }
         ImGui::Checkbox("Hide All", &labels.hideLabels);
-        
+
+        ImGui::Checkbox("Rainbow Labels", &labels.rainbowLabels);
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        if (ImGui::BeginMenu("##rainl"))
+        {
+            ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
+            ImGui::InputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
+            ImGui::PopItemWidth();
+            ImGui::EndMenu();
+        }
+
         if (ImGui::Checkbox("Cheat Indicator", &labels.statuses[0]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
@@ -882,6 +946,7 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(6, true);
+            ImGui::Checkbox("Accumulate Runs", &hacks.accumulateRuns);
             if (ImGui::Button("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -995,7 +1060,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Shortcuts", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -1061,7 +1126,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Pitch Shift", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -1100,7 +1165,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Internal Recorder", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -1151,7 +1216,7 @@ void RenderMain()
 
         ImGui::End();
 
-        ImGui::SetNextWindowSizeConstraints({windowWidth * screenSize * hacks.menuSize, 100}, {windowWidth * screenSize * hacks.menuSize, 10000});
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Macrobot", 0);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
@@ -1310,6 +1375,7 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x18CF40), MenuLayer::loadingStringHook, reinterpret_cast<void **>(&MenuLayer::loadingString));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1907B0), MenuLayer::hook, reinterpret_cast<void **>(&MenuLayer::init));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x17DA60), LevelSearchLayer::hook, reinterpret_cast<void **>(&LevelSearchLayer::init));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook, reinterpret_cast<void **>(&LevelSearchLayer::http));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x20DDD0), CustomCheckpoint::createHook, reinterpret_cast<void **>(&CustomCheckpoint::create));
         MH_CreateHook(addr, PlayLayer::dispatchKeyboardMSGHook, reinterpret_cast<void **>(&PlayLayer::dispatchKeyboardMSG));
         Setup();

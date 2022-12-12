@@ -3,5 +3,6 @@
 class FetchDemonlist
 {
     public:
-        void callback(CCObject*);
+        void demonlistCallback(CCObject*);
+        void challengeListCallback(CCObject*);
 };

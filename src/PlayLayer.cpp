@@ -26,7 +26,7 @@ ExitAlert a;
 HitboxNode *drawer;
 gd::PlayLayer *playlayer;
 
-float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 0;
+float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 0, respawnWait;
 
 std::string bestRun = "Best Run: none", text;
 
@@ -39,7 +39,7 @@ bool add = false, pressing, dead = false, hitboxDead = false, clickType = true, 
 
 ccColor3B iconCol, secIconCol;
 
-int totalClicks, startPosIndex, noClipDeaths, actualDeaths, frames, steps = 0;
+int totalClicks, startPosIndex, noClipDeaths, actualDeaths, frames, steps = 0, bestRunRepeat;
 unsigned int songLength;
 int hackAmts[5];
 
@@ -335,16 +335,29 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 	return PlayLayer::releaseButton(self, PlayerButton);
 }
 
+float run = 0;
+
 void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::PlayerObject *player, gd::GameObject *obj)
 {
 	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"])
 	{
-		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
+		run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
 		if ((int)startPercent != (int)endPercent && run > maxRun)
 		{
+			bestRunRepeat = 0;
 			maxRun = run;
 			bestRun = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
+		}
+		else if (run == maxRun && hacks.accumulateRuns)
+		{
+			bestRunRepeat++;
+			if (bestRunRepeat > 1)
+			{
+				bestRun.pop_back();
+				bestRun.pop_back();
+			}
+			bestRun += "x" + std::to_string(bestRunRepeat + 1);
 		}
 	}
 	PlayLayer::destroyPlayer(self, player, obj);
@@ -352,12 +365,23 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 
 gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *self)
 {
-	float run = 100.0f - startPercent;
+	run = 100.0f - startPercent;
 	endPercent = 100.0f;
 	if (run > maxRun)
 	{
+		bestRunRepeat = 0;
 		maxRun = run;
 		bestRun = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
+	}
+	else if (run == maxRun && hacks.accumulateRuns)
+	{
+		bestRunRepeat++;
+		if (bestRunRepeat > 1)
+		{
+			bestRun.pop_back();
+			bestRun.pop_back();
+		}
+		bestRun += "x" + std::to_string(bestRunRepeat);
 	}
 
 	if (pressed)
@@ -435,6 +459,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	const ccColor3B green = {0, 255, 0};
 	const ccColor3B yellow = {255, 165, 0};
 
+	float r, g, b;
+	if (labels.rainbowLabels)
+		ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * labels.rainbowSpeed, 1, 1, r, g, b);
+	const ccColor3B rainbow = {r * 255, g * 255, b * 255};
+
 	if (labels.statuses[0] && scheduler && !labels.hideLabels)
 	{
 		spritePtr->setOpacity(labels.opacity[0]);
@@ -456,6 +485,11 @@ void UpdateLabels(gd::PlayLayer *self)
 			fontPtr->setString((std::to_string((int)(ImGui::GetIO().Framerate)) + "FPS").c_str());
 		else
 			fontPtr->setString((std::to_string((int)(ImGui::GetIO().Framerate))).c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -478,7 +512,8 @@ void UpdateLabels(gd::PlayLayer *self)
 		else
 			fontPtr->setString((std::to_string(clicksArr.size()) + "/" + std::to_string(totalClicks)).c_str());
 		const ccColor3B pressed = {hacks.clickColor[0] * 255, hacks.clickColor[1] * 255, hacks.clickColor[2] * 255};
-		fontPtr->setColor(pressing ? pressed : white);
+		fontPtr->setColor(pressing ? pressed : labels.rainbowLabels ? rainbow
+																	: white);
 	}
 	else
 	{
@@ -497,7 +532,8 @@ void UpdateLabels(gd::PlayLayer *self)
 			Hacks::ToggleJSONHack(Hacks::player, 0, false);
 			Hacks::player["mods"][0]["toggle"] = t;
 		}
-		fontPtr->setColor(dead ? red : white);
+		fontPtr->setColor(dead ? red : labels.rainbowLabels ? rainbow
+															: white);
 		fontPtr->setString(text.c_str());
 	}
 	else
@@ -508,6 +544,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[4] && !labels.hideLabels)
 	{
 		fontPtr->setString(("Deaths: " + std::to_string(actualDeaths)).c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -522,6 +563,11 @@ void UpdateLabels(gd::PlayLayer *self)
 		s << std::put_time(&tm, "%H:%M:%S");
 
 		fontPtr->setString(s.str().c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -531,6 +577,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[6] && !labels.hideLabels)
 	{
 		fontPtr->setString(bestRun.c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -540,6 +591,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[7] && !labels.hideLabels)
 	{
 		fontPtr->setString((std::to_string(self->m_level->m_nAttempts) + " Attempts").c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -549,6 +605,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[8] && !hacks.onlyInRuns && !labels.hideLabels || labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns && !labels.hideLabels)
 	{
 		fontPtr->setString(("From " + std::to_string((int)startPercent) + "%").c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -558,6 +619,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[9] && !labels.hideLabels)
 	{
 		fontPtr->setString(hacks.message);
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -567,6 +633,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[10] && !labels.hideLabels)
 	{
 		fontPtr->setString(("Attempt " + std::to_string(self->m_currentAttempt)).c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -576,6 +647,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	if (labels.statuses[11] && !labels.hideLabels)
 	{
 		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->m_nLevelID)).c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -586,6 +662,11 @@ void UpdateLabels(gd::PlayLayer *self)
 	{
 		if (!self->m_hasCompletedLevel)
 			fontPtr->setString((std::to_string(self->m_attemptJumpCount) + " Jumps").c_str());
+
+		if (labels.rainbowLabels)
+			fontPtr->setColor(rainbow);
+		else
+			fontPtr->setColor(white);
 	}
 	else
 		fontPtr->setString("");
@@ -806,9 +887,6 @@ void Update(gd::PlayLayer *self, float dt)
 	}
 	prevP = self->m_pPlayer1->getPositionX();
 
-	if (startPosText && delta > 0.5f && startPosText->getOpacity() > 0)
-		startPosText->setOpacity(startPosText->getOpacity() - 2);
-
 	if (hacks.rainbowIcons)
 	{
 		float r, g, b;
@@ -981,8 +1059,7 @@ void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
 			steps--;
 		}
 	}
-	else
-		Update(self, dt);
+	else Update(self, dt);
 
 	return;
 }
@@ -997,24 +1074,38 @@ void __fastcall PlayLayer::triggerObjectHook(gd::EffectGameObject *self, void *,
 
 void Change()
 {
-	if (startPosText)
-		startPosText->setOpacity(150.0f);
+	auto opacityPulseBegin = CCFadeTo::create(0, 255);
+	auto opacityPulseWait = CCFadeTo::create(0.4, 255);
+	auto opacityPulseEnd = CCFadeTo::create(0.3, 0);
+
+	CCArray actions;
+	actions.addObject(opacityPulseBegin);
+	actions.addObject(opacityPulseWait);
+	actions.addObject(opacityPulseEnd);
+
+	startPosText->runAction(CCSequence::create(&actions));
 
 	if (playlayer->unk330)
 		playlayer->unk330->release();
 	playlayer->unk330 = nullptr;
+
 	if (startPosIndex >= 0)
 	{
+		playlayer->m_isTestMode = true;
 		playlayer->m_startPos = sp[startPosIndex];
 		playlayer->m_playerStartPosition = CCPointMake(sp[startPosIndex]->getPositionX(), sp[startPosIndex]->getPositionY());
-		PlayLayer::resetLevelHook(playlayer, nullptr);
 	}
 	else
 	{
+		playlayer->m_isTestMode = false;
 		playlayer->m_startPos = nullptr;
 		playlayer->m_playerStartPosition = CCPointMake(0, 105);
-		PlayLayer::resetLevelHook(playlayer, nullptr);
 	}
+
+	PlayLayer::resetLevelHook(playlayer, nullptr);
+
+	if (playlayer->m_bIsPaused)
+		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 }
 
 /*void PlayLayer::SetHitboxSize(float size)
@@ -1180,8 +1271,15 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 	if (key == 'L' && down)
 	{
 		debugNum++;
-		if (debugNum >= 10)
+		if (debugNum == 10)
+		{
 			debug.enabled = true;
+		}
+		else if (debugNum == 11)
+		{
+			debug.enabled = false;
+			debugNum = 9;
+		}
 	}
 
 	for (size_t i = 0; i < Shortcuts::shortcuts.size(); i++)

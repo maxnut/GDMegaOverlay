@@ -1,13 +1,11 @@
 #pragma once
 #include "pch.h"
 
-
-
 namespace LevelSearchLayer
 {
-	inline bool(__thiscall* init)(CCLayer* self);
-	bool __fastcall hook(CCLayer* self);
+	inline bool(__thiscall *init)(gd::LevelSearchLayer *self);
+	bool __fastcall hook(gd::LevelSearchLayer *self);
 
-	inline bool(__thiscall* test)(gd::LevelInfoLayer* self);
-	bool __fastcall testhook(gd::LevelInfoLayer* self, void*);
+	inline void(__thiscall *http)(gd::GameLevelManager *self, std::string gdurl, std::string gdquery, std::string idk, int type);
+	void __fastcall httpHook(gd::GameLevelManager *self, void*, std::string gdurl, std::string gdquery, std::string idk, int type);
 }

@@ -57,6 +57,9 @@ struct HacksStr
     int priority = 2;
 
     float version = 1.0f;
+
+    bool accumulateRuns = false, rainbowMenu = false;
+    float menuRainbowSpeed = 1, menuRainbowBrightness = 0.8f;
 };
 
 enum position {TR, TL, BR, BL};
@@ -70,7 +73,8 @@ struct Labels
     int styles[2];
     position positions[13];
     float labelSpacing = 20.0f;
-    bool hideLabels;
+    bool hideLabels, rainbowLabels = false;
+    float rainbowSpeed = 1.0f;
 };
 
 struct Debug
