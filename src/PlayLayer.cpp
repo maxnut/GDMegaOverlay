@@ -184,6 +184,33 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	hitboxDead = false;
 	CCObject *obje;
 
+	Hacks::cheatCheck.clear();
+
+	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
+	{
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+	}
+
+	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
+	{
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+	}
+
+	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
+	{
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+	}
+
+	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
+	{
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+	}
+
+	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
+	{
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+	}
+
 	CCARRAY_FOREACH(self->m_pObjects, obje)
 	{
 		auto g = reinterpret_cast<gd::GameObject *>(obje);
@@ -313,10 +340,15 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	return result;
 }
 
+bool PlayLayer::isBot = false;
+
 bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int PlayerButton)
 {
 	if (playlayer && replayPlayer && replayPlayer->IsRecording())
 		replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1, false);
+	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
+		return true;
+
 	add = true;
 	pressing = true;
 
@@ -325,12 +357,15 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 
 bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int PlayerButton)
 {
-	pressing = false;
 	if (playlayer && replayPlayer && replayPlayer->IsRecording())
 	{
 		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode || self == playlayer->m_pPlayer1)
 			replayPlayer->RecordAction(false, self, self == playlayer->m_pPlayer1, false);
 	}
+	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
+		return true;
+
+	pressing = false;
 
 	return PlayLayer::releaseButton(self, PlayerButton);
 }
@@ -412,40 +447,40 @@ bool IsCheating()
 	size_t total = 0;
 	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
 	{
-		if (Hacks::bypass["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
+		if (Hacks::bypass["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
 	{
-		if (Hacks::creator["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
+		if (Hacks::creator["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
 	{
-		if (Hacks::global["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
+		if (Hacks::global["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
 	{
-		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
+		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
 	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
 	{
-		if (Hacks::player["mods"][i]["toggle"].get<bool>() && Hacks::cheatList[total])
+		if (Hacks::player["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
-	if (hacks.fps > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.showHitboxes && !hacks.onlyOnDeath)
+	if (hacks.fps > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.hitboxMultiplier != 1.0f || hacks.showHitboxes && !hacks.onlyOnDeath)
 		return true;
 
 	return false;
@@ -528,7 +563,7 @@ void UpdateLabels(gd::PlayLayer *self)
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
 			bool t = Hacks::player["mods"][0]["toggle"];
-			Hacks::player["mods"][0]["toggle"] = true;
+			Hacks::player["mods"][0]["toggle"] = false;
 			Hacks::ToggleJSONHack(Hacks::player, 0, false);
 			Hacks::player["mods"][0]["toggle"] = t;
 		}
@@ -789,6 +824,15 @@ void PlayLayer::UpdatePositions(int index)
 
 bool lastFrameDead = false;
 
+struct hitboxInfo
+{
+	gd::GameObject *obj;
+	CCRect rect;
+	float rad;
+};
+
+std::deque<hitboxInfo> hitboxedObjects;
+
 void Update(gd::PlayLayer *self, float dt)
 {
 	percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
@@ -893,25 +937,35 @@ void Update(gd::PlayLayer *self, float dt)
 		ImGui::ColorConvertHSVtoRGB(self->m_totalTime * hacks.rainbowSpeed, 1, 1, r, g, b);
 		const ccColor3B col = {(GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f)};
 
-		if (!hacks.onlyRainbowOutline)
+		if (hacks.rainbowPlayerC1)
 		{
 			self->m_pPlayer1->setColor(col);
-			self->m_pPlayer1->m_iconSprite->setColor(col);
-			self->m_pPlayer1->m_vehicleSprite->setColor(col);
+			self->m_pPlayer2->setColor(col);
 			self->m_pPlayer1->m_spiderSprite->setColor(col);
 			self->m_pPlayer1->m_robotSprite->setColor(col);
-			self->m_pPlayer2->setColor(col);
-			self->m_pPlayer2->m_iconSprite->setColor(col);
-			self->m_pPlayer2->m_vehicleSprite->setColor(col);
 			self->m_pPlayer2->m_spiderSprite->setColor(col);
 			self->m_pPlayer2->m_robotSprite->setColor(col);
-			self->m_pPlayer1->m_iconGlow->setColor(col);
-			self->m_pPlayer1->m_vehicleGlow->setColor(col);
 		}
-		self->m_pPlayer1->m_vehicleGlow->setChildColor(col);
-		self->m_pPlayer1->m_vehicleGlow->setChildOpacity(255);
-		self->m_pPlayer2->m_vehicleGlow->setChildColor(col);
-		self->m_pPlayer2->m_vehicleGlow->setChildOpacity(255);
+		if (hacks.rainbowPlayerC2)
+		{
+			self->m_pPlayer1->m_iconSprite->setColor(col);
+			self->m_pPlayer2->m_iconSprite->setColor(col);
+		}
+		if (hacks.rainbowPlayerVehicle)
+		{
+			self->m_pPlayer1->m_vehicleSprite->setColor(col);
+			self->m_pPlayer2->m_vehicleSprite->setColor(col);
+		}
+
+		if (hacks.rainbowOutline)
+		{
+			self->m_pPlayer1->m_iconGlow->setColor(col);
+			self->m_pPlayer2->m_iconGlow->setColor(col);
+			self->m_pPlayer1->m_vehicleGlow->setChildColor(col);
+			self->m_pPlayer1->m_vehicleGlow->setChildOpacity(255);
+			self->m_pPlayer2->m_vehicleGlow->setChildColor(col);
+			self->m_pPlayer2->m_vehicleGlow->setChildOpacity(255);
+		}
 	}
 
 	if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] || dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
@@ -939,13 +993,50 @@ void Update(gd::PlayLayer *self, float dt)
 
 	dead = false;
 
-	if (replayPlayer && replayPlayer->IsPlaying())
+	if (replayPlayer)
 		replayPlayer->Update(self);
 
 	if (replayPlayer->recorder.m_recording)
 		replayPlayer->recorder.handle_recording(self, dt);
 
+	float xp = self->m_pPlayer1->getPositionX();
+
 	PlayLayer::update(self, dt);
+
+	for (size_t i = 0; i < hitboxedObjects.size(); i++)
+	{
+		hitboxedObjects[i].obj->m_obObjectRect2 = hitboxedObjects[i].rect;
+		hitboxedObjects[i].obj->m_objectRadius = hitboxedObjects[i].rad;
+	}
+
+	hitboxedObjects.clear();
+
+	for (int s = self->sectionForPos(xp) - 5; s < self->sectionForPos(xp) + 6; ++s)
+	{
+		if (s < 0)
+			continue;
+		if (s >= self->m_sectionObjects->count())
+			break;
+		auto section = static_cast<CCArray *>(self->m_sectionObjects->objectAtIndex(s));
+		for (size_t i = 0; i < section->count(); ++i)
+		{
+			auto o = static_cast<gd::GameObject *>(section->objectAtIndex(i));
+
+			if (hacks.hitboxMultiplier != 1)
+			{
+				if (o->getType() == gd::kGameObjectTypeHazard && hacks.hmbHazard || o->getType() == gd::kGameObjectTypeSolid && hacks.hbmSolid)
+				{
+					hitboxInfo info;
+					info.obj = o;
+					info.rect = o->getObjectRect(1, 1);
+					info.rad = o->getObjectRadius();
+					hitboxedObjects.push_back(info);
+					o->m_obObjectRect2 = o->getObjectRect(hacks.hitboxMultiplier, hacks.hitboxMultiplier);
+					o->m_objectRadius *= hacks.hitboxMultiplier;
+				}
+			}
+		}
+	}
 
 	if (self->m_pPlayer1->m_waveTrail && hacks.solidWavePulse)
 		self->m_pPlayer1->m_waveTrail->m_pulseSize = hacks.waveSize;
@@ -957,8 +1048,6 @@ void Update(gd::PlayLayer *self, float dt)
 		auto p = self->getChildren()->objectAtIndex(0);
 		if (frames > 10)
 			static_cast<CCSprite *>(p)->setColor({50, 50, 255});
-
-		float xp = self->m_pPlayer1->getPositionX();
 
 		for (int s = self->sectionForPos(xp) - 5; s < self->sectionForPos(xp) + 6; ++s)
 		{
@@ -995,8 +1084,6 @@ void Update(gd::PlayLayer *self, float dt)
 				drawer->addToPlayer2Queue(self->m_pPlayer2->getObjectRect());
 			drawer->drawForPlayer2(self->m_pPlayer2);
 		}
-
-		float xp = self->m_pPlayer1->getPositionX();
 
 		for (int s = self->sectionForPos(xp) - 5; s < self->sectionForPos(xp) + 6; ++s)
 		{
@@ -1059,7 +1146,8 @@ void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
 			steps--;
 		}
 	}
-	else Update(self, dt);
+	else
+		Update(self, dt);
 
 	return;
 }
@@ -1107,23 +1195,6 @@ void Change()
 	if (playlayer->m_bIsPaused)
 		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 }
-
-/*void PlayLayer::SetHitboxSize(float size)
-{
-	static std::vector<cocos2d::CCSize> sizes;
-	if (!playlayer || size < 0.1f)
-		return;
-
-	for (size_t i = 0; i < playlayer->getAllObjects()->count(); i++)
-	{
-		auto obj = static_cast<gd::GameObject *>(playlayer->getAllObjects()->objectAtIndex(i));
-		if (sizes.size() <= i)
-			sizes.push_back(obj->m_obObjectRect2.size);
-
-		obj->m_obObjectRect2.size.setSize(sizes[i].width * size, sizes[i].height * size);
-	}
-}*/
-
 void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 {
 	hitboxDead = false;
@@ -1232,6 +1303,9 @@ void __fastcall PlayLayer::onQuitHook(gd::PlayLayer *self, void *)
 void PlayLayer::Quit()
 {
 	PlayLayer::onQuit(playlayer);
+	// changed.clear();
+	// changedHitbox.clear();
+	hitboxedObjects.clear();
 	playlayer = nullptr;
 	startPosText = nullptr;
 	Hacks::MenuMusic();
@@ -1242,6 +1316,9 @@ bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd
 {
 	playlayer = nullptr;
 	startPosText = nullptr;
+	// changed.clear();
+	// changedHitbox.clear();
+	hitboxedObjects.clear();
 	if (drawer)
 		drawer->clearQueue();
 	bool res = PlayLayer::editorInit(self, lvl);

@@ -328,8 +328,9 @@ void Init()
     }
 
     auto director = CCDirector::sharedDirector();
-    auto size = director->getWinSize();
-    screenSize = size.width / 569.0f;
+    auto glview = director->getOpenGLView();
+    auto size = glview->getFrameSize();
+    screenSize = size.width / 1920.0f;
 
     for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
     {
@@ -486,13 +487,12 @@ void RenderMain()
 
         ImGui::InputFloat("N", &debug.debugNumber);
         ImGui::Text(debug.debugString.c_str());
-
         ImGui::End();
 
         ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({732, 12});
+            ImGui::SetWindowPos({732 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -511,10 +511,10 @@ void RenderMain()
         closed = false;
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Menu Settings", 0);
+        ImGui::Begin("Menu Settings", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1210, 710});
+            ImGui::SetWindowPos({1210 / screenSize, 710 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -558,10 +558,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("General Mods", 0);
+        ImGui::Begin("General Mods", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({12, 12});
+            ImGui::SetWindowPos({12 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -591,10 +591,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Global", 0);
+        ImGui::Begin("Global", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({252, 12});
+            ImGui::SetWindowPos({252 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -635,7 +635,7 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::Combo("Song File", &hacks.musicIndex, musicPathsVet.data(), Hacks::musicPaths.size());
+            ImGui::InputText("Song Id", hacks.menuSongId, 10);
             ImGui::PopItemWidth();
             ImGui::Checkbox("Random Menu Music", &hacks.randomMusic);
             if (Hacks::path.empty())
@@ -653,10 +653,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Level", 0);
+        ImGui::Begin("Level", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({732, 12});
+            ImGui::SetWindowPos({732 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -730,13 +730,30 @@ void RenderMain()
         ImGui::Checkbox("Confirm Quit", &hacks.confirmQuit);
         ImGui::Checkbox("Show Endscreen Info", &hacks.showExtraInfo);
 
+        ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
+        ImGui::InputFloat("Hitbox Multiplier", &hacks.hitboxMultiplier);
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        if (ImGui::ArrowButton("hbm", 1))
+            ImGui::OpenPopup("Hitbox Multiplier Settings");
+
+        if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL))
+        {
+            ImGui::Checkbox("Harards", &hacks.hmbHazard);
+            ImGui::Checkbox("Solids", &hacks.hbmSolid);
+            if (ImGui::Button("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Bypass", 0);
+        ImGui::Begin("Bypass", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1212, 12});
+            ImGui::SetWindowPos({1212 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -751,10 +768,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Player", 0);
+        ImGui::Begin("Player", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({492, 12});
+            ImGui::SetWindowPos({492 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -771,7 +788,11 @@ void RenderMain()
 
         if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::Checkbox("Only Rainbow Glow", &hacks.onlyRainbowOutline);
+            ImGui::Checkbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
+            ImGui::Checkbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
+            ImGui::Checkbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
+            ImGui::Checkbox("Rainbow Glow", &hacks.rainbowOutline);
+
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
             ImGui::InputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
             ImGui::PopItemWidth();
@@ -793,10 +814,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Creator", 0);
+        ImGui::Begin("Creator", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({972, 12});
+            ImGui::SetWindowPos({972 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -808,10 +829,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Status", 0);
+        ImGui::Begin("Status", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1692, 12});
+            ImGui::SetWindowPos({1692 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1061,10 +1082,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Shortcuts", 0);
+        ImGui::Begin("Shortcuts", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1452, 12});
+            ImGui::SetWindowPos({1452 / screenSize, 12 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1127,10 +1148,10 @@ void RenderMain()
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Pitch Shift", 0);
+        ImGui::Begin("Pitch Shift", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({12, 600});
+            ImGui::SetWindowPos({12 / screenSize, 600 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1138,38 +1159,20 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
-        ImGui::Combo("Song File", &pitchName, musicPathsVet.data(), Hacks::musicPaths.size());
+        ImGui::InputText("Song File", hacks.pitchId, 10);
         ImGui::InputFloat("Pitch", &pitch);
         ImGui::PopItemWidth();
 
         if (ImGui::Button("Render"))
-            Hacks::ChangePitch(pitchName, pitch);
-
-        if (ImGui::Button("Get Paths"))
-        {
-            Hacks::musicPaths.clear();
-            musicPathsVet.clear();
-            for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
-            {
-                if (loop.path().extension().string() == ".mp3")
-                {
-                    Hacks::musicPaths.push_back(loop.path().string());
-                }
-            }
-
-            for (size_t i = 0; i < Hacks::musicPaths.size(); i++)
-            {
-                musicPathsVet.push_back(Hacks::musicPaths[i].c_str());
-            }
-        }
+            Hacks::ChangePitch(pitch);
 
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Internal Recorder", 0);
+        ImGui::Begin("Internal Recorder", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1692, 516});
+            ImGui::SetWindowPos({1692 / screenSize, 516 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1206,21 +1209,24 @@ void RenderMain()
         ImGui::InputFloat("Music Volume", &hacks.renderMusicVolume);
         ImGui::InputFloat("Click Volume", &hacks.renderClickVolume);
         ImGui::InputText("Bitrate", hacks.bitrate, 8);
+        ImGui::InputText("Codec", hacks.codec, 20);
+        ImGui::InputText("Extra args", hacks.extraArgs, 60);
         ImGui::InputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the whole rendered clicks, i have to split them to bypass the command character limit.\nTry increasing this if the clicks do not render.");
         ImGui::InputFloat("Show End For", &hacks.afterEndDuration);
         ImGui::PopItemWidth();
 
+        Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on default.\n If you're using an NVIDIA GPU i reccomend settings your extra args to: -hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using an AMD GPU i reccomend setting the encoder to: hevc_amf.");
         Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i integrated my clickbot into it");
 
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-        ImGui::Begin("Macrobot", 0);
+        ImGui::Begin("Macrobot", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({12, 168});
+            ImGui::SetWindowPos({12 / screenSize, 168 / screenSize});
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1265,6 +1271,7 @@ void RenderMain()
             Marker("?", "Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
             ImGui::EndPopup();
         }
+        ImGui::Checkbox("Prevent inputs", &hacks.preventInput);
 
         ImGui::Checkbox("Autoclicker", &hacks.autoclicker);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1337,7 +1344,6 @@ void RenderMain()
 
 DWORD WINAPI my_thread(void *hModule)
 {
-
     ImGuiHook::setRenderFunction(RenderMain);
     ImGuiHook::setInitFunction(Init);
     ImGuiHook::setToggleCallback([]()

@@ -5,6 +5,8 @@
 namespace PlayLayer
 {
 
+	extern bool isBot;
+
 	inline bool(__thiscall* init)(gd::PlayLayer* self, gd::GJGameLevel* level);
 	bool __fastcall initHook(gd::PlayLayer* self, void*, gd::GJGameLevel* level);
 

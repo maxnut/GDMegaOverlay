@@ -24,7 +24,8 @@ using json = nlohmann::json;
 namespace Hacks
 {
 
-    static const bool cheatList[] = {false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,true,true,false,false,false,false,false,true,true,true,false,false,true,true,false,false,false,false,false,true,false,false,false,false,false,true,false,true,false,false,false,false,true,true,true,false,false,false,false,false,false,false,true,true,true,false,false,false,true,true,false,false,false,false,true,false,false,false,false,false,false,false,true,false};
+    static std::vector<bool> cheatCheck;
+    static const std::vector<std::string> cheatVector = {"0x60554","0x60753","0x207328","0x206921","0x20612C","0x2062C2","0x1F9971","0x20456D","0x20456D","0x204D08","0x2061BC","0x20A23C","0x20A34F","0x205347","0x20456D","0x20456D","0x20CEA4","0x254343","0x205161","0x203519","0x1E9141","0x1EBAE8","0x203DA2"};
 
     extern std::vector<std::string> musicPaths;
     extern std::filesystem::path path;
@@ -198,6 +199,22 @@ namespace Hacks
         }
     }
 
+    static void ToggleJSONHack(json &js, std::string name, bool toggle)
+    {
+        if(toggle) js["mods"][name]["toggle"] = !js["mods"][name]["toggle"];
+        for (size_t j = 0; j < js["mods"][name]["opcodes"].size(); j++)
+        {
+            std::string add = js["mods"][name]["opcodes"][j]["address"].get<std::string>();
+            unsigned int address = std::stoul(add, nullptr, 16);
+            std::string opc;
+            if (js["mods"][name]["toggle"])
+                opc = js["mods"][name]["opcodes"][j]["on"].get<std::string>();
+            else
+                opc = js["mods"][name]["opcodes"][j]["off"].get<std::string>();
+            Hacks::writeBytes(js["mods"][name]["opcodes"][j]["lib"].get<std::string>() == "libcocos2d.dll" ? libcocosbase + address : gd::base + address, HexToBytes(opc));
+        }
+    }
+
     static void SaveSettings()
     {
 
@@ -323,14 +340,14 @@ namespace Hacks
             }
             else
             {
-                gd::GameSoundManager::sharedState()->playBackgroundMusic(true, musicPaths[hacks.musicIndex]);
+                gd::GameSoundManager::sharedState()->playBackgroundMusic(true, GetSongFolder() + "/" + hacks.menuSongId + ".mp3");
             }
         }
     }
 
-    static void ChangePitch(int name, float pitch)
+    static void ChangePitch(float pitch)
     {
-        std::string path = musicPaths[name];
+        std::string path = GetSongFolder() + "/" + hacks.pitchId + ".mp3";
         std::thread([&, path, pitch]()
                     {
         {

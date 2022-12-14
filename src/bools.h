@@ -35,7 +35,7 @@ struct HacksStr
     bool confirmQuit, autoSyncMusic, hidePause = false;
     int musicMaxDesync = 80, hitboxOpacity = 200, borderOpacity = 255, hitboxKeyIndex;
     float clickColor[3] = {1.0f, 0.0f, 0.0f};
-    bool onlyRainbowOutline = false, replaceMenuMusic = false, randomMusic = false;
+    bool rainbowOutline = false, replaceMenuMusic = false, randomMusic = false;
     int musicIndex, randomMusicIndex;
 
     bool recording = false;
@@ -60,6 +60,11 @@ struct HacksStr
 
     bool accumulateRuns = false, rainbowMenu = false;
     float menuRainbowSpeed = 1, menuRainbowBrightness = 0.8f;
+
+    bool hbmSolid = false, hmbHazard = true;
+
+    char codec[20], extraArgs[60], pitchId[10], menuSongId[10];
+    bool preventInput = false, rainbowPlayerC1 = false, rainbowPlayerC2 = false, rainbowPlayerVehicle = false;
 };
 
 enum position {TR, TL, BR, BL};

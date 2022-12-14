@@ -25,6 +25,7 @@ void Shortcuts::Save()
 
 void Shortcuts::Load()
 {
+    if(shortcuts.size() > 0) return;
     std::ifstream file("GDMenu/shortcuts.bin", std::ios::in | std::ios::binary);
     if (!file.is_open())
     {

@@ -28,6 +28,11 @@ uint32_t ReplayPlayer::GetFrame()
 void ReplayPlayer::StartPlaying(gd::PlayLayer *playLayer)
 {
     UpdateFrameOffset();
+    if (IsRecording())
+    {
+        replay.fps = hacks.fps;
+        Hacks::FPSBypass(replay.fps);
+    }
     actionIndex = 0;
 }
 
@@ -37,6 +42,10 @@ ReplayPlayer::ReplayPlayer()
     FMOD::System_Create(&sys);
     sys->init(32, FMOD_INIT_NORMAL, nullptr);
 
+    clicks.clear();
+    releases.clear();
+    mediumclicks.clear();
+
     bool exist = std::filesystem::exists("GDMenu/clicks/clicks/1.wav");
     uint32_t i = 1;
     while (exist)
@@ -44,7 +53,8 @@ ReplayPlayer::ReplayPlayer()
         auto filestr = "GDMenu/clicks/clicks/" + std::to_string(i) + ".wav";
         FMOD::Sound *s;
         sys->createSound(filestr.c_str(), FMOD_LOOP_OFF, 0, &s);
-        clicks.push_back(s);
+        if (s)
+            clicks.push_back(s);
         i++;
         filestr = "GDMenu/clicks/clicks/" + std::to_string(i) + ".wav";
         exist = std::filesystem::exists(filestr);
@@ -58,7 +68,8 @@ ReplayPlayer::ReplayPlayer()
         auto filestr = "GDMenu/clicks/releases/" + std::to_string(i) + ".wav";
         FMOD::Sound *s;
         sys->createSound(filestr.c_str(), FMOD_LOOP_OFF, 0, &s);
-        releases.push_back(s);
+        if (s)
+            releases.push_back(s);
         i++;
         filestr = "GDMenu/clicks/releases/" + std::to_string(i) + ".wav";
         exist = std::filesystem::exists(filestr);
@@ -72,7 +83,8 @@ ReplayPlayer::ReplayPlayer()
         auto filestr = "GDMenu/clicks/mediumclicks/" + std::to_string(i) + ".wav";
         FMOD::Sound *s;
         sys->createSound(filestr.c_str(), FMOD_LOOP_OFF, 0, &s);
-        mediumclicks.push_back(s);
+        if (s)
+            mediumclicks.push_back(s);
         i++;
         filestr = "GDMenu/clicks/mediumclicks/" + std::to_string(i) + ".wav";
         exist = std::filesystem::exists(filestr);
@@ -186,11 +198,18 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
 {
     sys->update();
 
-    if (actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0)
+    if (replay.fps != hacks.fps)
+    {
+        hacks.fps = replay.fps;
+        Hacks::FPSBypass(hacks.fps);
+    }
+
+    if (!IsPlaying() || actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0)
         return;
 
     size_t limit = 1;
-    if(actionIndex + 1 < replay.getActions().size() && replay.getActions()[actionIndex + 1].player2) limit = 2;
+    if (actionIndex + 1 < replay.getActions().size() && replay.getActions()[actionIndex + 1].player2)
+        limit = 2;
 
     for (size_t i = 0; i < limit; i++)
     {
@@ -217,7 +236,7 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 double t;
                 uint16_t rc, rr, rmc;
 
-                if (hacks.clickbot)
+                if (hacks.clickbot && clicks.size() > 0 && releases.size() > 0)
                 {
                     rc = rand() % clicks.size();
                     rr = rand() % releases.size();
@@ -230,25 +249,31 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 }
                 if (ac.press)
                 {
-                    if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2)
+                    if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2 && releases.size() > 0 && clicks.size() > 0)
                     {
                         sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && mediumclicks.size() > 0 ? mediumclicks[rmc] : clicks[rc], nullptr, false, &channel);
                         channel->setPitch(p);
                         channel->setVolume(v);
                     }
                     oldTime = playLayer->m_time;
-                    ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
+                    //ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
+                    PlayLayer::isBot = true;
+                    ac.player2 ? PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
+                    PlayLayer::isBot = false;
                 }
                 else
                 {
-                    if (hacks.clickbot && !ac.player2)
+                    if (hacks.clickbot && !ac.player2 && releases.size() > 0 && clicks.size() > 0)
                     {
                         sys->playSound(releases[rr], nullptr, false, &channel);
                         channel2->setPitch(p);
                         channel2->setVolume(v + 0.5f);
                     }
                     oldTime = playLayer->m_time;
-                    ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
+                    //ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
+                    PlayLayer::isBot = true;
+                    ac.player2 ? PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+                    PlayLayer::isBot = false;
                 }
             }
 

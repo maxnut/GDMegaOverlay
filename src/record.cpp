@@ -27,6 +27,8 @@ void Recorder::start()
     m_width = hacks.videoDimenstions[0];
     m_height = hacks.videoDimenstions[1];
     m_fps = hacks.videoFps;
+    if(hacks.codec != "") m_codec = hacks.codec;
+    if(hacks.extraArgs != "") m_extra_args = hacks.extraArgs;
     m_recording = true;
     m_frame_has_data = false;
     m_current_frame.resize(m_width * m_height * 3, 0);
@@ -69,17 +71,21 @@ void Recorder::start()
                     auto clickpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID) + "/" + "rendered_clicks.mp3");
 
                     std::stringstream stream;
-                    stream << '"' << m_ffmpeg_path << '"' << " -y -f rawvideo -pix_fmt rgb24 -s " << m_width << "x" << m_height << " -r " << m_fps
-                           << " -i - ";
+                    stream << '"' << m_ffmpeg_path << '"' << " -y -f rawvideo -pix_fmt rgb24 -s " << m_width << "x" << m_height << " -r " << m_fps;
+                    if (!m_extra_args.empty())
+                    {
+                        stream << " " << m_extra_args;
+                    }
+                    else
+                        stream << "-pix_fmt yuv420p ";
+                           
+                    stream << " -i - ";
                     if (!m_codec.empty())
                         stream << "-c:v " << m_codec << " ";
                     if (!m_bitrate.empty())
                         stream << "-b:v " << hacks.bitrate << " ";
-                    if (!m_extra_args.empty())
-                        stream << m_extra_args << " ";
-                    else
-                        stream << "-pix_fmt yuv420p ";
                     stream << "-vf \"vflip\" -an \"" << notfinalpath << "\" "; // i hope just putting it in "" escapes it
+                    Hacks::writeOutput(stream.str());
                     auto process = subprocess::Popen(stream.str());
                     while (m_recording || m_frame_has_data)
                     {
@@ -96,7 +102,7 @@ void Recorder::start()
                     }
                     if (process.close())
                     {
-                        //return;
+                        return;
                     }
                     if (!m_include_audio || !std::filesystem::exists(song_file))
                         return;
@@ -294,7 +300,7 @@ void MyRenderTexture::begin()
 
     m_texture->setAliasTexParameters();
 
-    m_texture->autorelease();
+    //m_texture->autorelease();
 
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, m_old_rbo);
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_old_fbo);
