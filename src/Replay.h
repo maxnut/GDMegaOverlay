@@ -6,7 +6,7 @@
 
 struct Action
 {
-    bool press, player2, dummy;
+    bool press, player2;
     uint32_t frame;
     double yAccel;
     float px, py;

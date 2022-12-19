@@ -61,7 +61,7 @@ void SetupLabel(gd::PlayLayer *self, int index)
 	st->setZOrder(1000);
 	st->setScale(0.5f);
 	st->setOpacity(150.0f);
-	self->addChild(st);
+	self->m_uiLayer->addChild(st);
 	statuses[index] = st;
 }
 
@@ -268,7 +268,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	maxRun = 0;
 	bestRun = "Best Run: none";
 	text = "Accuracy: 100.00%";
-	EndLevelLayer::accuracy = text;
+	EndLevelLayer::accuracy = 100.0f;
 	noClipDeaths = 0;
 	totalClicks = 0;
 	actualDeaths = 0;
@@ -287,12 +287,12 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	noclipRed->setColor(noclipColor);
 	noclipRed->setOpacity(0);
 	noclipRed->setZOrder(1000);
-	self->addChild(noclipRed);
+	self->m_uiLayer->addChild(noclipRed);
 
 	statuses[0] = CCSprite::createWithSpriteFrameName("edit_eToggleBtn2_001.png");
 	statuses[0]->setZOrder(1000);
 	statuses[0]->setScale(0.5f);
-	self->addChild(statuses[0]);
+	self->m_uiLayer->addChild(statuses[0]);
 
 	for (size_t i = 1; i < STATUSSIZE; i++)
 		SetupLabel(self, i);
@@ -303,7 +303,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	macroText->setOpacity(150.0f);
 	macroText->setAnchorPoint(CCPointMake(0, macroText->getAnchorPoint().y));
 	macroText->setPosition(CCPointMake(5, 15));
-	self->addChild(macroText);
+	self->m_uiLayer->addChild(macroText);
 
 	for (size_t i = 0; i < STATUSSIZE; i++)
 		UpdatePositions(i);
@@ -315,7 +315,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 		startPosText->setScale(0.5f);
 		startPosText->setOpacity(150.0f);
 		startPosText->setPosition(size.width / 2, 15);
-		self->addChild(startPosText);
+		self->m_uiLayer->addChild(startPosText);
 		pressed = false;
 	}
 
@@ -344,8 +344,10 @@ bool PlayLayer::isBot = false;
 
 bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int PlayerButton)
 {
-	if (playlayer && replayPlayer && replayPlayer->IsRecording())
-		replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1, false);
+	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
+	{
+		replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1);
+	}
 	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
 		return true;
 
@@ -357,10 +359,12 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 
 bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int PlayerButton)
 {
-	if (playlayer && replayPlayer && replayPlayer->IsRecording())
+	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
 		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode || self == playlayer->m_pPlayer1)
-			replayPlayer->RecordAction(false, self, self == playlayer->m_pPlayer1, false);
+		{
+			replayPlayer->RecordAction(false, self, self == playlayer->m_pPlayer1);
+		}
 	}
 	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
 		return true;
@@ -442,7 +446,7 @@ void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrang
 	PlayLayer::death(self, go, powerrangers);
 }
 
-bool IsCheating()
+bool PlayLayer::IsCheating()
 {
 	size_t total = 0;
 	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
@@ -488,6 +492,12 @@ bool IsCheating()
 
 void UpdateLabels(gd::PlayLayer *self)
 {
+	if (labels.hideLabels)
+	{
+		self->m_uiLayer->setVisible(false);
+		return;
+	}
+	self->m_uiLayer->setVisible(true);
 	auto spritePtr = static_cast<CCSprite *>(statuses[0]);
 	const ccColor3B red = {255, 0, 0};
 	const ccColor3B white = {255, 255, 255};
@@ -499,10 +509,10 @@ void UpdateLabels(gd::PlayLayer *self)
 		ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * labels.rainbowSpeed, 1, 1, r, g, b);
 	const ccColor3B rainbow = {r * 255, g * 255, b * 255};
 
-	if (labels.statuses[0] && scheduler && !labels.hideLabels)
+	if (labels.statuses[0] && scheduler)
 	{
 		spritePtr->setOpacity(labels.opacity[0]);
-		if (IsCheating())
+		if (PlayLayer::IsCheating())
 			spritePtr->setColor(red);
 		else if (Hacks::level["mods"][24]["toggle"])
 			spritePtr->setColor(yellow);
@@ -514,7 +524,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	auto fontPtr = static_cast<CCLabelBMFont *>(statuses[1]);
 
-	if (labels.statuses[1] && !labels.hideLabels)
+	if (labels.statuses[1])
 	{
 		if (labels.styles[0] == 0)
 			fontPtr->setString((std::to_string((int)(ImGui::GetIO().Framerate)) + "FPS").c_str());
@@ -531,7 +541,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[2]);
 
-	if (labels.statuses[2] && !labels.hideLabels)
+	if (labels.statuses[2])
 	{
 		if (clicksArr.size() > 0)
 		{
@@ -558,7 +568,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[3]);
 
-	if (labels.statuses[3] && !labels.hideLabels)
+	if (labels.statuses[3])
 	{
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
@@ -576,7 +586,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[4]);
 
-	if (labels.statuses[4] && !labels.hideLabels)
+	if (labels.statuses[4])
 	{
 		fontPtr->setString(("Deaths: " + std::to_string(actualDeaths)).c_str());
 
@@ -590,7 +600,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[5]);
 
-	if (labels.statuses[5] && !labels.hideLabels)
+	if (labels.statuses[5])
 	{
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
@@ -609,7 +619,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[6]);
 
-	if (labels.statuses[6] && !labels.hideLabels)
+	if (labels.statuses[6])
 	{
 		fontPtr->setString(bestRun.c_str());
 
@@ -623,7 +633,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[7]);
 
-	if (labels.statuses[7] && !labels.hideLabels)
+	if (labels.statuses[7])
 	{
 		fontPtr->setString((std::to_string(self->m_level->m_nAttempts) + " Attempts").c_str());
 
@@ -637,7 +647,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[8]);
 
-	if (labels.statuses[8] && !hacks.onlyInRuns && !labels.hideLabels || labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns && !labels.hideLabels)
+	if (labels.statuses[8] && !hacks.onlyInRuns || labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns)
 	{
 		fontPtr->setString(("From " + std::to_string((int)startPercent) + "%").c_str());
 
@@ -651,7 +661,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[9]);
 
-	if (labels.statuses[9] && !labels.hideLabels)
+	if (labels.statuses[9])
 	{
 		fontPtr->setString(hacks.message);
 
@@ -665,7 +675,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[10]);
 
-	if (labels.statuses[10] && !labels.hideLabels)
+	if (labels.statuses[10])
 	{
 		fontPtr->setString(("Attempt " + std::to_string(self->m_currentAttempt)).c_str());
 
@@ -679,7 +689,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[11]);
 
-	if (labels.statuses[11] && !labels.hideLabels)
+	if (labels.statuses[11])
 	{
 		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->m_nLevelID)).c_str());
 
@@ -693,7 +703,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	fontPtr = static_cast<CCLabelBMFont *>(statuses[12]);
 
-	if (labels.statuses[12] && !labels.hideLabels)
+	if (labels.statuses[12])
 	{
 		if (!self->m_hasCompletedLevel)
 			fontPtr->setString((std::to_string(self->m_attemptJumpCount) + " Jumps").c_str());
@@ -706,7 +716,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	if (replayPlayer && hacks.botTextEnabled && macroText && !labels.hideLabels)
+	if (replayPlayer && hacks.botTextEnabled && macroText)
 	{
 		if (replayPlayer->IsRecording())
 			macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize())).c_str());
@@ -718,7 +728,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		macroText->setString("");
 
-	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText && !labels.hideLabels)
+	if (sp.size() > 0 && hacks.startPosSwitcher && startPosText)
 	{
 		startPosText->setString((std::to_string(startPosIndex + 1) + "/" + std::to_string(sp.size())).c_str());
 	}
@@ -855,14 +865,14 @@ void Update(gd::PlayLayer *self, float dt)
 		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
 		if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !self->m_hasCompletedLevel && !self->m_isFlipped)
 		{
-			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition((uint32_t)(f * 1000) + (uint32_t)offset, FMOD_TIMEUNIT_MS);
+			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
 		}
 	}
 
 	if (noClipDeaths == 0)
 	{
 		text = "Accuracy: 100.00%";
-		EndLevelLayer::accuracy = text;
+		EndLevelLayer::accuracy = 100.0f;
 	}
 	else if (labels.statuses[3] || hacks.showExtraInfo)
 	{
@@ -870,7 +880,7 @@ void Update(gd::PlayLayer *self, float dt)
 		std::stringstream stream;
 		stream << "Accuracy: " << std::fixed << std::setprecision(2) << p * 100.f << "%";
 		text = stream.str();
-		EndLevelLayer::accuracy = text;
+		EndLevelLayer::accuracy = p * 100.f;
 	}
 
 	if (drawer)
@@ -1109,12 +1119,17 @@ void Update(gd::PlayLayer *self, float dt)
 	}
 }
 
+float PlayLayer::GetStartPercent()
+{
+	return startPercent;
+}
+
 void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer *self, void *, bool idk)
 {
 	if (replayPlayer && replayPlayer->IsRecording())
 	{
-		replayPlayer->RecordAction(false, self->m_pPlayer1, true, false);
-		replayPlayer->RecordAction(false, self->m_pPlayer2, false, false);
+		replayPlayer->RecordAction(false, self->m_pPlayer1, true);
+		replayPlayer->RecordAction(false, self->m_pPlayer2, false);
 	}
 	PlayLayer::pauseGame(self, idk);
 }
@@ -1195,6 +1210,7 @@ void Change()
 	if (playlayer->m_bIsPaused)
 		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 }
+
 void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 {
 	hitboxDead = false;
@@ -1339,6 +1355,33 @@ void __fastcall PlayLayer::togglePlayerScaleHook(gd::PlayerObject *self, void *,
 		self == playlayer->m_pPlayer1 ? drawer->m_isMini1 = toggle : drawer->m_isMini2 = toggle;
 	}
 	PlayLayer::togglePlayerScale(self, toggle);
+}
+
+void __fastcall PlayLayer::ringJumpHook(gd::PlayerObject *self, void *, gd::GameObject *ring)
+{
+	bool a = ring->m_bHasBeenActivated;
+	bool b = ring->m_bHasBeenActivatedP2;
+	PlayLayer::ringJump(self, ring);
+	if (replayPlayer)
+		replayPlayer->HandleActivatedObjects(a, b, ring);
+}
+
+void __fastcall PlayLayer::activateObjectHook(gd::GameObject *self, void *, gd::PlayerObject *player)
+{
+	bool a = self->m_bHasBeenActivated;
+	bool b = self->m_bHasBeenActivatedP2;
+	PlayLayer::activateObject(self, player);
+	if (replayPlayer)
+		replayPlayer->HandleActivatedObjects(a, b, self);
+}
+
+void __fastcall PlayLayer::bumpHook(gd::GJBaseGameLayer *self, void *, gd::PlayerObject *player, gd::GameObject *object)
+{
+	bool a = object->m_bHasBeenActivated;
+	bool b = object->m_bHasBeenActivatedP2;
+	PlayLayer::bump(self, player, object);
+	if (replayPlayer)
+		replayPlayer->HandleActivatedObjects(a, b, object);
 }
 
 void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, bool down)

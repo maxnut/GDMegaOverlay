@@ -29,6 +29,7 @@ void Recorder::start()
     m_fps = hacks.videoFps;
     if(hacks.codec != "") m_codec = hacks.codec;
     if(hacks.extraArgs != "") m_extra_args = hacks.extraArgs;
+    if(hacks.extraArgsAfter != "") m_extra_args_after = hacks.extraArgsAfter;
     m_recording = true;
     m_frame_has_data = false;
     m_current_frame.resize(m_width * m_height * 3, 0);
@@ -76,16 +77,18 @@ void Recorder::start()
                     {
                         stream << " " << m_extra_args;
                     }
-                    else
-                        stream << "-pix_fmt yuv420p ";
                            
                     stream << " -i - ";
                     if (!m_codec.empty())
                         stream << "-c:v " << m_codec << " ";
                     if (!m_bitrate.empty())
                         stream << "-b:v " << hacks.bitrate << " ";
+                    if(!m_extra_args_after.empty())
+                        stream << m_extra_args_after << " ";
+                    else
+                        stream << "-pix_fmt yuv420p ";
+                        
                     stream << "-vf \"vflip\" -an \"" << notfinalpath << "\" "; // i hope just putting it in "" escapes it
-                    Hacks::writeOutput(stream.str());
                     auto process = subprocess::Popen(stream.str());
                     while (m_recording || m_frame_has_data)
                     {
@@ -141,7 +144,7 @@ void Recorder::start()
                     if (!hacks.includeClicks || !hacks.recording)
                         return;
 
-                    size_t acti = 0, actionTracker = 0, dsophji = 0, nameTracker = 0;
+                    size_t actionTracker = 0;
 
                     auto actions = ReplayPlayer::getInstance().GetReplay()->getActions();
                     float prevClick = 0;
@@ -151,60 +154,58 @@ void Recorder::start()
                         {
                             std::stringstream stream;
                             stream << '"' << m_ffmpeg_path << '"' << " -y";
-                            acti = 0;
-                            for (size_t i = 0; acti < hacks.clickSoundChunkSize; i++)
+                            for (size_t i = 0; i < hacks.clickSoundChunkSize; i++)
                             {
-                                if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize() || actions[actionTracker + i].dummy)
-                                    continue;
+                                if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize())
+                                    break;
 
                                 std::string path = gdpath + "\\GDmenu\\clicks";
 
                                 if (actions[actionTracker + i].press)
                                 {
-                                    (actions[actionTracker + i].frame / hacks.fps) - prevClick > hacks.playMediumClicksAt * 2.0f ? path += "\\clicks\\" + std::to_string(rand() % Hacks::amountOfClicks + 1) + ".wav" : path += "\\mediumclicks\\" + std::to_string(rand() % Hacks::amountOfMediumClicks + 1) + ".wav";
+                                    (actions[actionTracker + i].frame / hacks.fps) - prevClick > hacks.playMediumClicksAt ? path += "\\clicks\\" + std::to_string(rand() % Hacks::amountOfClicks + 1) + ".wav" : path += "\\mediumclicks\\" + std::to_string(rand() % Hacks::amountOfMediumClicks + 1) + ".wav";
                                 }
                                 else
                                 {
                                     path += "\\releases\\" + std::to_string(rand() % Hacks::amountOfReleases + 1) + ".wav";
                                 }
-                                if(actions[actionTracker + i].press) prevClick = actions[actionTracker + i].frame / hacks.fps;
+                                prevClick = actions[actionTracker + i].frame / hacks.fps;
                                 stream << " -i " << '"' << path << '"';
-                                acti++;
                             }
 
                             stream << " -filter_complex " << '"';
-
-                            acti = 0;
-                            for (size_t i = 0; acti < hacks.clickSoundChunkSize; i++)
+                            
+                            bool oldClick = false;
+                            for (size_t i = 0; i < hacks.clickSoundChunkSize; i++)
                             {
-                                if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize() || actions[actionTracker + i].dummy)
-                                    continue;
+                                if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize())
+                                    break;
                                 
                                 float volume = ((actions[actionTracker + i].frame / hacks.fps) - prevClick) * 15.0f;
                                 if(volume > 1 || volume < 0) volume = 1;
                                 if(!actions[actionTracker + i].press) volume *= 2;
-                                stream << '[' << acti << ":a]atrim=start=0ms:end=1000ms,adelay=" << (actions[actionTracker + i].frame / hacks.fps) * 1000 << "ms:all=1,volume=" << volume << "[a" << acti << "];";
-                                acti++;
-                                if(actions[actionTracker + i].press) prevClick = actions[actionTracker + i].frame / hacks.fps;
+                                //if(actions[actionTracker + i].press == oldClick) volume = 0;
+                                stream << '[' << i << ":a]atrim=start=0ms:end=1000ms,adelay=" << (actions[actionTracker + i].frame / hacks.fps) * 1000 << "ms:all=1,volume=" << volume << "[a" << i << "];";
+                                prevClick = actions[actionTracker + i].frame / hacks.fps;
+                                oldClick = actions[actionTracker + i].press;
                             }
 
-                            acti = 0;
+                            size_t amt = 0;
 
-                            for (size_t i = 0; acti < hacks.clickSoundChunkSize; i++)
+                            for (size_t i = 0; i < hacks.clickSoundChunkSize; i++)
                             {
-                                if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize() || actions[actionTracker + i].dummy)
-                                    continue;
-                                stream << "[a" << acti << ']';
-                                acti++;
+                                if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize())
+                                    break;
+                                stream << "[a" << i << ']';
+                                amt++;
                             }
 
-                            nameTracker += hacks.clickSoundChunkSize;
-                            actionTracker += acti;
+                            actionTracker += hacks.clickSoundChunkSize;
 
-                            stream << "amix=inputs=" << acti << ":normalize=0";
+                            stream << "amix=inputs=" << amt << ":normalize=0";
 
                             stream << '"' << " -t " << (int)(total_time * 1000.0) << "ms"
-                                   << " \"" << gdpath << "/rendered_clicks" << nameTracker << ".mp3";
+                                   << " \"" << gdpath << "/rendered_clicks" << actionTracker << ".mp3";
 
                             auto process = subprocess::Popen(stream.str());
                             stream.clear();
@@ -213,9 +214,6 @@ void Recorder::start()
                                 return;
                             }
                         }
-
-                        using namespace std::chrono_literals;
-                        std::this_thread::sleep_for(std::chrono::seconds((4 + (actions.size() / 200))));
 
                         std::stringstream stream;
                         stream << '"' << m_ffmpeg_path << '"' << " -y";
@@ -252,13 +250,9 @@ void Recorder::start()
                         }
                     }
 
-                    using namespace std::chrono_literals;
-                    std::this_thread::sleep_for(std::chrono::seconds((4 + (actions.size() / 200))));
-
                     {
                         std::stringstream f;
                         f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -i " << '"' << clickpath << '"' << " -filter_complex amix=inputs=2:duration=longest:weights=" << '"' << "1 0.75" << '"' << " -map 0:v -c:v copy -b:a 192k " << '"' << finalpath << '"';
-                        Hacks::writeOutput(f.str());
                         auto process = subprocess::Popen(f.str());
                         if (process.close())
                         {

@@ -18,7 +18,7 @@ struct HacksStr
     int muteKey;
     float waveSize;
     float respawnTime = 1.2f;
-    bool lastCheckpoint, autoclicker, frameStep;
+    bool lastCheckpoint = false, autoclicker, frameStep;
     float clickTime, releaseTime;
     int stepCount, stepIndex;
     bool botTextEnabled;
@@ -65,6 +65,9 @@ struct HacksStr
 
     char codec[20], extraArgs[60], pitchId[10], menuSongId[10];
     bool preventInput = false, rainbowPlayerC1 = false, rainbowPlayerC2 = false, rainbowPlayerVehicle = false;
+    char extraArgsAfter[60];
+
+    bool safeModeEndscreen, practiceButtonEndscreen, cheatIndicatorEndscreen;
 };
 
 enum position {TR, TL, BR, BL};

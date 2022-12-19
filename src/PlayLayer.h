@@ -61,10 +61,23 @@ namespace PlayLayer
 	inline void(__thiscall* uiTouchBegan)(gd::UILayer* self, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
 	void __fastcall uiTouchBeganHook(gd::UILayer* self, void*, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
 
+	inline void(__thiscall* ringJump)(gd::PlayerObject* self, gd::GameObject* ring);
+	void __fastcall ringJumpHook(gd::PlayerObject* self, void*, gd::GameObject* ring);
+
+	inline void(__thiscall* activateObject)(gd::GameObject* self, gd::PlayerObject* player);
+	void __fastcall activateObjectHook(gd::GameObject* self, void*, gd::PlayerObject* player);
+
+	inline void(__thiscall* bump)(gd::GJBaseGameLayer* self, gd::PlayerObject* player, gd::GameObject* object);
+	void __fastcall bumpHook(gd::GJBaseGameLayer* self, void*, gd::PlayerObject* player, gd::GameObject* object);
+
 	void SetHitboxSize(float size);
 
 	void UpdatePositions(int index);
 
 	void Quit();
+
+	bool IsCheating();
+
+	float GetStartPercent();
 
 }

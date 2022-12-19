@@ -25,7 +25,7 @@ namespace Hacks
 {
 
     static std::vector<bool> cheatCheck;
-    static const std::vector<std::string> cheatVector = {"0x60554","0x60753","0x207328","0x206921","0x20612C","0x2062C2","0x1F9971","0x20456D","0x20456D","0x204D08","0x2061BC","0x20A23C","0x20A34F","0x205347","0x20456D","0x20456D","0x20CEA4","0x254343","0x205161","0x203519","0x1E9141","0x1EBAE8","0x203DA2"};
+    static const std::vector<std::string> cheatVector = {"0x60554","0x60753","0x207328","0x206921","0x20612C","0x2062C2","0x1F9971","0x20456D","0x20456D","0x204D08","0x2061BC","0x20A23C","0x20A34F","0x205347","0x20456D","0x20456D","0x20CEA4","0x254343","0x205161","0x203519","0x1E9141","0x1EBAE8","0x203DA2", "0x1E9C50", "0x1E9E30"};
 
     extern std::vector<std::string> musicPaths;
     extern std::filesystem::path path;
@@ -308,23 +308,9 @@ namespace Hacks
 
     static std::string GetSongFolder()
     {
-        std::filesystem::path path;
-        PWSTR path_tmp;
-        auto get_folder_path_ret = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &path_tmp);
-
-        if (get_folder_path_ret != S_OK)
-        {
-            CoTaskMemFree(path_tmp);
-        }
-        else
-        {
-            path = path_tmp;
-            path = path.parent_path();
-            path = path / "Local/GeometryDash";
-            CoTaskMemFree(path_tmp);
-            return utf16ToUTF8(path.c_str());
-        }
-        return "";
+        bool standardPath = !gd::GameManager::sharedState()->getGameVariable("0033");
+        if(standardPath) return CCFileUtils::sharedFileUtils()->getWritablePath();
+        else return CCFileUtils::sharedFileUtils()->getWritablePath2() + "Resources/"; 
     }
 
     static void MenuMusic()
@@ -347,7 +333,9 @@ namespace Hacks
 
     static void ChangePitch(float pitch)
     {
-        std::string path = GetSongFolder() + "/" + hacks.pitchId + ".mp3";
+        std::string path = GetSongFolder() + hacks.pitchId + ".mp3";
+        debug.debugString = path;
+        
         std::thread([&, path, pitch]()
                     {
         {

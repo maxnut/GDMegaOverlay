@@ -459,6 +459,8 @@ void RenderMain()
     const int windowWidth = 220;
     const int arrowButtonPosition = windowWidth - 39;
 
+    if(hacks.hitboxMultiplier <= 0) hacks.hitboxMultiplier = 1;
+
     const float size = screenSize * hacks.menuSize;
     const float windowSize = windowWidth * size;
 
@@ -507,6 +509,7 @@ void RenderMain()
 
     if (show)
     {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
         cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
         closed = false;
 
@@ -707,7 +710,6 @@ void RenderMain()
 
         DrawFromJSON(Hacks::level);
 
-        ImGui::Checkbox("Replay Last Checkpoint", &hacks.lastCheckpoint);
         ImGui::Checkbox("Practice Fix", &hacks.fixPractice);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Activate this if you want the practice fixes to be active even if macrobot is not recording");
@@ -729,6 +731,21 @@ void RenderMain()
 
         ImGui::Checkbox("Confirm Quit", &hacks.confirmQuit);
         ImGui::Checkbox("Show Endscreen Info", &hacks.showExtraInfo);
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        if (ImGui::ArrowButton("sei", 1))
+            ImGui::OpenPopup("Endscreen Settings");
+
+        if (ImGui::BeginPopupModal("Endscreen Settings", NULL))
+        {
+            ImGui::Checkbox("Safe Mode", &hacks.safeModeEndscreen);
+            ImGui::Checkbox("Practice Button", &hacks.practiceButtonEndscreen);
+            ImGui::Checkbox("Cheat Indicator", &hacks.cheatIndicatorEndscreen);
+            if (ImGui::Button("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
 
         ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
         ImGui::InputFloat("Hitbox Multiplier", &hacks.hitboxMultiplier);
@@ -1210,14 +1227,15 @@ void RenderMain()
         ImGui::InputFloat("Click Volume", &hacks.renderClickVolume);
         ImGui::InputText("Bitrate", hacks.bitrate, 8);
         ImGui::InputText("Codec", hacks.codec, 20);
-        ImGui::InputText("Extra args", hacks.extraArgs, 60);
+        ImGui::InputText("Extraargs Before -i", hacks.extraArgs, 60);
+        ImGui::InputText("Extraargs After -i", hacks.extraArgsAfter, 60);
         ImGui::InputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the whole rendered clicks, i have to split them to bypass the command character limit.\nTry increasing this if the clicks do not render.");
         ImGui::InputFloat("Show End For", &hacks.afterEndDuration);
         ImGui::PopItemWidth();
 
-        Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on default.\n If you're using an NVIDIA GPU i reccomend settings your extra args to: -hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using an AMD GPU i reccomend setting the encoder to: hevc_amf.");
+        Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: -hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
         Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i integrated my clickbot into it");
 
         ImGui::End();
@@ -1327,6 +1345,7 @@ void RenderMain()
         ImGui::PopStyleColor();
 
         ImGui::End();
+        ImGui::PopStyleVar();
 
         if (resetWindows)
             ImGui::SaveIniSettingsToDisk("imgui.ini");
@@ -1372,17 +1391,26 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x25FAD0), PlayLayer::uiOnPauseHook, reinterpret_cast<void **>(&PlayLayer::uiOnPause));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x25FD20), PlayLayer::uiTouchBeganHook, reinterpret_cast<void **>(&PlayLayer::uiTouchBegan));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1F9640), PlayLayer::togglePlayerScaleHook, reinterpret_cast<void **>(&PlayLayer::togglePlayerScale));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1f4ff0), PlayLayer::ringJumpHook, reinterpret_cast<void **>(&PlayLayer::ringJump));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xef0e0), PlayLayer::activateObjectHook, reinterpret_cast<void **>(&PlayLayer::activateObject));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x10ed50), PlayLayer::bumpHook, reinterpret_cast<void **>(&PlayLayer::bump));
+
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xC4BD0), LevelEditorLayer::fadeMusicHook, reinterpret_cast<void **>(&LevelEditorLayer::fadeMusic));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1695A0), LevelEditorLayer::onPlaytestHook, reinterpret_cast<void **>(&LevelEditorLayer::onPlaytest));
+
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x94CB0), EndLevelLayer::customSetupHook, reinterpret_cast<void **>(&EndLevelLayer::customSetup));
+
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x12ADF0), MenuLayer::onBackHook, reinterpret_cast<void **>(&MenuLayer::onBack));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x18CF40), MenuLayer::loadingStringHook, reinterpret_cast<void **>(&MenuLayer::loadingString));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1907B0), MenuLayer::hook, reinterpret_cast<void **>(&MenuLayer::init));
+
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x17DA60), LevelSearchLayer::hook, reinterpret_cast<void **>(&LevelSearchLayer::init));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook, reinterpret_cast<void **>(&LevelSearchLayer::http));
+
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x20DDD0), CustomCheckpoint::createHook, reinterpret_cast<void **>(&CustomCheckpoint::create));
+        
         MH_CreateHook(addr, PlayLayer::dispatchKeyboardMSGHook, reinterpret_cast<void **>(&PlayLayer::dispatchKeyboardMSG));
         Setup();
         // Speedhack::Setup();

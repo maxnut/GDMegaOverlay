@@ -1,6 +1,7 @@
 #include "ReplayPlayer.h"
 #include "Practice.h"
 #include "Hacks.h"
+#include "PlayLayer.h"
 
 void CustomCheckpoint::GetCheckpoint()
 {
@@ -17,6 +18,8 @@ Checkpoint Practice::CreateCheckpoint()
         c.p1 = CheckpointData::fromPlayer(pl->m_pPlayer1);
         c.p2 = CheckpointData::fromPlayer(pl->m_pPlayer2);
         c.frameOffset = rp.GetFrame();
+        c.activatedObjectsSize = activatedObjects.size();
+        c.activatedObjectsP2Size = activatedObjectsP2.size();
     }
     return c;
 }
@@ -36,19 +39,38 @@ CustomCheckpoint *CustomCheckpoint::createHook()
     return cc;
 }
 
-void CheckpointData::Apply(gd::PlayerObject *p, bool addedAction) const
+int CheckpointData::Apply(gd::PlayerObject *p)
 {
+    int out = 0;
+    p->m_xAccel = xAccel;
     p->m_yAccel = yAccel;
-    p->setRotation(rotation);
-    auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
-
-    if (ReplayPlayer::getInstance().IsRecording() && !addedAction)
+    p->m_jumpAccel = jumpAccel;
+    if (isHolding != p->m_isHolding)
     {
-        if (p == playLayer->m_pPlayer1)
-            ReplayPlayer::getInstance().RecordAction(true, p, true, true);
-        else if (p == playLayer->m_pPlayer2 && playLayer->m_bIsDualMode)
-            ReplayPlayer::getInstance().RecordAction(true, p, false, true);
+        out = p->m_isHolding ? 2 : 1; // 2 == press, 1 == release
     }
+    p->m_position.x = xPos;
+    p->m_position.y = yPos;
+    p->setRotationX(rotationX);
+    p->setRotationY(rotationY);
+    p->m_playerSpeed = playerSpeed;
+    p->m_vehicleSize = vehichleSize;
+    p->m_hasJustHeld = hasJustHeld;
+    p->m_hasJustHeld2 = hasJustHeld2;
+    p->m_isHolding = isHolding;
+    p->m_isHolding2 = isHolding2;
+    p->m_canRobotJump = canRobotJump;
+    p->m_isUpsideDown = isUpsideDown;
+    p->m_isOnGround = isOnGround;
+    p->m_isDashing = isDashing;
+    p->m_isSliding = isSliding;
+    p->m_isRising = isRising;
+    p->m_unk662 = unk662;
+    p->m_unk630 = unk630;
+    p->m_unk631 = unk631;
+    SetGamemode(p, gamemode);
+    auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
+    return out;
 }
 
 Checkpoint Practice::GetLast()
@@ -63,4 +85,33 @@ Checkpoint Practice::GetLast()
         }
     }
     return {};
+}
+
+void Practice::ApplyCheckpoint()
+{
+    auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
+    if (playLayer)
+    {
+        Checkpoint c = GetLast();
+        auto click1 = c.p1.Apply(playLayer->m_pPlayer1);
+        if (click1 != 0)
+        {
+            if (click1 == 2 && c.p1.touchRing <= 0)
+                PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
+            else if (click1 == 1)
+                PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+            else
+                PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
+        }
+        auto click2 = c.p2.Apply(playLayer->m_pPlayer2);
+        if (click2 != 0)
+        {
+            if (click2 == 2 && c.p2.touchRing <= 0)
+                PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
+            else if (click2 == 1)
+                PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
+            else
+                PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
+        }
+    }
 }

@@ -36,8 +36,8 @@ void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt) {
             return CCScheduler_update(self, target_dt);
         auto start = std::chrono::high_resolution_clock::now();
         for (unsigned i = 0; i < times; ++i) {
-            // if (i == times - 1)
-            //     g_disable_render = false;
+             if (i == times - 1)
+                 g_disable_render = false;
             CCScheduler_update(self, target_dt);
             using namespace std::literals;
             if (std::chrono::high_resolution_clock::now() - start > 33.333ms) {

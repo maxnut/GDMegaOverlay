@@ -35,7 +35,8 @@ class ReplayPlayer
     void Save(std::string name) {replay.Save(name);}
     void Load(std::string name);
 
-    void RecordAction(bool press, gd::PlayerObject* pl, bool player1, bool dummy);
+    void RecordAction(bool press, gd::PlayerObject* pl, bool player1);
+    void HandleActivatedObjects(bool a, bool b, gd::GameObject* object);
 
     Replay* GetReplay() {return &replay;}
 

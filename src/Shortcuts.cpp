@@ -161,7 +161,12 @@ void Shortcuts::OnPress(int index)
             break;
         case 27:
             auto pl = gd::GameManager::sharedState()->getPlayLayer();
-            if(pl) PlayLayer::resetLevelHook(pl, 0);
+            if(pl) 
+            {
+                PlayLayer::resetLevelHook(pl, 0);
+                if (pl->m_bIsPaused)
+		            gd::GameSoundManager::sharedState()->stopBackgroundMusic();
+            }
             break;
     }
 

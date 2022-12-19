@@ -14,12 +14,11 @@ void Replay::Load(std::string name)
         size_t left = static_cast<size_t>(file.tellg());
         file.seekg(0);
         left -= sizeof(float) * 2;
-        for (size_t _ = 0; _ <= left / 23U; ++_)
+        for (size_t _ = 0; _ <= left / 22U; ++_)
         {
             Action a;
             file.read((char *)&a.press, sizeof(bool));
             file.read((char *)&a.player2, sizeof(bool));
-            file.read((char *)&a.dummy, sizeof(bool));
             file.read((char *)&a.frame, sizeof(uint32_t));
             file.read((char *)&a.yAccel, sizeof(double));
             file.read((char *)&a.px, sizeof(float));
@@ -47,7 +46,6 @@ void Replay::Save(std::string name)
     {
         file.write((char *)&a.press, sizeof(bool));
         file.write((char *)&a.player2, sizeof(bool));
-        file.write((char *)&a.dummy, sizeof(bool));
         file.write((char *)&a.frame, sizeof(uint32_t));
         file.write((char *)&a.yAccel, sizeof(double));
         file.write((char *)&a.px, sizeof(float));

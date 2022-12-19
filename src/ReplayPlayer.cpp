@@ -14,6 +14,8 @@ int Hacks::amountOfClicks = 0;
 int Hacks::amountOfMediumClicks = 0;
 int Hacks::amountOfReleases = 0;
 
+bool oldClick = false;
+
 double oldTime = 0;
 
 uint32_t ReplayPlayer::GetFrame()
@@ -28,11 +30,6 @@ uint32_t ReplayPlayer::GetFrame()
 void ReplayPlayer::StartPlaying(gd::PlayLayer *playLayer)
 {
     UpdateFrameOffset();
-    if (IsRecording())
-    {
-        replay.fps = hacks.fps;
-        Hacks::FPSBypass(replay.fps);
-    }
     actionIndex = 0;
 }
 
@@ -97,6 +94,9 @@ void ReplayPlayer::ToggleRecording()
     playing = false;
     recording = !recording;
 
+    replay.fps = hacks.fps;
+    Hacks::FPSBypass(replay.fps);
+
     if (replay.GetActionsSize() > 0 && IsRecording() && hacks.actionStart <= 0)
     {
         replay.ClearActions();
@@ -115,78 +115,70 @@ void ReplayPlayer::TogglePlaying()
 void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
 {
     oldTime = 0;
-    UpdateFrameOffset();
-    actionIndex = hacks.actionStart;
+
     bool addedAction = false;
+    oldClick = false;
 
-    bool hasCheckpoint = playLayer->m_checkpoints->count() > 0;
-    const auto checkpoint = practice.GetLast();
-
-    if (!hasCheckpoint)
+    if (IsPlaying())
     {
-        frameOffset = 0;
+        UpdateFrameOffset();
+        actionIndex = hacks.actionStart;
+        playLayer->releaseButton(0, false);
+        playLayer->releaseButton(0, true);
+        practice.activatedObjects.clear();
+        practice.activatedObjectsP2.clear();
     }
     else
     {
-        frameOffset = checkpoint.frameOffset;
-    }
-
-    if (IsRecording())
-    {
-        replay.RemoveActionsAfter(GetFrame());
-        const auto &actions = replay.getActions();
-        bool holding = playLayer->m_pPlayer1->m_isHolding;
-
-        Action ac;
-        if (!actions.empty())
+        bool hasCheckpoint = playLayer->m_checkpoints->count() > 0;
+        const auto checkpoint = practice.GetLast();
+        if (!hasCheckpoint)
         {
-            ac = actions.back();
-            int i = actions.size();
-            while (ac.dummy && i > 0)
-            {
-                i--;
-                ac = actions[i];
-            }
+            practice.activatedObjects.clear();
+            practice.activatedObjectsP2.clear();
+            frameOffset = 0;
         }
-
-        if ((holding && actions.empty()) || (!actions.empty() && ac.press != holding && !ac.dummy))
+        else
         {
-            RecordAction(holding, playLayer->m_pPlayer1, true, false);
-            addedAction = true;
-            if (playLayer->m_bIsDualMode)
-                RecordAction(holding, playLayer->m_pPlayer2, false, false);
-            if (holding)
+            frameOffset = checkpoint.frameOffset;
+            constexpr auto delete_from = [&](auto &vec, size_t index)
             {
-                PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
-                PlayLayer::pushButton(playLayer->m_pPlayer1, 0);
-                playLayer->m_pPlayer1->m_hasJustHeld = true;
-                if (playLayer->m_bIsDualMode)
+                vec.erase(vec.begin() + index, vec.end());
+            };
+            delete_from(practice.activatedObjects, checkpoint.activatedObjectsSize);
+            delete_from(practice.activatedObjectsP2, checkpoint.activatedObjectsP2Size);
+            if (IsRecording())
+            {
+                for (const auto &object : practice.activatedObjects)
                 {
-                    PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
-                    PlayLayer::pushButton(playLayer->m_pPlayer2, 0);
-                    playLayer->m_pPlayer2->m_hasJustHeld = true;
+                    object->m_bHasBeenActivated = true;
+                }
+                for (const auto &object : practice.activatedObjectsP2)
+                {
+                    object->m_bHasBeenActivatedP2 = true;
                 }
             }
         }
-        else if (!actions.empty() && holding && hasCheckpoint && ac.press && checkpoint.p1.buffer && !ac.dummy)
+
+        if (IsRecording())
         {
-            PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
-            PlayLayer::pushButton(playLayer->m_pPlayer1, 0);
-            if (playLayer->m_bIsDualMode)
-            {
-                PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
-                PlayLayer::pushButton(playLayer->m_pPlayer2, 0);
-            }
+            replay.RemoveActionsAfter(GetFrame());
+            if (playLayer->m_pLevelSettings->m_twoPlayerMode)
+                RecordAction(false, playLayer->m_pPlayer2, false);
         }
     }
-    else if (IsPlaying())
-    {
-        playLayer->releaseButton(0, false);
-        playLayer->releaseButton(0, true);
-    }
 
-    if (IsRecording() || hacks.fixPractice)
-        practice.ApplyCheckpoint(addedAction);
+    if ((IsRecording() || hacks.fixPractice) && playLayer->m_isPracticeMode && playLayer->m_checkpoints->count() > 0)
+        practice.ApplyCheckpoint();
+
+    if (IsPlaying() || IsRecording() && GetActionsSize() <= 0)
+    {
+        PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
+        if (playLayer->m_bIsDualMode)
+        {
+            PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
+        }
+    }
 }
 
 void ReplayPlayer::Load(std::string name)
@@ -198,13 +190,13 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
 {
     sys->update();
 
-    if (replay.fps != hacks.fps)
+    if (replay.fps != hacks.fps && (IsPlaying() || IsRecording()))
     {
         hacks.fps = replay.fps;
         Hacks::FPSBypass(hacks.fps);
     }
 
-    if (!IsPlaying() || actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0)
+    if (!IsPlaying() || actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0 || playLayer->m_hasCompletedLevel || playLayer->m_isDead)
         return;
 
     size_t limit = 1;
@@ -229,53 +221,54 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 playLayer->m_pPlayer2->m_position.y = ac.py;
             }
 
-            if (!ac.dummy)
-            {
-                float v;
-                float p;
-                double t;
-                uint16_t rc, rr, rmc;
+            float v;
+            float p;
+            double t;
+            uint16_t rc, rr, rmc;
 
-                if (hacks.clickbot && clicks.size() > 0 && releases.size() > 0)
-                {
-                    rc = rand() % clicks.size();
-                    rr = rand() % releases.size();
-                    rmc = rand() % mediumclicks.size();
-                    p = hacks.minPitch + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
-                    t = playLayer->m_time - oldTime;
-                    v = t >= hacks.playMediumClicksAt ? 0.5f * ((float)t * 6) * hacks.baseVolume : 0.6f * hacks.baseVolume;
-                    if (v > 0.5f * hacks.baseVolume)
-                        v = 0.5f * hacks.baseVolume;
-                }
-                if (ac.press)
-                {
-                    if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2 && releases.size() > 0 && clicks.size() > 0)
-                    {
-                        sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && mediumclicks.size() > 0 ? mediumclicks[rmc] : clicks[rc], nullptr, false, &channel);
-                        channel->setPitch(p);
-                        channel->setVolume(v);
-                    }
-                    oldTime = playLayer->m_time;
-                    //ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
-                    PlayLayer::isBot = true;
-                    ac.player2 ? PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
-                    PlayLayer::isBot = false;
-                }
-                else
-                {
-                    if (hacks.clickbot && !ac.player2 && releases.size() > 0 && clicks.size() > 0)
-                    {
-                        sys->playSound(releases[rr], nullptr, false, &channel);
-                        channel2->setPitch(p);
-                        channel2->setVolume(v + 0.5f);
-                    }
-                    oldTime = playLayer->m_time;
-                    //ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
-                    PlayLayer::isBot = true;
-                    ac.player2 ? PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
-                    PlayLayer::isBot = false;
-                }
+            t = playLayer->m_time - oldTime;
+
+            if (hacks.clickbot && clicks.size() > 0 && releases.size() > 0)
+            {
+                rc = rand() % clicks.size();
+                rr = rand() % releases.size();
+                rmc = rand() % mediumclicks.size();
+                p = hacks.minPitch + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
+                v = t >= hacks.playMediumClicksAt ? 0.5f * ((float)t * 6) * hacks.baseVolume : 0.6f * hacks.baseVolume;
+                if (v > 0.5f * hacks.baseVolume)
+                    v = 0.5f * hacks.baseVolume;
             }
+            if (ac.press)
+            {
+                if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2 && releases.size() > 0 && clicks.size() > 0 && ac.press != oldClick)
+                {
+                    sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && mediumclicks.size() > 0 ? mediumclicks[rmc] : clicks[rc], nullptr, false, &channel);
+                    channel->setPitch(p);
+                    channel->setVolume(v);
+                }
+                oldTime = playLayer->m_time;
+                // ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
+                PlayLayer::isBot = true;
+                if(ac.press == oldClick) ac.player2 ? PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+                ac.player2 ? PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
+                PlayLayer::isBot = false;
+            }
+            else
+            {
+                if (hacks.clickbot && !ac.player2 && releases.size() > 0 && clicks.size() > 0 && ac.press != oldClick)
+                {
+                    sys->playSound(releases[rr], nullptr, false, &channel);
+                    channel2->setPitch(p);
+                    channel2->setVolume(v + 0.5f);
+                }
+                oldTime = playLayer->m_time;
+                // ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
+                PlayLayer::isBot = true;
+                ac.player2 ? PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+                PlayLayer::isBot = false;
+            }
+
+            oldClick = ac.press;
 
             ++actionIndex;
         }
@@ -287,14 +280,25 @@ void ReplayPlayer::UpdateFrameOffset()
     frameOffset = GetPractice().GetLast().frameOffset;
 }
 
-void ReplayPlayer::RecordAction(bool press, gd::PlayerObject *pl, bool player1, bool dummy)
+void ReplayPlayer::HandleActivatedObjects(bool a, bool b, gd::GameObject *object)
+{
+    auto play_layer = gd::GameManager::sharedState()->getPlayLayer();
+    if (play_layer && play_layer->m_isPracticeMode && IsRecording())
+    {
+        if (object->m_bHasBeenActivated && !a)
+            GetPractice().activatedObjects.push_back(object);
+        if (object->m_bHasBeenActivatedP2 && !b)
+            GetPractice().activatedObjectsP2.push_back(object);
+    }
+}
+
+void ReplayPlayer::RecordAction(bool press, gd::PlayerObject *pl, bool player1)
 {
     Action a;
     a.player2 = !player1;
     a.frame = GetFrame();
     a.press = press;
     a.yAccel = pl->m_yAccel;
-    a.dummy = dummy;
     a.px = pl->m_position.x;
     a.py = pl->m_position.y;
     replay.AddAction(a);
