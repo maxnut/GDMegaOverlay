@@ -13,8 +13,6 @@
 #include "ExitAlert.h"
 #include "Shortcuts.h"
 
-#define STATUSSIZE 13
-
 using namespace porcodio;
 
 extern struct HacksStr hacks;
@@ -26,7 +24,7 @@ ExitAlert a;
 HitboxNode *drawer;
 gd::PlayLayer *playlayer;
 
-float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 0, respawnWait;
+float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP = 0, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 1;
 
 std::string bestRun = "Best Run: none", text;
 
@@ -50,6 +48,10 @@ CCSize size;
 CCSprite *noclipRed;
 
 ReplayPlayer *replayPlayer;
+
+std::chrono::time_point<std::chrono::high_resolution_clock> previous_frame, last_update;
+float avg = 0.f;
+int frame_count = 0;
 
 void UpdateLabels(gd::PlayLayer *self);
 void Change();
@@ -276,6 +278,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	delta = 0;
 	dead = false;
 	clicksArr.clear();
+	prevP = 0;
 
 	pressTimer = 0;
 	releaseTimer = hacks.releaseTime;
@@ -337,6 +340,22 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	if (hacks.smartStartPos && sp.size() > 0)
 		Change();
 
+	if (Hacks::ds.core && hacks.discordRPC)
+	{
+		discord::Activity activity{};
+		activity.SetDetails(("Playing " + self->m_level->levelName).c_str());
+		if (self->m_level->userName != "")
+			activity.SetState(("by " + self->m_level->userName + " (" + std::to_string(self->m_level->normalPercent) + "%)").c_str());
+		else
+			activity.SetState((std::to_string(self->m_level->normalPercent) + "%").c_str());
+		activity.GetAssets().SetLargeImage("cool");
+		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.SetType(discord::ActivityType::Playing);
+		activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*self->m_level).c_str());
+		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+	}
+
 	return result;
 }
 
@@ -374,21 +393,24 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 	return PlayLayer::releaseButton(self, PlayerButton);
 }
 
-float run = 0;
+std::string oldRun = "";
 
 void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::PlayerObject *player, gd::GameObject *obj)
 {
 	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"])
 	{
-		run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
+		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
+		std::string runStr = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
 		if ((int)startPercent != (int)endPercent && run > maxRun)
 		{
 			bestRunRepeat = 0;
 			maxRun = run;
-			bestRun = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
+			bestRun.clear();
+			bestRun = runStr;
+			oldRun = runStr;
 		}
-		else if (run == maxRun && hacks.accumulateRuns)
+		else if (runStr == oldRun && hacks.accumulateRuns)
 		{
 			bestRunRepeat++;
 			if (bestRunRepeat > 1)
@@ -404,15 +426,18 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 
 gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *self)
 {
-	run = 100.0f - startPercent;
+	float run = 100.0f - startPercent;
 	endPercent = 100.0f;
+	std::string runStr = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
 	if (run > maxRun)
 	{
 		bestRunRepeat = 0;
 		maxRun = run;
-		bestRun = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
+		bestRun.clear();
+		bestRun = runStr;
+		oldRun = runStr;
 	}
-	else if (run == maxRun && hacks.accumulateRuns)
+	else if (runStr == oldRun && hacks.accumulateRuns)
 	{
 		bestRunRepeat++;
 		if (bestRunRepeat > 1)
@@ -437,7 +462,7 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 
 void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrangers)
 {
-	if (delta > 0.2f && (percent - startPercent) * playlayer->m_levelLength > 0.04f * playlayer->m_levelLength)
+	if (delta > 0.1f)
 	{
 		dead = true;
 		hitboxDead = true;
@@ -484,7 +509,7 @@ bool PlayLayer::IsCheating()
 		total++;
 	}
 
-	if (hacks.fps > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.hitboxMultiplier != 1.0f || hacks.showHitboxes && !hacks.onlyOnDeath)
+	if (hacks.fps > 360.0f || hacks.screenFPS > 360.0f || hacks.tpsBypass > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.hitboxMultiplier != 1.0f || hacks.showHitboxes && !hacks.onlyOnDeath)
 		return true;
 
 	return false;
@@ -526,10 +551,40 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	if (labels.statuses[1])
 	{
-		if (labels.styles[0] == 0)
-			fontPtr->setString((std::to_string((int)(ImGui::GetIO().Framerate)) + "FPS").c_str());
-		else
-			fontPtr->setString((std::to_string((int)(ImGui::GetIO().Framerate))).c_str());
+		const auto now = std::chrono::high_resolution_clock::now();
+
+		const std::chrono::duration<float> diff = now - previous_frame;
+		avg += diff.count();
+		frame_count++;
+
+		if (std::chrono::duration<float>(now - last_update).count() > labels.fpsUpdate)
+		{
+			last_update = now;
+			const auto fps = static_cast<int>(std::roundf(static_cast<float>(frame_count) / avg));
+			avg = 0.f;
+			frame_count = 0;
+
+			std::stringstream stream;
+
+			if (labels.showReal && (hacks.fps != hacks.tpsBypass || hacks.fps != hacks.screenFPS))
+			{
+				if (labels.styles[0] == 0)
+					stream << (int)(ImGui::GetIO().Framerate) << "/" << fps << " FPS";
+				else
+					stream << (int)(ImGui::GetIO().Framerate) << "/" << fps;
+			}
+			else
+			{
+				if (labels.styles[0] == 0)
+					stream << (int)(ImGui::GetIO().Framerate) << " FPS";
+				else
+					stream << (int)(ImGui::GetIO().Framerate);
+			}
+
+			fontPtr->setString(stream.str().c_str());
+		}
+
+		previous_frame = now;
 
 		if (labels.rainbowLabels)
 			fontPtr->setColor(rainbow);
@@ -570,16 +625,18 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	if (labels.statuses[3])
 	{
+		fontPtr->setString(text.c_str());
+		fontPtr->setColor(dead ? red : labels.rainbowLabels ? rainbow
+															: white);
+
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
+			p = 1;
 			bool t = Hacks::player["mods"][0]["toggle"];
 			Hacks::player["mods"][0]["toggle"] = false;
 			Hacks::ToggleJSONHack(Hacks::player, 0, false);
 			Hacks::player["mods"][0]["toggle"] = t;
 		}
-		fontPtr->setColor(dead ? red : labels.rainbowLabels ? rainbow
-															: white);
-		fontPtr->setString(text.c_str());
 	}
 	else
 		fontPtr->setString("");
@@ -635,7 +692,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	if (labels.statuses[7])
 	{
-		fontPtr->setString((std::to_string(self->m_level->m_nAttempts) + " Attempts").c_str());
+		fontPtr->setString((std::to_string(self->m_level->attempts) + " Attempts").c_str());
 
 		if (labels.rainbowLabels)
 			fontPtr->setColor(rainbow);
@@ -691,7 +748,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	if (labels.statuses[11])
 	{
-		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->m_nLevelID)).c_str());
+		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->levelID)).c_str());
 
 		if (labels.rainbowLabels)
 			fontPtr->setColor(rainbow);
@@ -848,14 +905,6 @@ void Update(gd::PlayLayer *self, float dt)
 	percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
 	self->m_attemptLabel->setVisible(!hacks.hideattempts);
 
-	if (dead && !lastFrameDead)
-	{
-		actualDeaths++;
-		EndLevelLayer::deaths++;
-	}
-
-	lastFrameDead = dead;
-
 	if (hacks.autoSyncMusic)
 	{
 		float f = self->timeForXPos(self->m_pPlayer1->getPositionX());
@@ -867,20 +916,6 @@ void Update(gd::PlayLayer *self, float dt)
 		{
 			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
 		}
-	}
-
-	if (noClipDeaths == 0)
-	{
-		text = "Accuracy: 100.00%";
-		EndLevelLayer::accuracy = 100.0f;
-	}
-	else if (labels.statuses[3] || hacks.showExtraInfo)
-	{
-		p = (float)(frames - noClipDeaths) / (float)frames;
-		std::stringstream stream;
-		stream << "Accuracy: " << std::fixed << std::setprecision(2) << p * 100.f << "%";
-		text = stream.str();
-		EndLevelLayer::accuracy = p * 100.f;
 	}
 
 	if (drawer)
@@ -938,8 +973,50 @@ void Update(gd::PlayLayer *self, float dt)
 	{
 		delta += dt;
 		frames++;
+		if (dead && !lastFrameDead)
+		{
+			actualDeaths++;
+			EndLevelLayer::deaths++;
+		}
+
+		lastFrameDead = dead;
+
+		if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] || dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
+		{
+			noClipDeaths++;
+			if (opacity < hacks.noclipRedLimit)
+				opacity += hacks.noclipRedRate;
+			else
+				opacity = hacks.noclipRedLimit;
+		}
+		else
+		{
+			if (opacity > 0)
+				opacity -= hacks.noclipRedRateDown;
+			else
+				opacity = 0;
+		}
+
+		if (!hacks.noclipRed)
+			opacity = 0;
+
+		noclipRed->setOpacity((int)opacity);
 	}
 	prevP = self->m_pPlayer1->getPositionX();
+
+	if (noClipDeaths == 0)
+	{
+		text = "Accuracy: 100.00%";
+		EndLevelLayer::accuracy = 100.0f;
+	}
+	else if (labels.statuses[3] || hacks.showExtraInfo)
+	{
+		p = (float)(frames - noClipDeaths) / (float)frames;
+		std::stringstream stream;
+		stream << "Accuracy: " << std::fixed << std::setprecision(2) << p * 100.f << "%";
+		text = stream.str();
+		EndLevelLayer::accuracy = p * 100.f;
+	}
 
 	if (hacks.rainbowIcons)
 	{
@@ -977,27 +1054,6 @@ void Update(gd::PlayLayer *self, float dt)
 			self->m_pPlayer2->m_vehicleGlow->setChildOpacity(255);
 		}
 	}
-
-	if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] || dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
-	{
-		noClipDeaths++;
-		if (opacity < hacks.noclipRedLimit)
-			opacity += hacks.noclipRedRate;
-		else
-			opacity = hacks.noclipRedLimit;
-	}
-	else
-	{
-		if (opacity > 0)
-			opacity -= hacks.noclipRedRateDown;
-		else
-			opacity = 0;
-	}
-
-	if (!hacks.noclipRed)
-		opacity = 0;
-
-	noclipRed->setOpacity((int)opacity);
 
 	UpdateLabels(self);
 
@@ -1326,6 +1382,16 @@ void PlayLayer::Quit()
 	startPosText = nullptr;
 	Hacks::MenuMusic();
 	drawer->clearQueue();
+	if (Hacks::ds.core && hacks.discordRPC)
+	{
+		discord::Activity activity{};
+		activity.SetState("Browsing Menus");
+		activity.GetAssets().SetLargeImage("cool");
+		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.SetType(discord::ActivityType::Playing);
+		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+	}
 }
 
 bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd::GJGameLevel *lvl)
@@ -1339,6 +1405,17 @@ bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd
 		drawer->clearQueue();
 	bool res = PlayLayer::editorInit(self, lvl);
 	self->getObjectLayer()->addChild(HitboxNode::getInstance(), 32);
+	if (Hacks::ds.core && hacks.discordRPC)
+	{
+		discord::Activity activity{};
+		activity.SetState(("Editing " + lvl->levelName).c_str());
+		activity.GetAssets().SetLargeImage("cool");
+		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.SetType(discord::ActivityType::Playing);
+		activity.GetAssets().SetSmallImage("editor");
+		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+	}
 	return res;
 }
 
@@ -1382,6 +1459,27 @@ void __fastcall PlayLayer::bumpHook(gd::GJBaseGameLayer *self, void *, gd::Playe
 	PlayLayer::bump(self, player, object);
 	if (replayPlayer)
 		replayPlayer->HandleActivatedObjects(a, b, object);
+}
+
+void __fastcall PlayLayer::newBestHook(gd::PlayLayer *self, void *, bool b1, int i1, int i2, bool b2, bool b3, bool b4)
+{
+	PlayLayer::newBest(self, b1, i1, i2, b2, b3, b4);
+
+	if (Hacks::ds.core && hacks.discordRPC)
+	{
+		discord::Activity activity{};
+		activity.SetDetails(("Playing " + self->m_level->levelName).c_str());
+		if (self->m_level->userName != "")
+			activity.SetState(("by " + self->m_level->userName + " (" + std::to_string(self->m_level->normalPercent) + "%)").c_str());
+		else
+			activity.SetState((std::to_string(self->m_level->normalPercent) + "%").c_str());
+		activity.GetAssets().SetLargeImage("cool");
+		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.SetType(discord::ActivityType::Playing);
+		activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*self->m_level).c_str());
+		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+	}
 }
 
 void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, bool down)

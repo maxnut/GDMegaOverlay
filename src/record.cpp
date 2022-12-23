@@ -48,14 +48,14 @@ void Recorder::start()
     auto fade_out = play_layer->m_pLevelSettings->m_fadeOut;
     auto bg_volume = gm->m_fBackgroundMusicVolume;
     auto sfx_volume = gm->m_fEffectsVolume;
-    if (play_layer->m_level->m_nSongID == 0)
+    if (play_layer->m_level->songID == 0)
         song_file = CCFileUtils::sharedFileUtils()->fullPathForFilename(song_file.c_str(), false);
     auto is_testmode = play_layer->m_isTestMode;
     auto song_offset = m_song_start_offset;
 
-    if (!std::filesystem::is_directory("GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID)) || !std::filesystem::exists("GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID)))
+    if (!std::filesystem::is_directory("GDMenu/renders/" + play_layer->m_level->levelName + " - " + std::to_string(play_layer->m_level->levelID)) || !std::filesystem::exists("GDMenu/renders/" + play_layer->m_level->levelName + " - " + std::to_string(play_layer->m_level->levelID)))
     {
-        std::filesystem::create_directory("GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID));
+        std::filesystem::create_directory("GDMenu/renders/" + play_layer->m_level->levelName + " - " + std::to_string(play_layer->m_level->levelID));
     }
 
     std::thread([&, song_file, fade_in, fade_out, bg_volume, sfx_volume, is_testmode, song_offset, play_layer]()
@@ -67,9 +67,9 @@ void Recorder::start()
                     p = p.parent_path();
 
                     auto gdpath = p.string();
-                    auto finalpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID) + "/" + play_layer->m_level->m_sLevelName + ".mp4");
-                    auto notfinalpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID) + "/" + "rendered_video.mp4");
-                    auto clickpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->m_sLevelName + " - " + std::to_string(play_layer->m_level->m_nLevelID) + "/" + "rendered_clicks.mp3");
+                    auto finalpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " + std::to_string(play_layer->m_level->levelID) + "/" + play_layer->m_level->levelName + ".mp4");
+                    auto notfinalpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " + std::to_string(play_layer->m_level->levelID) + "/" + "rendered_video.mp4");
+                    auto clickpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " + std::to_string(play_layer->m_level->levelID) + "/" + "rendered_clicks.mp3");
 
                     std::stringstream stream;
                     stream << '"' << m_ffmpeg_path << '"' << " -y -f rawvideo -pix_fmt rgb24 -s " << m_width << "x" << m_height << " -r " << m_fps;
@@ -240,7 +240,7 @@ void Recorder::start()
                         stream << "amix=inputs=" << actionTracker / hacks.clickSoundChunkSize << ":duration=longest:normalize=0";
 
                         stream << '"' << " -t " << (int)(total_time * 1000.0) << "ms"
-                               << " \"" << gdpath << "/GDMenu/renders/" << play_layer->m_level->m_sLevelName << " - " << std::to_string(play_layer->m_level->m_nLevelID) << "/rendered_clicks.mp3"
+                               << " \"" << gdpath << "/GDMenu/renders/" << play_layer->m_level->levelName << " - " << std::to_string(play_layer->m_level->levelID) << "/rendered_clicks.mp3"
                                << "\"";
 
                         auto process = subprocess::Popen(stream.str());

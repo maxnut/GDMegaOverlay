@@ -64,6 +64,9 @@ namespace PlayLayer
 	inline void(__thiscall* ringJump)(gd::PlayerObject* self, gd::GameObject* ring);
 	void __fastcall ringJumpHook(gd::PlayerObject* self, void*, gd::GameObject* ring);
 
+	inline void(__thiscall* newBest)(gd::PlayLayer* self, bool b1, int i1, int i2, bool b2, bool b3, bool b4);
+	void __fastcall newBestHook(gd::PlayLayer* self, void*, bool b1, int i1, int i2, bool b2, bool b3, bool b4);
+
 	inline void(__thiscall* activateObject)(gd::GameObject* self, gd::PlayerObject* player);
 	void __fastcall activateObjectHook(gd::GameObject* self, void*, gd::PlayerObject* player);
 

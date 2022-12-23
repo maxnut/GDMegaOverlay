@@ -13,6 +13,9 @@
 #pragma comment(lib, "shell32")
 #include <shellapi.h>
 #include "json.hpp"
+#include "DiscordManager.h"
+
+#define STATUSSIZE 13
 
 static DWORD libcocosbase = (DWORD)GetModuleHandleA("libcocos2d.dll");
 extern struct HacksStr hacks;
@@ -25,14 +28,18 @@ namespace Hacks
 {
 
     static std::vector<bool> cheatCheck;
-    static const std::vector<std::string> cheatVector = {"0x60554","0x60753","0x207328","0x206921","0x20612C","0x2062C2","0x1F9971","0x20456D","0x20456D","0x204D08","0x2061BC","0x20A23C","0x20A34F","0x205347","0x20456D","0x20456D","0x20CEA4","0x254343","0x205161","0x203519","0x1E9141","0x1EBAE8","0x203DA2", "0x1E9C50", "0x1E9E30"};
+    static const std::vector<std::string> cheatVector = {"0x60554", "0x60753", "0x207328", "0x206921", "0x20612C", "0x2062C2", "0x1F9971", "0x20456D", "0x20456D", "0x204D08", "0x2061BC", "0x20A23C", "0x20A34F", "0x205347", "0x20456D", "0x20456D", "0x20CEA4", "0x254343", "0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30"};
 
     extern std::vector<std::string> musicPaths;
     extern std::filesystem::path path;
 
+    extern DiscordManager ds;
+
     extern json bypass, creator, global, level, player;
 
     extern int amountOfClicks, amountOfReleases, amountOfMediumClicks;
+
+    extern float tps, screenFps;
 
     static std::string utf16ToUTF8(const std::wstring &s)
     {
@@ -154,6 +161,50 @@ namespace Hacks
     }
     static inline auto widen(const std::string &str) { return widen(str.c_str()); }
 
+    static std::string getDifficultyName(gd::GJGameLevel &level)
+    {
+        if (level.autoLevel)
+        {
+            return "auto";
+        }
+
+        if (level.demon)
+        {
+            switch (level.demonDifficulty)
+            {
+            case 3:
+                return "easy_demon";
+            case 4:
+                return "medium_demon";
+            case 5:
+                return "insane_demon";
+            case 6:
+                return "extreme_demon";
+            default:
+            case 0:
+                return "hard_demon";
+            }
+        }
+
+        switch (level.difficulty)
+        {
+        case gd::kGJDifficultyEasy:
+            return "easy";
+        case gd::kGJDifficultyNormal:
+            return "normal";
+        case gd::kGJDifficultyHard:
+            return "hard";
+        case gd::kGJDifficultyHarder:
+            return "harder";
+        case gd::kGJDifficultyInsane:
+            return "insane";
+        case gd::kGJDifficultyDemon:
+            return "hard_demon";
+        default:
+            return "na";
+        }
+    }
+
     //---------------OTHER--------------------
     static void FPSBypass(float value)
     {
@@ -185,7 +236,8 @@ namespace Hacks
 
     static void ToggleJSONHack(json &js, size_t index, bool toggle)
     {
-        if(toggle) js["mods"][index]["toggle"] = !js["mods"][index]["toggle"];
+        if (toggle)
+            js["mods"][index]["toggle"] = !js["mods"][index]["toggle"];
         for (size_t j = 0; j < js["mods"][index]["opcodes"].size(); j++)
         {
             std::string add = js["mods"][index]["opcodes"][j]["address"].get<std::string>();
@@ -201,7 +253,8 @@ namespace Hacks
 
     static void ToggleJSONHack(json &js, std::string name, bool toggle)
     {
-        if(toggle) js["mods"][name]["toggle"] = !js["mods"][name]["toggle"];
+        if (toggle)
+            js["mods"][name]["toggle"] = !js["mods"][name]["toggle"];
         for (size_t j = 0; j < js["mods"][name]["opcodes"].size(); j++)
         {
             std::string add = js["mods"][name]["opcodes"][j]["address"].get<std::string>();
@@ -271,23 +324,23 @@ namespace Hacks
 
     static void Priority(int priority)
     {
-        switch(priority)
+        switch (priority)
         {
-            case 0:
-                SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
-                break;
-            case 1:
-                SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-                break;
-            case 2:
-                SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
-                break;
-            case 3:
-                SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
-                break;
-            case 4:
-                SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-                break;
+        case 0:
+            SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+            break;
+        case 1:
+            SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+            break;
+        case 2:
+            SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+            break;
+        case 3:
+            SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+            break;
+        case 4:
+            SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+            break;
         }
     }
 
@@ -309,8 +362,10 @@ namespace Hacks
     static std::string GetSongFolder()
     {
         bool standardPath = !gd::GameManager::sharedState()->getGameVariable("0033");
-        if(standardPath) return CCFileUtils::sharedFileUtils()->getWritablePath();
-        else return CCFileUtils::sharedFileUtils()->getWritablePath2() + "Resources/"; 
+        if (standardPath)
+            return CCFileUtils::sharedFileUtils()->getWritablePath();
+        else
+            return CCFileUtils::sharedFileUtils()->getWritablePath2() + "Resources/";
     }
 
     static void MenuMusic()
@@ -335,7 +390,7 @@ namespace Hacks
     {
         std::string path = GetSongFolder() + hacks.pitchId + ".mp3";
         debug.debugString = path;
-        
+
         std::thread([&, path, pitch]()
                     {
         {

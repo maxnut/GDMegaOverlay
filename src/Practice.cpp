@@ -69,7 +69,6 @@ int CheckpointData::Apply(gd::PlayerObject *p)
     p->m_unk630 = unk630;
     p->m_unk631 = unk631;
     SetGamemode(p, gamemode);
-    auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
     return out;
 }
 

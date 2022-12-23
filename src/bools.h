@@ -68,6 +68,10 @@ struct HacksStr
     char extraArgsAfter[60];
 
     bool safeModeEndscreen, practiceButtonEndscreen, cheatIndicatorEndscreen;
+
+    float tpsBypass = 60, screenFPS = 60;
+
+    bool discordRPC;
 };
 
 enum position {TR, TL, BR, BL};
@@ -83,6 +87,8 @@ struct Labels
     float labelSpacing = 20.0f;
     bool hideLabels, rainbowLabels = false;
     float rainbowSpeed = 1.0f;
+    bool showReal = false;
+    float fpsUpdate = 0.5f;
 };
 
 struct Debug

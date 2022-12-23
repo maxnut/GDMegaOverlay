@@ -200,8 +200,9 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
         return;
 
     size_t limit = 1;
-    if (actionIndex + 1 < replay.getActions().size() && replay.getActions()[actionIndex + 1].player2)
-        limit = 2;
+    while (actionIndex + limit < replay.getActions().size() && (replay.getActions()[actionIndex + limit].player2 || (replay.getActions()[actionIndex].frame == replay.getActions()[actionIndex + limit].frame || replay.getActions()[actionIndex].px == replay.getActions()[actionIndex + limit].px)))
+        limit++;
+    
 
     for (size_t i = 0; i < limit; i++)
     {
@@ -270,7 +271,7 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
 
             oldClick = ac.press;
 
-            ++actionIndex;
+            actionIndex++;
         }
     }
 }

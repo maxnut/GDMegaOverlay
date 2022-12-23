@@ -66,6 +66,16 @@ void __fastcall LevelEditorLayer::exitHook(CCLayer *self, void *, CCObject* send
 	LevelEditorLayer::exit(self, sender);
 	Hacks::MenuMusic();
 	HitboxNode::getInstance()->clearQueue();
+	if (Hacks::ds.core)
+	{
+		discord::Activity activity{};
+		activity.SetState("Browsing Menus");
+		activity.GetAssets().SetLargeImage("cool");
+		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.SetType(discord::ActivityType::Playing);
+		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+	}
 }
 
 void __fastcall LevelEditorLayer::fadeMusicHook(gd::GameManager* self, void*, char* idk)

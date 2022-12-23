@@ -27,7 +27,11 @@ extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
 
+DiscordManager Hacks::ds;
+
 json Hacks::bypass, Hacks::creator, Hacks::global, Hacks::level, Hacks::player;
+
+float Hacks::screenFps = 60.0f, Hacks::tps = 60.0f;
 
 float screenSize, pitch;
 
@@ -418,6 +422,8 @@ void Init()
         hacks.recording = false;
 
         Hacks::Priority(hacks.priority);
+        Hacks::tps = hacks.tpsBypass;
+        Hacks::screenFps = hacks.screenFPS;
 
         if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
         {
@@ -452,19 +458,26 @@ void Init()
     f.close();
 
     Shortcuts::Load();
+
+    Hacks::ds.InitDiscord();
 }
 
 void RenderMain()
 {
+    if(Hacks::ds.core) Hacks::ds.core->RunCallbacks();
+
     const int windowWidth = 220;
     const int arrowButtonPosition = windowWidth - 39;
 
-    if(hacks.hitboxMultiplier <= 0) hacks.hitboxMultiplier = 1;
+    if (hacks.hitboxMultiplier <= 0)
+        hacks.hitboxMultiplier = 1;
 
     const float size = screenSize * hacks.menuSize;
     const float windowSize = windowWidth * size;
 
-    if (!gd::GameManager::sharedState()->getPlayLayer())
+    const auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
+
+    if (!playLayer)
     {
         hacks.recording = false;
         if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture && ReplayPlayer::getInstance().recorder.m_recording)
@@ -489,6 +502,7 @@ void RenderMain()
 
         ImGui::InputFloat("N", &debug.debugNumber);
         ImGui::Text(debug.debugString.c_str());
+
         ImGui::End();
 
         ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
@@ -574,7 +588,14 @@ void RenderMain()
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         ImGui::InputFloat("FPS Bypass", &hacks.fps);
         if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Disable VSync both in gd and your gpu drivers for it to work.");
+            ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
+
+        ImGui::InputFloat("TPS Bypass", &hacks.tpsBypass);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
+        ImGui::InputFloat("Draw Divide", &hacks.screenFPS);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
 
         ImGui::InputFloat("Speedhack", &hacks.speed);
 
@@ -589,6 +610,8 @@ void RenderMain()
                 hacks.speed = 1;
             Hacks::Speedhack(hacks.speed);
             Hacks::Priority(hacks.priority);
+            Hacks::tps = hacks.tpsBypass;
+            Hacks::screenFps = hacks.screenFPS;
         }
 
         ImGui::End();
@@ -626,6 +649,14 @@ void RenderMain()
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
+        }
+
+        if(ImGui::Checkbox("Discord RPC", &hacks.discordRPC))
+        {
+            if(!hacks.discordRPC)
+            {
+                if(Hacks::ds.core) Hacks::ds.core->ActivityManager().ClearActivity([](discord::Result result) {});
+            }
         }
 
         ImGui::Checkbox("Hide Pause Menu", &hacks.hidePause);
@@ -893,6 +924,8 @@ void RenderMain()
         {
             TextSettings(1, true);
             ImGui::Combo("Style##fpsc", &labels.styles[0], style, IM_ARRAYSIZE(style));
+            ImGui::InputFloat("Update Interval", &labels.fpsUpdate);
+            ImGui::Checkbox("Show TPS", &labels.showReal);
             if (ImGui::Button("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -1162,6 +1195,34 @@ void RenderMain()
             ShellExecute(0, NULL, Hacks::GetSongFolder().c_str(), NULL, NULL, SW_SHOW);
         }
 
+        if (ImGui::Button("Uncomplete Level"))
+        {
+            if (playLayer)
+            {
+                gd::GameStatsManager::sharedState()->unCompleteLevel(playLayer->m_level);
+                playLayer->m_level->set1(0);
+                playLayer->m_level->set2(0);
+                playLayer->m_level->set3(0);
+                playLayer->m_level->practicePercent = 0;
+                playLayer->m_level->orbCompletion = 0;
+                if (playLayer->m_level->dailyID)
+                    playLayer->m_level->set4(0);
+                /* playLayer->m_level->set5(0);
+                playLayer->m_level->set6(0); */
+                playLayer->m_level->set7(0);
+                playLayer->m_level->set8(0);
+                playLayer->m_level->set9(0);
+                for (size_t i = 0; i < playLayer->m_level->coins; i++)
+                {
+                    auto coinDict = gd::GameStatsManager::sharedState()->m_pVerifiedUserCoins;
+                    coinDict->removeObjectForKey(playLayer->m_level->getCoinKey(i + 1));
+                }
+
+                // auto currDict = gd::GameStatsManager::sharedState()->m_pChallengeDiamonds;
+                // currDict->removeObjectForKey(gd::GameStatsManager::sharedState()->getRewardKey(playLayer->m_level));
+            }
+        }
+
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
@@ -1204,7 +1265,7 @@ void RenderMain()
 
         if (ImGui::Checkbox("Record", &hacks.recording))
         {
-            if (!gd::GameManager::sharedState()->getPlayLayer())
+            if (!playLayer)
                 return;
 
             if (!hacks.recording)
@@ -1354,7 +1415,7 @@ void RenderMain()
     else if (!closed)
     {
         closed = true;
-        auto p = gd::GameManager::sharedState()->getPlayLayer();
+        auto p = playLayer;
         if (p && !p->m_bIsPaused && !p->m_hasCompletedLevel)
             cocos2d::CCEGLView::sharedOpenGLView()->showCursor(false);
         Hacks::SaveSettings();
@@ -1394,6 +1455,7 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1f4ff0), PlayLayer::ringJumpHook, reinterpret_cast<void **>(&PlayLayer::ringJump));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xef0e0), PlayLayer::activateObjectHook, reinterpret_cast<void **>(&PlayLayer::activateObject));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x10ed50), PlayLayer::bumpHook, reinterpret_cast<void **>(&PlayLayer::bump));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1FE3A0), PlayLayer::newBestHook, reinterpret_cast<void **>(&PlayLayer::newBest));
 
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));
@@ -1410,7 +1472,7 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook, reinterpret_cast<void **>(&LevelSearchLayer::http));
 
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x20DDD0), CustomCheckpoint::createHook, reinterpret_cast<void **>(&CustomCheckpoint::create));
-        
+
         MH_CreateHook(addr, PlayLayer::dispatchKeyboardMSGHook, reinterpret_cast<void **>(&PlayLayer::dispatchKeyboardMSG));
         Setup();
         // Speedhack::Setup();
