@@ -13,7 +13,6 @@
 #include "CCSchedulerHook.h"
 #include "ReplayPlayer.h"
 #include <fstream>
-#include "speedhack.h"
 #include <shellapi.h>
 #include "Shortcuts.h"
 #include "json.hpp"

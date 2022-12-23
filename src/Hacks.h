@@ -3,7 +3,6 @@
 #include <vector>
 #include <curl/curl.h>
 #include <fstream>
-#include "speedhack.h"
 #include "bools.h"
 #include "fmod.hpp"
 #include "ReplayPlayer.h"
