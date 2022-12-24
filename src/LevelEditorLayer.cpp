@@ -3,7 +3,6 @@
 #include "Hacks.h"
 #include "HitboxNode.hpp"
 
-using namespace porcodio;
 
 extern struct HacksStr hacks;
 
@@ -28,9 +27,9 @@ void __fastcall LevelEditorLayer::drawHook(gd::LevelEditorLayer *self, void *)
 
 		if (self->m_pObjectLayer)
 		{
-			auto cacca = static_cast<CCLayer *>(self->getChildren()->objectAtIndex(2));
-			float xp = -cacca->getPositionX() / cacca->getScale();
-			for (int s = self->sectionForPos(xp) - (5 / cacca->getScale()); s < self->sectionForPos(xp) + (6 / cacca->getScale()); ++s)
+			auto layer = static_cast<CCLayer *>(self->getChildren()->objectAtIndex(2));
+			float xp = -layer->getPositionX() / layer->getScale();
+			for (int s = self->sectionForPos(xp) - (5 / layer->getScale()); s < self->sectionForPos(xp) + (6 / layer->getScale()); ++s)
 			{
 				if (s < 0)
 					continue;

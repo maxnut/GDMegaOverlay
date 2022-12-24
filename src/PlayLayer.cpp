@@ -13,7 +13,6 @@
 #include "ExitAlert.h"
 #include "Shortcuts.h"
 
-using namespace porcodio;
 
 extern struct HacksStr hacks;
 extern struct Labels labels;
