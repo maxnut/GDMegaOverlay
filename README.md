@@ -21,8 +21,6 @@ Join the discord server [here](https://discord.gg/nbDjEg7SSU)
 
 Download the latest [release](https://github.com/maxnut/GDmenu/releases/latest) and extract all files inside the GD folder.
 
-![alt text](https://media.discordapp.net/attachments/587598582308143125/1055961835888722010/20221223223845_1.jpg)
-
 ## Development
 
 <span style="color:red">THIS PROJECT CAN BE COMPILED ONLY ON WINDOWS</span>
