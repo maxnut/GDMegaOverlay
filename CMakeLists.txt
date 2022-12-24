@@ -25,7 +25,6 @@ target_include_directories(${PROJECT} PRIVATE
   libs/imgui-hook
   libs/imgui-hook/imgui
   libs/cocos-headers/cocos2dx/platform/third_party/win32/curl
-  libs/detours/include/detours
   libs/fmod/inc
   libs/discord_game_sdk/cpp
 )
