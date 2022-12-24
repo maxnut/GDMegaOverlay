@@ -2,7 +2,6 @@
 #include "bools.h"
 #include "Hacks.h"
 
-using namespace porcodio;
 extern struct HacksStr hacks;
 
 HitboxNode::HitboxNode()

@@ -38,6 +38,6 @@ target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/libcocos2d.lib
   ${CMAKE_SOURCE_DIR}/libs/cocos-headers/extensions/libExtensions.lib
   ${CMAKE_SOURCE_DIR}/libs/fmod/lib/x86/fmod_vc.lib
-  ${CMAKE_SOURCE_DIR}/libs/glew32.lib
+  ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
 )
