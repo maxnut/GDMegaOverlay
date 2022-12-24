@@ -71,7 +71,8 @@ struct HacksStr
 
     float tpsBypass = 60, screenFPS = 60;
 
-    bool discordRPC;
+    bool discordRPC, enableHitboxMultiplier;
+    float hitboxSolids, hitboxSpecial;
 };
 
 enum position {TR, TL, BR, BL};

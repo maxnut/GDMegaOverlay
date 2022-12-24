@@ -17,10 +17,11 @@
 #include "Shortcuts.h"
 #include "json.hpp"
 #include "explorer.hpp"
+#include "portable-file-dialogs.h"
 
 using json = nlohmann::json;
 
-bool show = false;
+bool show = false, loaded = false;
 bool isDecember = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
@@ -32,7 +33,7 @@ json Hacks::bypass, Hacks::creator, Hacks::global, Hacks::level, Hacks::player;
 
 float Hacks::screenFps = 60.0f, Hacks::tps = 60.0f;
 
-float screenSize, pitch;
+float screenSize = 0, pitch, oldScreenSize = 0;
 
 int shortcutIndex, shortcutIndexKey, pitchName;
 char fileName[30];
@@ -216,7 +217,7 @@ void TextSettings(int index, bool font)
             PlayLayer::UpdatePositions(i);
 }
 
-bool resetWindows = false;
+bool resetWindows = false, repositionWindows = false;
 
 void SetStyle()
 {
@@ -303,15 +304,6 @@ void Init()
 {
     closed = true;
     srand(time(NULL));
-    if (!std::filesystem::is_directory("GDMenu") || !std::filesystem::exists("GDMenu"))
-    {
-        std::filesystem::create_directory("GDMenu");
-    }
-
-    if (!std::filesystem::is_directory("GDMenu/renders") || !std::filesystem::exists("GDMenu/renders"))
-    {
-        std::filesystem::create_directory("GDMenu/renders");
-    }
 
     if (!std::filesystem::exists("imgui.ini"))
         resetWindows = true;
@@ -322,6 +314,38 @@ void Init()
     ImGui_ImplOpenGL3_CreateFontsTexture();
     io.FontDefault = font;
 
+    if (loaded)
+        return;
+
+    if (!std::filesystem::is_directory("GDMenu") || !std::filesystem::exists("GDMenu"))
+    {
+        std::filesystem::create_directory("GDMenu");
+    }
+    if (!std::filesystem::is_directory("GDMenu/renders") || !std::filesystem::exists("GDMenu/renders"))
+    {
+        std::filesystem::create_directory("GDMenu/renders");
+    }
+    if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
+    {
+        std::filesystem::create_directory("GDMenu/clicks");
+    }
+    if (!std::filesystem::is_directory("GDMenu/clicks/clicks") || !std::filesystem::exists("GDMenu/clicks/clicks"))
+    {
+        std::filesystem::create_directory("GDMenu/clicks/clicks");
+    }
+    if (!std::filesystem::is_directory("GDMenu/clicks/releases") || !std::filesystem::exists("GDMenu/clicks/releases"))
+    {
+        std::filesystem::create_directory("GDMenu/clicks/releases");
+    }
+    if (!std::filesystem::is_directory("GDMenu/clicks/mediumclicks") || !std::filesystem::exists("GDMenu/clicks/mediumclicks"))
+    {
+        std::filesystem::create_directory("GDMenu/clicks/mediumclicks");
+    }
+    if (!std::filesystem::is_directory("GDMenu/dll") || !std::filesystem::exists("GDMenu/dll"))
+    {
+        std::filesystem::create_directory("GDMenu/dll");
+    }
+
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
 
@@ -329,11 +353,6 @@ void Init()
     {
         isDecember = true;
     }
-
-    auto director = CCDirector::sharedDirector();
-    auto glview = director->getOpenGLView();
-    auto size = glview->getFrameSize();
-    screenSize = size.width / 1920.0f;
 
     for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
     {
@@ -423,23 +442,6 @@ void Init()
         Hacks::Priority(hacks.priority);
         Hacks::tps = hacks.tpsBypass;
         Hacks::screenFps = hacks.screenFPS;
-
-        if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
-        {
-            std::filesystem::create_directory("GDMenu/clicks");
-        }
-        if (!std::filesystem::is_directory("GDMenu/clicks/clicks") || !std::filesystem::exists("GDMenu/clicks/clicks"))
-        {
-            std::filesystem::create_directory("GDMenu/clicks/clicks");
-        }
-        if (!std::filesystem::is_directory("GDMenu/clicks/releases") || !std::filesystem::exists("GDMenu/clicks/releases"))
-        {
-            std::filesystem::create_directory("GDMenu/clicks/releases");
-        }
-        if (!std::filesystem::is_directory("GDMenu/clicks/mediumclicks") || !std::filesystem::exists("GDMenu/clicks/mediumclicks"))
-        {
-            std::filesystem::create_directory("GDMenu/clicks/mediumclicks");
-        }
     }
     else
     {
@@ -459,11 +461,21 @@ void Init()
     Shortcuts::Load();
 
     Hacks::ds.InitDiscord();
+
+    auto path = CCFileUtils::sharedFileUtils()->getWritablePath2() + "GDMenu/dll";
+
+    for (const auto &file : std::filesystem::directory_iterator(path))
+    {
+        LoadLibrary(file.path().string().c_str());
+    }
+
+    loaded = true;
 }
 
 void RenderMain()
 {
-    if(Hacks::ds.core) Hacks::ds.core->RunCallbacks();
+    if (Hacks::ds.core)
+        Hacks::ds.core->RunCallbacks();
 
     const int windowWidth = 220;
     const int arrowButtonPosition = windowWidth - 39;
@@ -489,7 +501,7 @@ void RenderMain()
     if (debug.enabled)
     {
         ImGui::PushStyleColor(0, {1, 1, 1, 1});
-        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
+        //ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Debug");
 
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
@@ -507,7 +519,13 @@ void RenderMain()
         ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({732 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({732 * screenSize, 12 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
+
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -522,6 +540,17 @@ void RenderMain()
 
     if (show)
     {
+
+        oldScreenSize = screenSize;
+        if (CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width != screenSize)
+        {
+            screenSize = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
+            repositionWindows = true;
+        }
+
+        if (oldScreenSize == 0)
+            oldScreenSize = screenSize;
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
         cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
         closed = false;
@@ -530,7 +559,12 @@ void RenderMain()
         ImGui::Begin("Menu Settings", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1210 / screenSize, 710 / screenSize});
+            ImGui::SetWindowPos({1210 * screenSize, 710 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -577,7 +611,12 @@ void RenderMain()
         ImGui::Begin("General Mods", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({12 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({10 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -619,7 +658,12 @@ void RenderMain()
         ImGui::Begin("Global", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({252 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({250 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -650,11 +694,12 @@ void RenderMain()
             ImGui::EndPopup();
         }
 
-        if(ImGui::Checkbox("Discord RPC", &hacks.discordRPC))
+        if (ImGui::Checkbox("Discord RPC", &hacks.discordRPC))
         {
-            if(!hacks.discordRPC)
+            if (!hacks.discordRPC)
             {
-                if(Hacks::ds.core) Hacks::ds.core->ActivityManager().ClearActivity([](discord::Result result) {});
+                if (Hacks::ds.core)
+                    Hacks::ds.core->ActivityManager().ClearActivity([](discord::Result result) {});
             }
         }
 
@@ -668,12 +713,28 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::InputText("Song Id", hacks.menuSongId, 10);
+            if (ImGui::Button("Select Song"))
+            {
+                auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
+                                                {"Audio File", "*.mp3"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    std::filesystem::path p = filename;
+                    memset(hacks.menuSongId, 0, sizeof(hacks.menuSongId));
+                    p.stem().string().copy(hacks.menuSongId, 10);
+                }
+                Hacks::MenuMusic();
+            }
             ImGui::PopItemWidth();
             ImGui::Checkbox("Random Menu Music", &hacks.randomMusic);
             if (Hacks::path.empty())
                 Hacks::path = Hacks::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
-            ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
+
+            std::string diobono = hacks.menuSongId;
+            if(hacks.randomMusic) ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
+            else ImGui::Text(("Playing: " + diobono).c_str());
             if (ImGui::Button("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -689,7 +750,12 @@ void RenderMain()
         ImGui::Begin("Level", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({732 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({730 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -778,15 +844,17 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
-        ImGui::InputFloat("Hitbox Multiplier", &hacks.hitboxMultiplier);
+        ImGui::Checkbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
+        if(ImGui::IsItemHovered()) ImGui::SetTooltip("Requires level reload to apply properly");
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("hbm", 1))
             ImGui::OpenPopup("Hitbox Multiplier Settings");
 
         if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL))
         {
-            ImGui::Checkbox("Harards", &hacks.hmbHazard);
-            ImGui::Checkbox("Solids", &hacks.hbmSolid);
+            ImGui::InputFloat("Harards", &hacks.hitboxMultiplier);
+            ImGui::InputFloat("Solids", &hacks.hitboxSolids);
+            ImGui::InputFloat("Special", &hacks.hitboxSpecial);
             if (ImGui::Button("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -800,7 +868,12 @@ void RenderMain()
         ImGui::Begin("Bypass", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1212 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({1210 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -818,7 +891,12 @@ void RenderMain()
         ImGui::Begin("Player", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({492 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({490 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -864,7 +942,12 @@ void RenderMain()
         ImGui::Begin("Creator", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({972 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({970 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -879,7 +962,12 @@ void RenderMain()
         ImGui::Begin("Status", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1692 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({1690 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1134,7 +1222,12 @@ void RenderMain()
         ImGui::Begin("Shortcuts", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1452 / screenSize, 12 / screenSize});
+            ImGui::SetWindowPos({1450 * screenSize, 10 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1222,13 +1315,28 @@ void RenderMain()
             }
         }
 
+        if (ImGui::Button("Inject DLL"))
+        {
+            auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath2(),
+                                            {"DLL File", "*.dll"},
+                                            pfd::opt::multiselect)
+                                 .result();
+            for (auto const &filename : selection)
+                LoadLibrary(filename.c_str());
+        }
+
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Pitch Shift", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({12 / screenSize, 600 / screenSize});
+            ImGui::SetWindowPos({10 * screenSize, 720 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1236,7 +1344,23 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
-        ImGui::InputText("Song File", hacks.pitchId, 10);
+        if (ImGui::Button("Select Song##pitch"))
+            {
+                auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
+                                                {"Audio File", "*.mp3"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    std::filesystem::path p = filename;
+                    memset(hacks.pitchId, 0, sizeof(hacks.pitchId));
+                    p.stem().string().copy(hacks.pitchId, 10);
+                }
+            }
+
+        ImGui::SameLine();
+        ImGui::Text(hacks.pitchId);
+
         ImGui::InputFloat("Pitch", &pitch);
         ImGui::PopItemWidth();
 
@@ -1249,7 +1373,12 @@ void RenderMain()
         ImGui::Begin("Internal Recorder", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1692 / screenSize, 516 / screenSize});
+            ImGui::SetWindowPos({1690 * screenSize, 580 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1304,7 +1433,12 @@ void RenderMain()
         ImGui::Begin("Macrobot", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({12 / screenSize, 168 / screenSize});
+            ImGui::SetWindowPos({10 * screenSize, 260 * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1407,9 +1541,10 @@ void RenderMain()
         ImGui::End();
         ImGui::PopStyleVar();
 
-        if (resetWindows)
+        if (resetWindows || repositionWindows)
             ImGui::SaveIniSettingsToDisk("imgui.ini");
         resetWindows = false;
+        repositionWindows = false;
     }
     else if (!closed)
     {
@@ -1455,6 +1590,8 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xef0e0), PlayLayer::activateObjectHook, reinterpret_cast<void **>(&PlayLayer::activateObject));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x10ed50), PlayLayer::bumpHook, reinterpret_cast<void **>(&PlayLayer::bump));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1FE3A0), PlayLayer::newBestHook, reinterpret_cast<void **>(&PlayLayer::newBest));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xE4A70), PlayLayer::getObjectRectHook, reinterpret_cast<void **>(&PlayLayer::getObjectRect));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xE4B90), PlayLayer::getObjectRectHook2, reinterpret_cast<void **>(&PlayLayer::getObjectRect2));
 
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));

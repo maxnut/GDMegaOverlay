@@ -70,6 +70,12 @@ namespace PlayLayer
 	inline void(__thiscall* activateObject)(gd::GameObject* self, gd::PlayerObject* player);
 	void __fastcall activateObjectHook(gd::GameObject* self, void*, gd::PlayerObject* player);
 
+	inline void*(__thiscall* getObjectRect)(cocos2d::CCNode *obj, gd::GameObject* self, float w, float h);
+	void* __fastcall getObjectRectHook(cocos2d::CCNode *obj, void*, gd::GameObject* self, float w, float h);
+
+	inline void*(__thiscall* getObjectRect2)(cocos2d::CCNode *obj, float w, float h);
+	void* __fastcall getObjectRectHook2(cocos2d::CCNode *obj, void*, float w, float h);
+
 	inline void(__thiscall* bump)(gd::GJBaseGameLayer* self, gd::PlayerObject* player, gd::GameObject* object);
 	void __fastcall bumpHook(gd::GJBaseGameLayer* self, void*, gd::PlayerObject* player, gd::GameObject* object);
 

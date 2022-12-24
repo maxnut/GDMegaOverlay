@@ -96,19 +96,32 @@ void Practice::ApplyCheckpoint()
         if (click1 != 0)
         {
             if (click1 == 2 && c.p1.touchRing <= 0)
-                PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
+            {
+                PlayLayer::pushButton(playLayer->m_pPlayer1, 0);
+                ReplayPlayer::getInstance().RecordAction(true, playLayer->m_pPlayer1, true);
+            }
             else if (click1 == 1)
-                PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+            {
+                PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
+                ReplayPlayer::getInstance().RecordAction(false, playLayer->m_pPlayer1, true);
+            }
             else
                 PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
         }
+
         auto click2 = c.p2.Apply(playLayer->m_pPlayer2);
         if (click2 != 0)
         {
             if (click2 == 2 && c.p2.touchRing <= 0)
-                PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
+            {
+                PlayLayer::pushButton(playLayer->m_pPlayer2, 0);
+                ReplayPlayer::getInstance().RecordAction(true, playLayer->m_pPlayer2, false);
+            }
             else if (click2 == 1)
-                PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
+            {
+                PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
+                ReplayPlayer::getInstance().RecordAction(false, playLayer->m_pPlayer2, false);
+            }
             else
                 PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
         }

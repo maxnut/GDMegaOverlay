@@ -24,7 +24,7 @@ ExitAlert a;
 HitboxNode *drawer;
 gd::PlayLayer *playlayer;
 
-float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = 0, prevP = 0, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 1;
+float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = -1, prevP = 0, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 1;
 
 std::string bestRun = "Best Run: none", text;
 
@@ -292,12 +292,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	noclipRed->setZOrder(1000);
 	self->m_uiLayer->addChild(noclipRed);
 
-	statuses[0] = CCSprite::createWithSpriteFrameName("edit_eToggleBtn2_001.png");
-	statuses[0]->setZOrder(1000);
-	statuses[0]->setScale(0.5f);
-	self->m_uiLayer->addChild(statuses[0]);
-
-	for (size_t i = 1; i < STATUSSIZE; i++)
+	for (size_t i = 0; i < STATUSSIZE; i++)
 		SetupLabel(self, i);
 
 	macroText = CCLabelBMFont::create("ciao", "bigFont.fnt");
@@ -495,7 +490,7 @@ bool PlayLayer::IsCheating()
 		total++;
 	}
 
-	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
+	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)	
 	{
 		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
@@ -509,7 +504,7 @@ bool PlayLayer::IsCheating()
 		total++;
 	}
 
-	if (hacks.fps > 360.0f || hacks.screenFPS > 360.0f || hacks.tpsBypass > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.hitboxMultiplier != 1.0f || hacks.showHitboxes && !hacks.onlyOnDeath)
+	if (hacks.fps > 360.0f || hacks.screenFPS > 360.0f || hacks.tpsBypass > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.enableHitboxMultiplier || hacks.showHitboxes && !hacks.onlyOnDeath)
 		return true;
 
 	return false;
@@ -523,11 +518,12 @@ void UpdateLabels(gd::PlayLayer *self)
 		return;
 	}
 	self->m_uiLayer->setVisible(true);
-	auto spritePtr = static_cast<CCSprite *>(statuses[0]);
 	const ccColor3B red = {255, 0, 0};
 	const ccColor3B white = {255, 255, 255};
 	const ccColor3B green = {0, 255, 0};
 	const ccColor3B yellow = {255, 165, 0};
+
+	auto fontPtr = static_cast<CCLabelBMFont *>(statuses[0]);
 
 	float r, g, b;
 	if (labels.rainbowLabels)
@@ -536,18 +532,19 @@ void UpdateLabels(gd::PlayLayer *self)
 
 	if (labels.statuses[0] && scheduler)
 	{
-		spritePtr->setOpacity(labels.opacity[0]);
+		fontPtr->setString(".");
+		fontPtr->setOpacity(labels.opacity[0]);
 		if (PlayLayer::IsCheating())
-			spritePtr->setColor(red);
+			fontPtr->setColor(red);
 		else if (Hacks::level["mods"][24]["toggle"])
-			spritePtr->setColor(yellow);
+			fontPtr->setColor(yellow);
 		else
-			spritePtr->setColor(green);
+			fontPtr->setColor(green);
 	}
 	else
-		spritePtr->setOpacity(0);
+		fontPtr->setString("");
 
-	auto fontPtr = static_cast<CCLabelBMFont *>(statuses[1]);
+	fontPtr = static_cast<CCLabelBMFont *>(statuses[1]);
 
 	if (labels.statuses[1])
 	{
@@ -874,7 +871,8 @@ void PlayLayer::UpdatePositions(int index)
 	switch (labels.fonts[index])
 	{
 	case 1:
-		sc *= 1.65f;
+		sc *= 2.2f; //xd
+		statuses[index]->setPosition(x, height * 2.0f);
 		break;
 	case 13:
 		sc *= 1.1f;
@@ -897,8 +895,6 @@ struct hitboxInfo
 	CCRect rect;
 	float rad;
 };
-
-std::deque<hitboxInfo> hitboxedObjects;
 
 void Update(gd::PlayLayer *self, float dt)
 {
@@ -1068,41 +1064,6 @@ void Update(gd::PlayLayer *self, float dt)
 	float xp = self->m_pPlayer1->getPositionX();
 
 	PlayLayer::update(self, dt);
-
-	for (size_t i = 0; i < hitboxedObjects.size(); i++)
-	{
-		hitboxedObjects[i].obj->m_obObjectRect2 = hitboxedObjects[i].rect;
-		hitboxedObjects[i].obj->m_objectRadius = hitboxedObjects[i].rad;
-	}
-
-	hitboxedObjects.clear();
-
-	for (int s = self->sectionForPos(xp) - 5; s < self->sectionForPos(xp) + 6; ++s)
-	{
-		if (s < 0)
-			continue;
-		if (s >= self->m_sectionObjects->count())
-			break;
-		auto section = static_cast<CCArray *>(self->m_sectionObjects->objectAtIndex(s));
-		for (size_t i = 0; i < section->count(); ++i)
-		{
-			auto o = static_cast<gd::GameObject *>(section->objectAtIndex(i));
-
-			if (hacks.hitboxMultiplier != 1)
-			{
-				if (o->getType() == gd::kGameObjectTypeHazard && hacks.hmbHazard || o->getType() == gd::kGameObjectTypeSolid && hacks.hbmSolid)
-				{
-					hitboxInfo info;
-					info.obj = o;
-					info.rect = o->getObjectRect(1, 1);
-					info.rad = o->getObjectRadius();
-					hitboxedObjects.push_back(info);
-					o->m_obObjectRect2 = o->getObjectRect(hacks.hitboxMultiplier, hacks.hitboxMultiplier);
-					o->m_objectRadius *= hacks.hitboxMultiplier;
-				}
-			}
-		}
-	}
 
 	if (self->m_pPlayer1->m_waveTrail && hacks.solidWavePulse)
 		self->m_pPlayer1->m_waveTrail->m_pulseSize = hacks.waveSize;
@@ -1372,12 +1333,155 @@ void __fastcall PlayLayer::onQuitHook(gd::PlayLayer *self, void *)
 	}
 }
 
+void *__fastcall PlayLayer::getObjectRectHook(cocos2d::CCNode *obj, void *, gd::GameObject *self, float w, float h)
+{
+	if (hacks.enableHitboxMultiplier && !EndLevelLayer::nameChildFind(obj, "PlayerObject"))
+	{
+		switch ((reinterpret_cast<gd::GameObject *>(obj))->getType())
+		{
+		case gd::GameObjectType::kGameObjectTypeSolid:
+		case gd::GameObjectType::kGameObjectTypeSlope:
+		{
+			w *= hacks.hitboxSolids;
+			h *= hacks.hitboxSolids;
+			break;
+		}
+		case gd::GameObjectType::kGameObjectTypeModifier:
+		case gd::GameObjectType::kGameObjectTypeSpecial:
+		case gd::GameObjectType::kGameObjectTypeTeleportPortal:
+		case gd::GameObjectType::kGameObjectTypeDropRing:
+		case gd::GameObjectType::kGameObjectTypeInverseGravityPortal:
+		case gd::GameObjectType::kGameObjectTypeYellowJumpPad:
+		case gd::GameObjectType::kGameObjectTypeInverseMirrorPortal:
+		case gd::GameObjectType::kGameObjectTypeDualPortal:
+		case gd::GameObjectType::kGameObjectTypeNormalGravityPortal:
+		case gd::GameObjectType::kGameObjectTypeNormalMirrorPortal:
+		case gd::GameObjectType::kGameObjectTypeSoloPortal:
+		case gd::GameObjectType::kGameObjectTypePinkJumpPad:
+		case gd::GameObjectType::kGameObjectTypeGravityPad:
+		case gd::GameObjectType::kGameObjectTypeRedJumpPad:
+		case gd::GameObjectType::kGameObjectTypeRegularSizePortal:
+		case gd::GameObjectType::kGameObjectTypeMiniSizePortal:
+		case gd::GameObjectType::kGameObjectTypeCubePortal:
+		case gd::GameObjectType::kGameObjectTypeShipPortal:
+		case gd::GameObjectType::kGameObjectTypeBallPortal:
+		case gd::GameObjectType::kGameObjectTypeUfoPortal:
+		case gd::GameObjectType::kGameObjectTypeWavePortal:
+		case gd::GameObjectType::kGameObjectTypeRobotPortal:
+		case gd::GameObjectType::kGameObjectTypeSpiderPortal:
+		case gd::GameObjectType::kGameObjectTypeYellowJumpRing:
+		case gd::GameObjectType::kGameObjectTypePinkJumpRing:
+		case gd::GameObjectType::kGameObjectTypeGravityRing:
+		case gd::GameObjectType::kGameObjectTypeRedJumpRing:
+		case gd::GameObjectType::kGameObjectTypeGreenRing:
+		case gd::GameObjectType::kGameObjectTypeDashRing:
+		case gd::GameObjectType::kGameObjectTypeGravityDashRing:
+		case gd::GameObjectType::kGameObjectTypeSecretCoin:
+		case gd::GameObjectType::kGameObjectTypeUserCoin:
+		case gd::GameObjectType::kGameObjectTypeCustomRing:
+		case gd::GameObjectType::kGameObjectTypeCollectible:
+		{
+			w *= hacks.hitboxSpecial;
+			h *= hacks.hitboxSpecial;
+			break;
+		}
+		case gd::GameObjectType::kGameObjectTypeHazard:
+		{
+			if ((reinterpret_cast<gd::GameObject *>(obj))->getObjectRadius() <= 0)
+			{
+				w *= hacks.hitboxMultiplier;
+				h *= hacks.hitboxMultiplier;
+			}
+			else if(!(reinterpret_cast<gd::GameObject *>(obj))->m_unk368)
+			{
+				(reinterpret_cast<gd::GameObject *>(obj))->m_objectRadius *= hacks.hitboxMultiplier;
+				(reinterpret_cast<gd::GameObject *>(obj))->m_unk368 = true;
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	return PlayLayer::getObjectRect(obj, self, w, h);
+}
+
+void *__fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode *obj, void *, float w, float h)
+{
+	if (hacks.enableHitboxMultiplier && !EndLevelLayer::nameChildFind(obj, "PlayerObject"))
+	{
+		switch ((reinterpret_cast<gd::GameObject *>(obj))->getType())
+		{
+		case gd::GameObjectType::kGameObjectTypeSolid:
+		case gd::GameObjectType::kGameObjectTypeSlope:
+		{
+			w *= hacks.hitboxSolids;
+			h *= hacks.hitboxSolids;
+			break;
+		}
+		case gd::GameObjectType::kGameObjectTypeModifier:
+		case gd::GameObjectType::kGameObjectTypeSpecial:
+		case gd::GameObjectType::kGameObjectTypeTeleportPortal:
+		case gd::GameObjectType::kGameObjectTypeDropRing:
+		case gd::GameObjectType::kGameObjectTypeInverseGravityPortal:
+		case gd::GameObjectType::kGameObjectTypeYellowJumpPad:
+		case gd::GameObjectType::kGameObjectTypeInverseMirrorPortal:
+		case gd::GameObjectType::kGameObjectTypeDualPortal:
+		case gd::GameObjectType::kGameObjectTypeNormalGravityPortal:
+		case gd::GameObjectType::kGameObjectTypeNormalMirrorPortal:
+		case gd::GameObjectType::kGameObjectTypeSoloPortal:
+		case gd::GameObjectType::kGameObjectTypePinkJumpPad:
+		case gd::GameObjectType::kGameObjectTypeGravityPad:
+		case gd::GameObjectType::kGameObjectTypeRedJumpPad:
+		case gd::GameObjectType::kGameObjectTypeRegularSizePortal:
+		case gd::GameObjectType::kGameObjectTypeMiniSizePortal:
+		case gd::GameObjectType::kGameObjectTypeCubePortal:
+		case gd::GameObjectType::kGameObjectTypeShipPortal:
+		case gd::GameObjectType::kGameObjectTypeBallPortal:
+		case gd::GameObjectType::kGameObjectTypeUfoPortal:
+		case gd::GameObjectType::kGameObjectTypeWavePortal:
+		case gd::GameObjectType::kGameObjectTypeRobotPortal:
+		case gd::GameObjectType::kGameObjectTypeSpiderPortal:
+		case gd::GameObjectType::kGameObjectTypeYellowJumpRing:
+		case gd::GameObjectType::kGameObjectTypePinkJumpRing:
+		case gd::GameObjectType::kGameObjectTypeGravityRing:
+		case gd::GameObjectType::kGameObjectTypeRedJumpRing:
+		case gd::GameObjectType::kGameObjectTypeGreenRing:
+		case gd::GameObjectType::kGameObjectTypeDashRing:
+		case gd::GameObjectType::kGameObjectTypeGravityDashRing:
+		case gd::GameObjectType::kGameObjectTypeSecretCoin:
+		case gd::GameObjectType::kGameObjectTypeUserCoin:
+		case gd::GameObjectType::kGameObjectTypeCustomRing:
+		case gd::GameObjectType::kGameObjectTypeCollectible:
+		{
+			w *= hacks.hitboxSpecial;
+			h *= hacks.hitboxSpecial;
+			break;
+		}
+		case gd::GameObjectType::kGameObjectTypeHazard:
+		{
+			if ((reinterpret_cast<gd::GameObject *>(obj))->getObjectRadius() <= 0)
+			{
+				w *= hacks.hitboxMultiplier;
+				h *= hacks.hitboxMultiplier;
+			}
+			else if(!(reinterpret_cast<gd::GameObject *>(obj))->m_unk368)
+			{
+				(reinterpret_cast<gd::GameObject *>(obj))->m_objectRadius *= hacks.hitboxMultiplier;
+				(reinterpret_cast<gd::GameObject *>(obj))->m_unk368 = true;
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	return PlayLayer::getObjectRect2(obj, w, h);
+}
+
 void PlayLayer::Quit()
 {
 	PlayLayer::onQuit(playlayer);
-	// changed.clear();
-	// changedHitbox.clear();
-	hitboxedObjects.clear();
 	playlayer = nullptr;
 	startPosText = nullptr;
 	Hacks::MenuMusic();
@@ -1398,9 +1502,6 @@ bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd
 {
 	playlayer = nullptr;
 	startPosText = nullptr;
-	// changed.clear();
-	// changedHitbox.clear();
-	hitboxedObjects.clear();
 	if (drawer)
 		drawer->clearQueue();
 	bool res = PlayLayer::editorInit(self, lvl);
