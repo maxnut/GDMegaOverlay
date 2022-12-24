@@ -25,7 +25,6 @@ target_include_directories(${PROJECT} PRIVATE
   libs/imgui-hook
   libs/imgui-hook/imgui
   libs/cocos-headers/cocos2dx/platform/third_party/win32/curl
-  libs/detours/include/detours
   libs/fmod/inc
   libs/discord_game_sdk/cpp
 )
@@ -37,7 +36,6 @@ target_link_libraries(${PROJECT} minhook imgui-hook opengl32) # OpenGL32 for img
 
 target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/libcocos2d.lib)
 target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/cocos-headers/extensions/libExtensions.lib)
-target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/detours/lib/detours.lib)
 target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/fmod/lib/x86/fmod_vc.lib)
-target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/glew32.lib)
+target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib)
 target_link_libraries(${PROJECT} ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib)
