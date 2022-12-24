@@ -32,7 +32,7 @@ Some dependencies are needed:
 
 Now you can directly clone this repo or you can fork it.
 
-Run this in your terminal on the forlder where you want all the code:
+Run this in your terminal on the folder where you want all the code:
 
 1. Clone
 ```bash
