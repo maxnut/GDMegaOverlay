@@ -5,7 +5,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_definitions(-w)
 
-set(PROJECT AModMenu)
+set(PROJECT GDMenu)
 project(${PROJECT})
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp libs/discord_game_sdk/cpp/*.cpp)
