@@ -1,12 +1,25 @@
 # GDmenu
 
-Join the discord: [link](https://discord.gg/nbDjEg7SSU)
+Free, feature-rich, gui-integrated geometry dash mod menu
+
+![alt text](https://media.discordapp.net/attachments/587598582308143125/1055961835888722010/20221223223845_1.jpg)
+
+## Features
+
+- basic hacks
+- startpos switcher
+- show hitboxes
+- internal recorder
+- macro bot
+- click bot
+- and much more!
+
+Any suggestions or bug reports?
+Join the discord server [here](https://discord.gg/nbDjEg7SSU)
 
 ## How to use
 
-Download it from releases (or compile it) and extract all files inside the GD folder.
-
-Do not download the source code to install the menu
+Download the latest [release](https://github.com/maxnut/GDmenu/releases/latest) and extract all files inside the GD folder.
 
 ![alt text](https://media.discordapp.net/attachments/587598582308143125/1055961835888722010/20221223223845_1.jpg)
 
@@ -17,7 +30,6 @@ Do not download the source code to install the menu
 Some dependencies are needed:
 * [Git](https://git-scm.com/)
 * [Visual Studio](https://visualstudio.microsoft.com/)
-* [Visual Studio Code](https://code.visualstudio.com/)
 * [Cmake](https://cmake.org/)
 
 Now you can directly clone this repo or you can fork it.
@@ -42,7 +54,7 @@ cmake -B build -A win32
 cmake --build build --config Release -j 4
 ```
 
-### Setting up the dev enviroment with VSCode
+### Setting up the dev enviroment with VSCode (optional)
 
 Open GDmenu folder with Visual Studio Code.
 
