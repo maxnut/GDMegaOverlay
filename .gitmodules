@@ -4,12 +4,6 @@
 [submodule "libs/minhook"]
 	path = libs/minhook
 	url = https://github.com/HJfod/minhook
-[submodule "libs/--force"]
-	path = libs/--force
-	url = https://github.com/maxnut/imgui-hook
-[submodule "libs/imgui-hook"]
-	path = libs/imgui-hook
-	url = https://github.com/maxnut/imgui-hook
 [submodule "libs/gd.h"]
 	path = libs/gd.h
 	url = https://github.com/maxnut/gd.h
