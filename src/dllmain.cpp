@@ -109,7 +109,7 @@ bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
         {
             for (auto i = VK_BACK; i <= VK_RMENU; i++)
             {
-                if (ImGui::IsKeyDown(i))
+                if (ImGui::IsKeyDown(static_cast<ImGuiKey>(i)))
                 {
                     key = i;
                     value_changed = true;
@@ -118,7 +118,7 @@ bool Hotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
             }
         }
 
-        if (ImGui::IsKeyPressedMap(ImGuiKey_Escape))
+        if (ImGui::IsKeyPressedMap(static_cast<ImGuiKey>(ImGuiKey_Escape)))
         {
             *k = 0;
             ImGui::ClearActiveID();
@@ -313,6 +313,7 @@ void Init()
     io.Fonts->Build();
     ImGui_ImplOpenGL3_CreateFontsTexture();
     io.FontDefault = font;
+    
 
     if (loaded)
         return;
@@ -593,7 +594,14 @@ void RenderMain()
 
         if (isDecember)
             ImGui::Checkbox("Snow", &hacks.snow);
-
+        
+        ImGui::Checkbox("Docking", &hacks.dockSpace);
+        ImGuiIO& io = ImGui::GetIO();
+        if(hacks.dockSpace)
+            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        else
+            io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
+        
         ImGui::Checkbox("Rainbow Menu", &hacks.rainbowMenu);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::BeginMenu("##rain"))

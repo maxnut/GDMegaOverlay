@@ -58,7 +58,7 @@ struct HacksStr
 
     float version = 1.0f;
 
-    bool accumulateRuns = false, rainbowMenu = false;
+    bool accumulateRuns = false, rainbowMenu = false, dockSpace = false;
     float menuRainbowSpeed = 1, menuRainbowBrightness = 0.8f;
 
     bool hbmSolid = false, hmbHazard = true;
