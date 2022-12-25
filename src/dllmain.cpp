@@ -248,29 +248,36 @@ void SetStyle()
     style->Colors[ImGuiCol_ChildBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
 
     if (!hacks.rainbowMenu)
+    {
         style->Colors[ImGuiCol_Border] = ImVec4(hacks.borderColor[0], hacks.borderColor[1], hacks.borderColor[2], hacks.borderColor[3]);
+        style->Colors[ImGuiCol_TitleBg] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+
+        style->Colors[ImGuiCol_Tab] = ImVec4(hacks.titleColor[0] * 0.85f, hacks.titleColor[1] * 0.85f, hacks.titleColor[2] * 0.85f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabActive] = ImVec4(hacks.titleColor[0] * 0.85f, hacks.titleColor[1] * 0.85f, hacks.titleColor[2] * 0.85f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabHovered] = ImVec4(hacks.titleColor[0] * 0.70f, hacks.titleColor[1] * 0.70f, hacks.titleColor[2] * 0.70f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabUnfocused] = ImVec4(hacks.titleColor[0] * 0.60f, hacks.titleColor[1] * 0.60f, hacks.titleColor[2] * 0.60f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(hacks.titleColor[0] * 0.60f, hacks.titleColor[1] * 0.60f, hacks.titleColor[2] * 0.60f, hacks.titleColor[3]);
+    }
     else
+    {
         style->Colors[ImGuiCol_Border] = ImVec4(r, g, b, hacks.borderColor[3]);
+        style->Colors[ImGuiCol_TitleBg] = ImVec4(r, g, b, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(r, g, b, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(r, g, b, hacks.titleColor[3]);
+
+        style->Colors[ImGuiCol_Tab] = ImVec4(r * 0.85f, g * 0.85f, b * 0.85f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabActive] = ImVec4(r * 0.85f, g * 0.85f, b * 0.85f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabHovered] = ImVec4(r * 0.70f, g * 0.70f, b * 0.70f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabUnfocused] = ImVec4(r * 0.60f, g * 0.60f, b * 0.60f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(r * 0.60f, g * 0.60f, b * 0.60f, hacks.titleColor[3]);
+    }
 
     style->Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
     style->Colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
     style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
     style->Colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
-
-    if (!hacks.rainbowMenu)
-        style->Colors[ImGuiCol_TitleBg] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-    else
-        style->Colors[ImGuiCol_TitleBg] = ImVec4(r, g, b, hacks.titleColor[3]);
-
-    if (!hacks.rainbowMenu)
-        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-    else
-        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(r, g, b, hacks.titleColor[3]);
-
-    if (!hacks.rainbowMenu)
-        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-    else
-        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(r, g, b, hacks.titleColor[3]);
 
     style->Colors[ImGuiCol_MenuBarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.0f);
     style->Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.0f);
@@ -313,10 +320,15 @@ void Init()
     io.Fonts->Build();
     ImGui_ImplOpenGL3_CreateFontsTexture();
     io.FontDefault = font;
-    
 
     if (loaded)
+    {
+        if (hacks.dockSpace)
+            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        else
+            io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
         return;
+    }
 
     if (!std::filesystem::is_directory("GDMenu") || !std::filesystem::exists("GDMenu"))
     {
@@ -449,6 +461,11 @@ void Init()
         Hacks::FPSBypass(60.0f);
     }
 
+    if (hacks.dockSpace)
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    else
+        io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
+
     f.close();
 
     f.open("GDMenu/labels.bin", std::fstream::binary);
@@ -502,7 +519,7 @@ void RenderMain()
     if (debug.enabled)
     {
         ImGui::PushStyleColor(0, {1, 1, 1, 1});
-        //ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
+        // ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("Debug");
 
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
@@ -594,14 +611,7 @@ void RenderMain()
 
         if (isDecember)
             ImGui::Checkbox("Snow", &hacks.snow);
-        
-        ImGui::Checkbox("Docking", &hacks.dockSpace);
-        ImGuiIO& io = ImGui::GetIO();
-        if(hacks.dockSpace)
-            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        else
-            io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
-        
+
         ImGui::Checkbox("Rainbow Menu", &hacks.rainbowMenu);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::BeginMenu("##rain"))
@@ -611,6 +621,15 @@ void RenderMain()
             ImGui::InputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
             ImGui::PopItemWidth();
             ImGui::EndMenu();
+        }
+
+        if (ImGui::Checkbox("Docking", &hacks.dockSpace))
+        {
+            ImGuiIO &io = ImGui::GetIO();
+            if (hacks.dockSpace)
+                io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+            else
+                io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
         }
 
         ImGui::End();
@@ -741,8 +760,10 @@ void RenderMain()
                 Hacks::path = Hacks::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
 
             std::string diobono = hacks.menuSongId;
-            if(hacks.randomMusic) ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
-            else ImGui::Text(("Playing: " + diobono).c_str());
+            if (hacks.randomMusic)
+                ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
+            else
+                ImGui::Text(("Playing: " + diobono).c_str());
             if (ImGui::Button("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -853,7 +874,8 @@ void RenderMain()
 
         ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
         ImGui::Checkbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
-        if(ImGui::IsItemHovered()) ImGui::SetTooltip("Requires level reload to apply properly");
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Requires level reload to apply properly");
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("hbm", 1))
             ImGui::OpenPopup("Hitbox Multiplier Settings");
@@ -1353,18 +1375,18 @@ void RenderMain()
 
         ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
         if (ImGui::Button("Select Song##pitch"))
+        {
+            auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
+                                            {"Audio File", "*.mp3"},
+                                            pfd::opt::none)
+                                 .result();
+            for (auto const &filename : selection)
             {
-                auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
-                                                {"Audio File", "*.mp3"},
-                                                pfd::opt::none)
-                                     .result();
-                for (auto const &filename : selection)
-                {
-                    std::filesystem::path p = filename;
-                    memset(hacks.pitchId, 0, sizeof(hacks.pitchId));
-                    p.stem().string().copy(hacks.pitchId, 10);
-                }
+                std::filesystem::path p = filename;
+                memset(hacks.pitchId, 0, sizeof(hacks.pitchId));
+                p.stem().string().copy(hacks.pitchId, 10);
             }
+        }
 
         ImGui::SameLine();
         ImGui::Text(hacks.pitchId);
