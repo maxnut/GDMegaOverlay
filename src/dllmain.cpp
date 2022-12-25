@@ -313,7 +313,7 @@ void Init()
     io.Fonts->Build();
     ImGui_ImplOpenGL3_CreateFontsTexture();
     io.FontDefault = font;
-	
+    
 
     if (loaded)
         return;
@@ -594,8 +594,8 @@ void RenderMain()
 
         if (isDecember)
             ImGui::Checkbox("Snow", &hacks.snow);
-		
-		ImGui::CheckboxFlags("Docking", &ImGui::GetIO().ConfigFlags, ImGuiConfigFlags_DockingEnable);
+        
+        ImGui::CheckboxFlags("Docking", &ImGui::GetIO().ConfigFlags, ImGuiConfigFlags_DockingEnable);
 
         ImGui::Checkbox("Rainbow Menu", &hacks.rainbowMenu);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
