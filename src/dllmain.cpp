@@ -26,6 +26,7 @@ bool isDecember = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
+Windows windowPositions;
 
 DiscordManager Hacks::ds;
 
@@ -217,7 +218,7 @@ void TextSettings(int index, bool font)
             PlayLayer::UpdatePositions(i);
 }
 
-bool resetWindows = false, repositionWindows = false;
+bool resetWindows = false, repositionWindows = false, saveWindows = false;
 
 void SetStyle()
 {
@@ -311,9 +312,6 @@ void Init()
 {
     closed = true;
     srand(time(NULL));
-
-    if (!std::filesystem::exists("imgui.ini"))
-        resetWindows = true;
 
     ImGuiIO &io = ImGui::GetIO();
     auto font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Verdana.ttf", 14.0f);
@@ -440,6 +438,29 @@ void Init()
         hackNames.push_back(manualHackNames[i]);
     }
 
+    std::ofstream w;
+    if (!std::filesystem::exists("imgui.ini") || !std::filesystem::exists("GDmenu/windows.bin"))
+    {
+        w.open("GDmenu/windows.bin", std::fstream::binary);
+        windowPositions.positions[0] = {1210, 710};
+        windowPositions.positions[1] = {10, 10};
+        windowPositions.positions[2] = {250, 10};
+        windowPositions.positions[3] = {730, 10};
+        windowPositions.positions[4] = {1210, 10};
+        windowPositions.positions[5] = {490, 10};
+        windowPositions.positions[6] = {970, 10};
+        windowPositions.positions[7] = {1690, 10};
+        windowPositions.positions[8] = {1450, 10};
+        windowPositions.positions[9] = {10, 720};
+        windowPositions.positions[10] = {1690, 580};
+        windowPositions.positions[11] = {10, 260};
+        w.write((char *)&windowPositions, sizeof(windowPositions));
+        w.close();
+
+        if (!std::filesystem::exists("imgui.ini"))
+            resetWindows = true;
+    }
+
     std::ifstream f;
     f.open("GDMenu/settings.bin", std::fstream::binary);
     if (f)
@@ -536,13 +557,6 @@ void RenderMain()
 
         ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-        if (resetWindows)
-            ImGui::SetWindowPos({732 * screenSize, 12 * screenSize});
-        else if (repositionWindows)
-        {
-            auto pos = ImGui::GetWindowPos();
-            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-        }
 
         if (hacks.windowSnap > 1)
         {
@@ -577,7 +591,7 @@ void RenderMain()
         ImGui::Begin("Menu Settings", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1210 * screenSize, 710 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[0].x * screenSize, windowPositions.positions[0].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -588,6 +602,13 @@ void RenderMain()
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
         }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[0] = {(int)pos.x, (int)pos.y};
+        }
+
         ImGui::PushItemWidth(70 * screenSize * hacks.menuSize);
         ImGui::InputFloat("Menu UI Size", &hacks.menuSize);
         if (hacks.menuSize > 3)
@@ -632,22 +653,32 @@ void RenderMain()
                 io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
         }
 
+        if(ImGui::Button("Save Windows")) saveWindows = true;
+        if(ImGui::Button("Load Windows")) resetWindows = true;
+
         ImGui::End();
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
         ImGui::Begin("General Mods", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({10 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[1].x * screenSize, windowPositions.positions[1].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
         }
+
         if (hacks.windowSnap > 1)
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[1] = {(int)pos.x, (int)pos.y};
         }
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
@@ -685,7 +716,7 @@ void RenderMain()
         ImGui::Begin("Global", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({250 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[2].x * screenSize, windowPositions.positions[2].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -695,6 +726,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[2] = {(int)pos.x, (int)pos.y};
         }
 
         ImGui::Checkbox("Auto Deafen", &hacks.autoDeafen);
@@ -779,7 +816,7 @@ void RenderMain()
         ImGui::Begin("Level", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({730 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[3].x * screenSize, windowPositions.positions[3].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -789,6 +826,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[3] = {(int)pos.x, (int)pos.y};
         }
 
         ImGui::Checkbox("StartPos Switcher", &hacks.startPosSwitcher);
@@ -898,7 +941,7 @@ void RenderMain()
         ImGui::Begin("Bypass", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1210 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[4].x * screenSize, windowPositions.positions[4].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -910,10 +953,13 @@ void RenderMain()
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
         }
 
-        DrawFromJSON(Hacks::bypass);
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[4] = {(int)pos.x, (int)pos.y};
+        }
 
-        if (ImGui::Button("Anticheat Bypass"))
-            Hacks::AnticheatBypass();
+        DrawFromJSON(Hacks::bypass);
 
         ImGui::End();
 
@@ -921,7 +967,7 @@ void RenderMain()
         ImGui::Begin("Player", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({490 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[5].x * screenSize, windowPositions.positions[5].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -931,6 +977,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[5] = {(int)pos.x, (int)pos.y};
         }
 
         DrawFromJSON(Hacks::player);
@@ -972,7 +1024,7 @@ void RenderMain()
         ImGui::Begin("Creator", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({970 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[6].x * screenSize, windowPositions.positions[6].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -982,6 +1034,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[6] = {(int)pos.x, (int)pos.y};
         }
 
         DrawFromJSON(Hacks::creator);
@@ -992,7 +1050,7 @@ void RenderMain()
         ImGui::Begin("Status", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1690 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[7].x * screenSize, windowPositions.positions[7].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1002,6 +1060,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[7] = {(int)pos.x, (int)pos.y};
         }
         ImGui::Checkbox("Hide All", &labels.hideLabels);
 
@@ -1252,7 +1316,7 @@ void RenderMain()
         ImGui::Begin("Shortcuts", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1450 * screenSize, 10 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[8].x * screenSize, windowPositions.positions[8].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1262,6 +1326,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[8] = {(int)pos.x, (int)pos.y};
         }
 
         ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
@@ -1361,7 +1431,7 @@ void RenderMain()
         ImGui::Begin("Pitch Shift", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({10 * screenSize, 720 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[9].x * screenSize, windowPositions.positions[9].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1371,6 +1441,12 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[9] = {(int)pos.x, (int)pos.y};
         }
 
         ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
@@ -1403,7 +1479,7 @@ void RenderMain()
         ImGui::Begin("Internal Recorder", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({1690 * screenSize, 580 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[10].x * screenSize, windowPositions.positions[10].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1415,10 +1491,10 @@ void RenderMain()
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
         }
 
-        if (hacks.windowSnap > 1)
+        if (saveWindows)
         {
             auto pos = ImGui::GetWindowPos();
-            ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+            windowPositions.positions[10] = {(int)pos.x, (int)pos.y};
         }
 
         if (ImGui::Checkbox("Record", &hacks.recording))
@@ -1463,7 +1539,7 @@ void RenderMain()
         ImGui::Begin("Macrobot", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
         if (resetWindows)
-            ImGui::SetWindowPos({10 * screenSize, 260 * screenSize});
+            ImGui::SetWindowPos({windowPositions.positions[11].x * screenSize, windowPositions.positions[11].y * screenSize});
         else if (repositionWindows)
         {
             auto pos = ImGui::GetWindowPos();
@@ -1473,6 +1549,11 @@ void RenderMain()
         {
             auto pos = ImGui::GetWindowPos();
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[11] = {(int)pos.x, (int)pos.y};
         }
         if (ReplayPlayer::getInstance().IsRecording())
             ImGui::PushStyleColor(0, ImVec4(0, 1, 0, 1));
@@ -1573,8 +1654,18 @@ void RenderMain()
 
         if (resetWindows || repositionWindows)
             ImGui::SaveIniSettingsToDisk("imgui.ini");
+
+        if (saveWindows)
+        {
+            std::ofstream w;
+            w.open("GDmenu/windows.bin", std::fstream::binary);
+            w.write((char *)&windowPositions, sizeof(windowPositions));
+            w.close();
+        }
+
         resetWindows = false;
         repositionWindows = false;
+        saveWindows = false;
     }
     else if (!closed)
     {

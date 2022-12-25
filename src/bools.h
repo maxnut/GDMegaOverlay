@@ -92,6 +92,15 @@ struct Labels
     float fpsUpdate = 0.5f;
 };
 
+struct Windows
+{
+    struct Vec2I
+    {
+        int x, y;
+    };
+    Vec2I positions[12];
+};
+
 struct Debug
 {
     bool enabled = false;
