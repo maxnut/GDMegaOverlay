@@ -595,8 +595,13 @@ void RenderMain()
         if (isDecember)
             ImGui::Checkbox("Snow", &hacks.snow);
         
-        ImGui::CheckboxFlags("Docking", &ImGui::GetIO().ConfigFlags, ImGuiConfigFlags_DockingEnable);
-
+        ImGui::Checkbox("Docking", &hacks.dockSpace);
+        ImGuiIO& io = ImGui::GetIO();
+        if(hacks.dockSpace)
+            io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        else
+            io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
+        
         ImGui::Checkbox("Rainbow Menu", &hacks.rainbowMenu);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::BeginMenu("##rain"))
