@@ -16,7 +16,7 @@ int Hacks::amountOfReleases = 0;
 
 bool oldClick = false;
 
-double oldTime = 0;
+double oldTime = 0, oldTimeP2 = 0;
 
 uint32_t ReplayPlayer::GetFrame()
 {
@@ -227,7 +227,8 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
             double t;
             uint16_t rc, rr, rmc;
 
-            t = playLayer->m_time - oldTime;
+            if(playLayer->m_pLevelSettings->m_twoPlayerMode && ac.player2) t = playLayer->m_time - oldTimeP2;
+            else t = playLayer->m_time - oldTime;
 
             if (hacks.clickbot && clicks.size() > 0 && releases.size() > 0)
             {
@@ -241,14 +242,14 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
             }
             if (ac.press)
             {
-                if (hacks.clickbot && t > hacks.minTimeDifference && !ac.player2 && releases.size() > 0 && clicks.size() > 0 && ac.press != oldClick)
+                if (hacks.clickbot && t > hacks.minTimeDifference && (!ac.player2 || playLayer->m_pLevelSettings->m_twoPlayerMode) && releases.size() > 0 && clicks.size() > 0 && ac.press != oldClick)
                 {
                     sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && mediumclicks.size() > 0 ? mediumclicks[rmc] : clicks[rc], nullptr, false, &channel);
                     channel->setPitch(p);
                     channel->setVolume(v);
                 }
-                oldTime = playLayer->m_time;
-                // ac.player2 ? playLayer->m_pPlayer2->pushButton(0) : playLayer->m_pPlayer1->pushButton(0);
+                if(playLayer->m_pLevelSettings->m_twoPlayerMode) oldTimeP2 = playLayer->m_time;
+                else oldTime = playLayer->m_time;
                 PlayLayer::isBot = true;
                 if(ac.press == oldClick) ac.player2 ? PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
                 ac.player2 ? PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
@@ -256,14 +257,14 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
             }
             else
             {
-                if (hacks.clickbot && !ac.player2 && releases.size() > 0 && clicks.size() > 0 && ac.press != oldClick)
+                if (hacks.clickbot && (!ac.player2 || playLayer->m_pLevelSettings->m_twoPlayerMode) && releases.size() > 0 && clicks.size() > 0 && ac.press != oldClick)
                 {
                     sys->playSound(releases[rr], nullptr, false, &channel);
                     channel2->setPitch(p);
                     channel2->setVolume(v + 0.5f);
                 }
-                oldTime = playLayer->m_time;
-                // ac.player2 ? playLayer->m_pPlayer2->releaseButton(0) : playLayer->m_pPlayer1->releaseButton(0);
+                if(playLayer->m_pLevelSettings->m_twoPlayerMode) oldTimeP2 = playLayer->m_time;
+                else oldTime = playLayer->m_time;
                 PlayLayer::isBot = true;
                 ac.player2 ? PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0) : PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
                 PlayLayer::isBot = false;

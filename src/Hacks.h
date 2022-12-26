@@ -167,6 +167,8 @@ namespace Hacks
             return "auto";
         }
 
+        if(level.ratingsSum != 0) level.difficulty = level.ratingsSum / 10;
+
         if (level.demon)
         {
             switch (level.demonDifficulty)

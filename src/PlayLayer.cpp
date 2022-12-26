@@ -364,6 +364,11 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
 		return true;
 
+	if(playlayer && playlayer->m_level->twoPlayerMode && hacks.twoPlayerOneKey && self == playlayer->m_pPlayer1)
+	{
+		PlayLayer::releaseButtonHook(playlayer->m_pPlayer2, 0, 0);
+	}
+
 	add = true;
 	pressing = true;
 
@@ -381,6 +386,11 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 	}
 	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
 		return true;
+
+	if(playlayer && playlayer->m_level->twoPlayerMode && hacks.twoPlayerOneKey && self == playlayer->m_pPlayer1)
+	{
+		PlayLayer::pushButtonHook(playlayer->m_pPlayer2, 0, 0);
+	}
 
 	pressing = false;
 
@@ -1016,7 +1026,7 @@ void Update(gd::PlayLayer *self, float dt)
 	if (hacks.rainbowIcons)
 	{
 		float r, g, b;
-		ImGui::ColorConvertHSVtoRGB(self->m_totalTime * hacks.rainbowSpeed, 1, 1, r, g, b);
+		ImGui::ColorConvertHSVtoRGB(self->m_totalTime * hacks.rainbowSpeed, hacks.pastel, 1, r, g, b);
 		const ccColor3B col = {(GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f)};
 
 		if (hacks.rainbowPlayerC1)

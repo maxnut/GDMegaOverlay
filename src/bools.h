@@ -73,6 +73,8 @@ struct HacksStr
 
     bool discordRPC, enableHitboxMultiplier;
     float hitboxSolids, hitboxSpecial;
+    bool twoPlayerOneKey;
+    float pastel;
 };
 
 enum position {TR, TL, BR, BL};

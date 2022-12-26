@@ -46,31 +46,31 @@ void Shortcuts::Load()
 
 void Shortcuts::OnPress(int index)
 {
-    if (index <= hackAmts[0])
+    if (index < hackAmts[0])
     {
         Hacks::ToggleJSONHack(Hacks::bypass, index, true);
         Hacks::SaveSettings();
         return;
     }
-    else if (index <= hackAmts[0] + hackAmts[1])
+    else if (index < hackAmts[0] + hackAmts[1])
     {
         Hacks::ToggleJSONHack(Hacks::creator, index - hackAmts[0], true);
         Hacks::SaveSettings();
         return;
     }
-    else if (index <= hackAmts[0] + hackAmts[1] + hackAmts[2])
+    else if (index < hackAmts[0] + hackAmts[1] + hackAmts[2])
     {
         Hacks::ToggleJSONHack(Hacks::global, index - hackAmts[0] - hackAmts[1], true);
         Hacks::SaveSettings();
         return;
     }
-    else if (index <= hackAmts[0] + hackAmts[1] + hackAmts[2] + hackAmts[3])
+    else if (index < hackAmts[0] + hackAmts[1] + hackAmts[2] + hackAmts[3])
     {
         Hacks::ToggleJSONHack(Hacks::level, index - hackAmts[0] - hackAmts[1] - hackAmts[2], true);
         Hacks::SaveSettings();
         return;
     }
-    else if (index <= hackAmts[0] + hackAmts[1] + hackAmts[2] + hackAmts[3] + hackAmts[4])
+    else if (index < hackAmts[0] + hackAmts[1] + hackAmts[2] + hackAmts[3] + hackAmts[4])
     {
         Hacks::ToggleJSONHack(Hacks::player, index - hackAmts[0] - hackAmts[1] - hackAmts[2] - hackAmts[3], true);
         Hacks::SaveSettings();

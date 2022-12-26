@@ -37,7 +37,7 @@ float Hacks::screenFps = 60.0f, Hacks::tps = 60.0f;
 float screenSize = 0, pitch, oldScreenSize = 0;
 
 int shortcutIndex, shortcutIndexKey, pitchName;
-char fileName[30];
+char fileName[30], searchbar[30];
 std::vector<std::string> Hacks::musicPaths;
 std::filesystem::path Hacks::path;
 std::vector<const char *> musicPathsVet;
@@ -166,6 +166,225 @@ void Marker(const char *marker, const char *desc)
     }
 }
 
+bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
+{
+  auto it = std::search(
+    strHaystack.begin(), strHaystack.end(),
+    strNeedle.begin(),   strNeedle.end(),
+    [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+  );
+  return (it != strHaystack.end() );
+}
+
+bool ImHotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = Hotkey(label, k, size_arg);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = Hotkey(label, k, size_arg);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = Hotkey(label, k, size_arg);
+    return res;
+}
+
+bool ImCheckbox(const char *label, bool *v)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::Checkbox(label, v);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::Checkbox(label, v);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::Checkbox(label, v);
+    return res;
+}
+
+bool ImButton(const char *label)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::Button(label);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::Button(label);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::Button(label);
+    return res;
+}
+
+bool ImInputFloat(const char *label, float *v)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::InputFloat(label, v);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::InputFloat(label, v);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::InputFloat(label, v);
+    return res;
+}
+
+bool ImInputInt(const char *label, int *v, int step = 1)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::InputInt(label, v, step);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::InputInt(label, v, step);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::InputInt(label, v, step);
+    return res;
+}
+
+bool ImInputInt2(const char *label, int *v)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::InputInt2(label, v);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::InputInt2(label, v);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::InputInt2(label, v);
+    return res;
+}
+
+bool ImInputText(const char *label, char *buf, size_t buf_size)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::InputText(label, buf, buf_size);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::InputText(label, buf, buf_size);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::InputText(label, buf, buf_size);
+    return res;
+}
+
+bool ImCombo(const char *label, int *current_item, const char* const *items, int items_count)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::Combo(label, current_item, items, items_count);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::Combo(label, current_item, items, items_count);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::Combo(label, current_item, items, items_count);
+    return res;
+}
+
+bool ImColorEdit3(const char *label, float *col, ImGuiColorEditFlags flags = 0)
+{
+    bool res = false;
+    if (strlen(searchbar) > 0)
+    {
+        std::string s = label;
+        if (findStringIC(s, searchbar))
+        {
+            ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
+            res = ImGui::ColorEdit3(label, col, flags);
+            ImGui::PopStyleColor();
+        }
+        else 
+        {
+            ImGui::BeginDisabled();
+            res = ImGui::ColorEdit3(label, col, flags);
+            ImGui::EndDisabled();
+        }
+    }
+    else res = ImGui::ColorEdit3(label, col, flags);
+    return res;
+}
+
+
+
 void InitJSONHacks(json &js)
 {
     for (size_t i = 0; i < js["mods"].size(); i++)
@@ -179,7 +398,7 @@ void DrawFromJSON(json &js)
 {
     for (size_t i = 0; i < js["mods"].size(); i++)
     {
-        if (ImGui::Checkbox(js["mods"][i]["name"].get<std::string>().c_str(), js["mods"][i]["toggle"].get<bool *>()))
+        if (ImCheckbox(js["mods"][i]["name"].get<std::string>().c_str(), js["mods"][i]["toggle"].get<bool *>()))
         {
             Hacks::ToggleJSONHack(js, i, false);
         }
@@ -204,16 +423,16 @@ int roundInt(int n)
 
 void TextSettings(int index, bool font)
 {
-    if (ImGui::Combo(("Position##" + std::to_string(index)).c_str(), (int *)&labels.positions[index], positions, IM_ARRAYSIZE(positions)))
+    if (ImCombo(("Position##" + std::to_string(index)).c_str(), (int *)&labels.positions[index], positions, IM_ARRAYSIZE(positions)))
         for (size_t i = 0; i < 13; i++)
             PlayLayer::UpdatePositions(i);
-    if (ImGui::InputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
+    if (ImInputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
         for (size_t i = 0; i < 13; i++)
             PlayLayer::UpdatePositions(i);
-    if (ImGui::InputFloat(("Opacity##" + std::to_string(index)).c_str(), &labels.opacity[index]))
+    if (ImInputFloat(("Opacity##" + std::to_string(index)).c_str(), &labels.opacity[index]))
         for (size_t i = 0; i < 13; i++)
             PlayLayer::UpdatePositions(i);
-    if (font && ImGui::Combo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
+    if (font && ImCombo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
         for (size_t i = 0; i < 13; i++)
             PlayLayer::UpdatePositions(i);
 }
@@ -244,7 +463,7 @@ void SetStyle()
     ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks.menuRainbowSpeed, hacks.menuRainbowBrightness, hacks.menuRainbowBrightness, r, g, b);
 
     style->Colors[ImGuiCol_Text] = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
-    style->Colors[ImGuiCol_TextDisabled] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
+    style->Colors[ImGuiCol_TextDisabled] = ImVec4(1.0f, 0.03f, 0.03f, 1.00f);
     style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
     style->Colors[ImGuiCol_ChildBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
 
@@ -550,7 +769,7 @@ void RenderMain()
             ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
         }
 
-        ImGui::InputFloat("N", &debug.debugNumber);
+        ImInputFloat("N", &debug.debugNumber);
         ImGui::Text(debug.debugString.c_str());
 
         ImGui::End();
@@ -610,41 +829,41 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(70 * screenSize * hacks.menuSize);
-        ImGui::InputFloat("Menu UI Size", &hacks.menuSize);
+        ImInputFloat("Menu UI Size", &hacks.menuSize);
         if (hacks.menuSize > 3)
             hacks.menuSize = 1;
         else if (hacks.menuSize < 0.5f)
             hacks.menuSize = 0.5f;
-        ImGui::InputFloat("Border Size", &hacks.borderSize);
-        ImGui::InputFloat("Window Rounding", &hacks.windowRounding);
-        ImGui::InputInt("Window Snap", &hacks.windowSnap, 0);
+        ImInputFloat("Border Size", &hacks.borderSize);
+        ImInputFloat("Window Rounding", &hacks.windowRounding);
+        ImInputInt("Window Snap", &hacks.windowSnap, 0);
         ImGui::PopItemWidth();
 
-        ImGui::ColorEdit4("Window Title BG Color", hacks.titleColor, ImGuiColorEditFlags_NoInputs);
-        ImGui::ColorEdit4("Border Color", hacks.borderColor, ImGuiColorEditFlags_NoInputs);
+        ImColorEdit3("Window Title BG Color", hacks.titleColor, ImGuiColorEditFlags_NoInputs);
+        ImColorEdit3("Border Color", hacks.borderColor, ImGuiColorEditFlags_NoInputs);
 
         ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-        if (Hotkey("Toggle Menu", &hacks.menuKey))
+        if (ImHotkey("Toggle Menu", &hacks.menuKey))
         {
             ImGuiHook::setKeybind(hacks.menuKey);
         }
         ImGui::PopItemWidth();
 
         if (isDecember)
-            ImGui::Checkbox("Snow", &hacks.snow);
+            ImCheckbox("Snow", &hacks.snow);
 
-        ImGui::Checkbox("Rainbow Menu", &hacks.rainbowMenu);
+        ImCheckbox("Rainbow Menu", &hacks.rainbowMenu);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::BeginMenu("##rain"))
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::InputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
-            ImGui::InputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
+            ImInputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
+            ImInputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }
 
-        if (ImGui::Checkbox("Docking", &hacks.dockSpace))
+        if (ImCheckbox("Docking", &hacks.dockSpace))
         {
             ImGuiIO &io = ImGui::GetIO();
             if (hacks.dockSpace)
@@ -653,8 +872,14 @@ void RenderMain()
                 io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
         }
 
-        if(ImGui::Button("Save Windows")) saveWindows = true;
-        if(ImGui::Button("Load Windows")) resetWindows = true;
+        if (ImButton("Save Windows"))
+            saveWindows = true;
+        if (ImButton("Load Windows"))
+            resetWindows = true;
+
+        ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
+        ImGui::InputText("Search", searchbar, 30);
+        ImGui::PopItemWidth();
 
         ImGui::End();
 
@@ -682,22 +907,22 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-        ImGui::InputFloat("FPS Bypass", &hacks.fps);
+        ImInputFloat("FPS Bypass", &hacks.fps);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
 
-        ImGui::InputFloat("TPS Bypass", &hacks.tpsBypass);
+        ImInputFloat("TPS Bypass", &hacks.tpsBypass);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
-        ImGui::InputFloat("Draw Divide", &hacks.screenFPS);
+        ImInputFloat("Draw Divide", &hacks.screenFPS);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
 
-        ImGui::InputFloat("Speedhack", &hacks.speed);
+        ImInputFloat("Speedhack", &hacks.speed);
 
-        ImGui::Combo("Thread Priority", &hacks.priority, priorities, 5);
+        ImCombo("Thread Priority", &hacks.priority, priorities, 5);
         ImGui::PopItemWidth();
-        if (ImGui::Button("Apply##sv"))
+        if (ImButton("Apply##sv"))
         {
             if (hacks.fps <= 1)
                 hacks.fps = 60;
@@ -734,7 +959,7 @@ void RenderMain()
             windowPositions.positions[2] = {(int)pos.x, (int)pos.y};
         }
 
-        ImGui::Checkbox("Auto Deafen", &hacks.autoDeafen);
+        ImCheckbox("Auto Deafen", &hacks.autoDeafen);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("autod", 1))
             ImGui::OpenPopup("Auto Deafen Settings");
@@ -742,23 +967,23 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::InputFloat("Auto Deafen %", &hacks.percentage);
+            ImInputFloat("Auto Deafen %", &hacks.percentage);
 
             ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-            Hotkey("Mute Key", &hacks.muteKey);
+            ImHotkey("Mute Key", &hacks.muteKey);
             ImGui::PopItemWidth();
 
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Set a key combination in discord with leftalt + the key you set here");
             ImGui::PopItemWidth();
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Discord RPC", &hacks.discordRPC))
+        if (ImCheckbox("Discord RPC", &hacks.discordRPC))
         {
             if (!hacks.discordRPC)
             {
@@ -767,9 +992,9 @@ void RenderMain()
             }
         }
 
-        ImGui::Checkbox("Hide Pause Menu", &hacks.hidePause);
+        ImCheckbox("Hide Pause Menu", &hacks.hidePause);
 
-        ImGui::Checkbox("Custom Menu Music", &hacks.replaceMenuMusic);
+        ImCheckbox("Custom Menu Music", &hacks.replaceMenuMusic);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("custmm", 1))
             ImGui::OpenPopup("Custom Menu Music Settings");
@@ -777,7 +1002,7 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            if (ImGui::Button("Select Song"))
+            if (ImButton("Select Song"))
             {
                 auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
                                                 {"Audio File", "*.mp3"},
@@ -792,7 +1017,7 @@ void RenderMain()
                 Hacks::MenuMusic();
             }
             ImGui::PopItemWidth();
-            ImGui::Checkbox("Random Menu Music", &hacks.randomMusic);
+            ImCheckbox("Random Menu Music", &hacks.randomMusic);
             if (Hacks::path.empty())
                 Hacks::path = Hacks::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
 
@@ -801,7 +1026,7 @@ void RenderMain()
                 ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
             else
                 ImGui::Text(("Playing: " + diobono).c_str());
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
@@ -834,81 +1059,81 @@ void RenderMain()
             windowPositions.positions[3] = {(int)pos.x, (int)pos.y};
         }
 
-        ImGui::Checkbox("StartPos Switcher", &hacks.startPosSwitcher);
-        ImGui::Checkbox("Smart StartPos", &hacks.smartStartPos);
+        ImCheckbox("StartPos Switcher", &hacks.startPosSwitcher);
+        ImCheckbox("Smart StartPos", &hacks.smartStartPos);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("smar", 1))
             ImGui::OpenPopup("Smart StartPos Settings");
 
         if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::Checkbox("Enable Gravity Detection", &hacks.gravityDetection);
+            ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Enable auto detection of gravity, might not work since it does not account for blue pads or orbs");
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        ImGui::Checkbox("Show Hitboxes", &hacks.showHitboxes);
+        ImCheckbox("Show Hitboxes", &hacks.showHitboxes);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("hit", 1))
             ImGui::OpenPopup("Hitbox Settings");
 
         if (ImGui::BeginPopupModal("Hitbox Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::Checkbox("Only on Death", &hacks.onlyOnDeath);
-            ImGui::Checkbox("Show Decorations", &hacks.showDecorations);
-            ImGui::Checkbox("Hitboxes only", &hacks.hitboxOnly);
-            ImGui::Checkbox("Hitbox trail", &hacks.hitboxTrail);
-            ImGui::InputFloat("Trail Length", &hacks.hitboxTrailLength);
-            ImGui::InputInt("Hitbox Opacity", &hacks.borderOpacity, 0);
-            ImGui::InputInt("Fill Opacity", &hacks.hitboxOpacity, 0);
-            ImGui::InputFloat("Hitbox Thickness", &hacks.hitboxThickness);
-            if (ImGui::Button("Close"))
+            ImCheckbox("Only on Death", &hacks.onlyOnDeath);
+            ImCheckbox("Show Decorations", &hacks.showDecorations);
+            ImCheckbox("Hitboxes only", &hacks.hitboxOnly);
+            ImCheckbox("Hitbox trail", &hacks.hitboxTrail);
+            ImInputFloat("Trail Length", &hacks.hitboxTrailLength);
+            ImInputInt("Hitbox Opacity", &hacks.borderOpacity, 0);
+            ImInputInt("Fill Opacity", &hacks.hitboxOpacity, 0);
+            ImInputFloat("Hitbox Thickness", &hacks.hitboxThickness);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
-        ImGui::Checkbox("Layout Mode", &hacks.layoutMode);
-        ImGui::Checkbox("Hide Attempts", &hacks.hideattempts);
+        ImCheckbox("Layout Mode", &hacks.layoutMode);
+        ImCheckbox("Hide Attempts", &hacks.hideattempts);
 
         DrawFromJSON(Hacks::level);
 
-        ImGui::Checkbox("Practice Fix", &hacks.fixPractice);
+        ImCheckbox("Practice Fix", &hacks.fixPractice);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Activate this if you want the practice fixes to be active even if macrobot is not recording");
 
-        ImGui::Checkbox("Auto Sync Music", &hacks.autoSyncMusic);
+        ImCheckbox("Auto Sync Music", &hacks.autoSyncMusic);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("ausm", 1))
             ImGui::OpenPopup("Auto Sync Music Settings");
 
         if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::InputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
-            if (ImGui::Button("Close"))
+            ImInputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        ImGui::Checkbox("Confirm Quit", &hacks.confirmQuit);
-        ImGui::Checkbox("Show Endscreen Info", &hacks.showExtraInfo);
+        ImCheckbox("Confirm Quit", &hacks.confirmQuit);
+        ImCheckbox("Show Endscreen Info", &hacks.showExtraInfo);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("sei", 1))
             ImGui::OpenPopup("Endscreen Settings");
 
         if (ImGui::BeginPopupModal("Endscreen Settings", NULL))
         {
-            ImGui::Checkbox("Safe Mode", &hacks.safeModeEndscreen);
-            ImGui::Checkbox("Practice Button", &hacks.practiceButtonEndscreen);
-            ImGui::Checkbox("Cheat Indicator", &hacks.cheatIndicatorEndscreen);
-            if (ImGui::Button("Close"))
+            ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
+            ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
+            ImCheckbox("Cheat Indicator", &hacks.cheatIndicatorEndscreen);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
@@ -916,7 +1141,7 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
-        ImGui::Checkbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
+        ImCheckbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Requires level reload to apply properly");
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -925,10 +1150,10 @@ void RenderMain()
 
         if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL))
         {
-            ImGui::InputFloat("Harards", &hacks.hitboxMultiplier);
-            ImGui::InputFloat("Solids", &hacks.hitboxSolids);
-            ImGui::InputFloat("Special", &hacks.hitboxSpecial);
-            if (ImGui::Button("Close"))
+            ImInputFloat("Harards", &hacks.hitboxMultiplier);
+            ImInputFloat("Solids", &hacks.hitboxSolids);
+            ImInputFloat("Special", &hacks.hitboxSpecial);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
@@ -987,34 +1212,41 @@ void RenderMain()
 
         DrawFromJSON(Hacks::player);
 
-        ImGui::Checkbox("Void Click Fix", &hacks.voidClick);
-        ImGui::Checkbox("Rainbow Icons", &hacks.rainbowIcons);
+        ImCheckbox("Void Click Fix", &hacks.voidClick);
+
+        ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
+        ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("rain", 1))
             ImGui::OpenPopup("Rainbow Icons Settings");
 
         if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::Checkbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
-            ImGui::Checkbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
-            ImGui::Checkbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
-            ImGui::Checkbox("Rainbow Glow", &hacks.rainbowOutline);
+            ImCheckbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
+            ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
+            ImCheckbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
+            ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
 
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::InputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
+            ImInputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
+            if (ImInputFloat("Rainbow Pastel Amount", &hacks.pastel))
+            {
+                hacks.pastel = hacks.pastel <= 0.1f ? 0.1f : hacks.pastel > 1.0f ? 1.0f
+                                                                                 : hacks.pastel;
+            }
             ImGui::PopItemWidth();
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        ImGui::Checkbox("No Wave Pulse", &hacks.solidWavePulse);
+        ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
         ImGui::PushItemWidth(90 * screenSize * hacks.menuSize);
-        if (ImGui::InputFloat("Wave Trail Size", &hacks.waveSize))
+        if (ImInputFloat("Wave Trail Size", &hacks.waveSize))
             Hacks::Write<float>(gd::base + 0x2E63A0, hacks.waveSize);
-        if (ImGui::InputFloat("Respawn Time", &hacks.respawnTime))
+        if (ImInputFloat("Respawn Time", &hacks.respawnTime))
             Hacks::WriteRef(gd::base + 0x20A677, hacks.respawnTime);
         ImGui::PopItemWidth();
 
@@ -1067,19 +1299,19 @@ void RenderMain()
             auto pos = ImGui::GetWindowPos();
             windowPositions.positions[7] = {(int)pos.x, (int)pos.y};
         }
-        ImGui::Checkbox("Hide All", &labels.hideLabels);
+        ImCheckbox("Hide All", &labels.hideLabels);
 
-        ImGui::Checkbox("Rainbow Labels", &labels.rainbowLabels);
+        ImCheckbox("Rainbow Labels", &labels.rainbowLabels);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::BeginMenu("##rainl"))
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::InputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
+            ImInputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
             ImGui::PopItemWidth();
             ImGui::EndMenu();
         }
 
-        if (ImGui::Checkbox("Cheat Indicator", &labels.statuses[0]))
+        if (ImCheckbox("Cheat Indicator", &labels.statuses[0]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1088,14 +1320,14 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(0, false);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("FPS Counter", &labels.statuses[1]))
+        if (ImCheckbox("FPS Counter", &labels.statuses[1]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1104,17 +1336,17 @@ void RenderMain()
         if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(1, true);
-            ImGui::Combo("Style##fpsc", &labels.styles[0], style, IM_ARRAYSIZE(style));
-            ImGui::InputFloat("Update Interval", &labels.fpsUpdate);
-            ImGui::Checkbox("Show TPS", &labels.showReal);
-            if (ImGui::Button("Close"))
+            ImCombo("Style##fpsc", &labels.styles[0], style, IM_ARRAYSIZE(style));
+            ImInputFloat("Update Interval", &labels.fpsUpdate);
+            ImCheckbox("Show TPS", &labels.showReal);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("CPS Counter", &labels.statuses[2]))
+        if (ImCheckbox("CPS Counter", &labels.statuses[2]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1123,16 +1355,16 @@ void RenderMain()
         if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(2, true);
-            ImGui::Combo("Style##cpsc", &labels.styles[1], style, IM_ARRAYSIZE(style));
-            ImGui::ColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
-            if (ImGui::Button("Close"))
+            ImCombo("Style##cpsc", &labels.styles[1], style, IM_ARRAYSIZE(style));
+            ImColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Noclip accuracy", &labels.statuses[3]))
+        if (ImCheckbox("Noclip accuracy", &labels.statuses[3]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1142,21 +1374,21 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(3, true);
-            ImGui::InputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
-            ImGui::Checkbox("Enable Screen Effect", &hacks.noclipRed);
+            ImInputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
+            ImCheckbox("Enable Screen Effect", &hacks.noclipRed);
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-            ImGui::InputFloat("Opacity Limit", &hacks.noclipRedLimit);
-            ImGui::InputFloat("Opacity Rate Up", &hacks.noclipRedRate);
-            ImGui::InputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
-            ImGui::ColorEdit3("Overlay Color", hacks.noclipColor, ImGuiColorEditFlags_NoInputs);
-            if (ImGui::Button("Close"))
+            ImInputFloat("Opacity Limit", &hacks.noclipRedLimit);
+            ImInputFloat("Opacity Rate Up", &hacks.noclipRedRate);
+            ImInputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
+            ImColorEdit3("Overlay Color", hacks.noclipColor, ImGuiColorEditFlags_NoInputs);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Noclip deaths", &labels.statuses[4]))
+        if (ImCheckbox("Noclip deaths", &labels.statuses[4]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1166,14 +1398,14 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(4, true);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Clock", &labels.statuses[5]))
+        if (ImCheckbox("Clock", &labels.statuses[5]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1182,14 +1414,14 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(5, true);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Best Run", &labels.statuses[6]))
+        if (ImCheckbox("Best Run", &labels.statuses[6]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1198,15 +1430,15 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(6, true);
-            ImGui::Checkbox("Accumulate Runs", &hacks.accumulateRuns);
-            if (ImGui::Button("Close"))
+            ImCheckbox("Accumulate Runs", &hacks.accumulateRuns);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Attempts", &labels.statuses[7]))
+        if (ImCheckbox("Attempts", &labels.statuses[7]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1215,14 +1447,14 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Attempts Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(7, true);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("From %", &labels.statuses[8]))
+        if (ImCheckbox("From %", &labels.statuses[8]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1231,15 +1463,15 @@ void RenderMain()
         if (ImGui::BeginPopupModal("From % Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(8, true);
-            ImGui::Checkbox("Only in Runs", &hacks.onlyInRuns);
-            if (ImGui::Button("Close"))
+            ImCheckbox("Only in Runs", &hacks.onlyInRuns);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Message Status", &labels.statuses[9]))
+        if (ImCheckbox("Message Status", &labels.statuses[9]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1248,15 +1480,15 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(9, true);
-            ImGui::InputText("Message", hacks.message, 30);
-            if (ImGui::Button("Close"))
+            ImInputText("Message", hacks.message, 30);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Current Attempt", &labels.statuses[10]))
+        if (ImCheckbox("Current Attempt", &labels.statuses[10]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1265,14 +1497,14 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(10, true);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Level ID", &labels.statuses[11]))
+        if (ImCheckbox("Level ID", &labels.statuses[11]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1281,14 +1513,14 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Level ID Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(11, true);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        if (ImGui::Checkbox("Jumps", &labels.statuses[12]))
+        if (ImCheckbox("Jumps", &labels.statuses[12]))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1297,7 +1529,7 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Jumps Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(12, true);
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
@@ -1305,7 +1537,7 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-        if (ImGui::InputFloat("Label Spacing", &labels.labelSpacing))
+        if (ImInputFloat("Label Spacing", &labels.labelSpacing))
             for (size_t i = 0; i < 13; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::PopItemWidth();
@@ -1335,12 +1567,12 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
-        ImGui::Combo("Hack", &shortcutIndex, hackNames.data(), hackNames.size());
+        ImCombo("Hack", &shortcutIndex, hackNames.data(), hackNames.size());
         ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-        Hotkey("Shortcut Key", &shortcutIndexKey);
+        ImHotkey("Shortcut Key", &shortcutIndexKey);
         ImGui::PopItemWidth();
 
-        if (ImGui::Button("Add"))
+        if (ImButton("Add"))
         {
 
             bool addShortcut = true;
@@ -1370,7 +1602,7 @@ void RenderMain()
             ImGui::SameLine();
             ImGui::Text(hackNames[Shortcuts::shortcuts[i].shortcutIndex]);
             ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-            if (ImGui::Button(("x##" + std::to_string(i)).c_str()))
+            if (ImButton(("x##" + std::to_string(i)).c_str()))
             {
                 Shortcuts::shortcuts.erase(Shortcuts::shortcuts.begin() + i);
                 Shortcuts::Save();
@@ -1380,14 +1612,14 @@ void RenderMain()
         }
         ImGui::PopItemWidth();
 
-        if (ImGui::Button("Open GD Settings"))
+        if (ImButton("Open GD Settings"))
             gd::OptionsLayer::addToCurrentScene(false);
-        if (ImGui::Button("Open Song Folder"))
+        if (ImButton("Open Song Folder"))
         {
             ShellExecute(0, NULL, Hacks::GetSongFolder().c_str(), NULL, NULL, SW_SHOW);
         }
 
-        if (ImGui::Button("Uncomplete Level"))
+        if (ImButton("Uncomplete Level"))
         {
             if (playLayer)
             {
@@ -1415,7 +1647,7 @@ void RenderMain()
             }
         }
 
-        if (ImGui::Button("Inject DLL"))
+        if (ImButton("Inject DLL"))
         {
             auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath2(),
                                             {"DLL File", "*.dll"},
@@ -1450,7 +1682,7 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
-        if (ImGui::Button("Select Song##pitch"))
+        if (ImButton("Select Song##pitch"))
         {
             auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
                                             {"Audio File", "*.mp3"},
@@ -1467,10 +1699,10 @@ void RenderMain()
         ImGui::SameLine();
         ImGui::Text(hacks.pitchId);
 
-        ImGui::InputFloat("Pitch", &pitch);
+        ImInputFloat("Pitch", &pitch);
         ImGui::PopItemWidth();
 
-        if (ImGui::Button("Render"))
+        if (ImButton("Render"))
             Hacks::ChangePitch(pitch);
 
         ImGui::End();
@@ -1497,7 +1729,7 @@ void RenderMain()
             windowPositions.positions[10] = {(int)pos.x, (int)pos.y};
         }
 
-        if (ImGui::Checkbox("Record", &hacks.recording))
+        if (ImCheckbox("Record", &hacks.recording))
         {
             if (!playLayer)
                 return;
@@ -1512,22 +1744,22 @@ void RenderMain()
                 ReplayPlayer::getInstance().recorder.start();
             }
         }
-        ImGui::Checkbox("Include Clicks", &hacks.includeClicks);
+        ImCheckbox("Include Clicks", &hacks.includeClicks);
         ImGui::PushItemWidth(110 * screenSize * hacks.menuSize);
-        ImGui::InputInt2("Size##videosize", hacks.videoDimenstions);
+        ImInputInt2("Size##videosize", hacks.videoDimenstions);
         ImGui::PopItemWidth();
         ImGui::PushItemWidth(75 * screenSize * hacks.menuSize);
-        ImGui::InputInt("Framerate", &hacks.videoFps, 0);
-        ImGui::InputFloat("Music Volume", &hacks.renderMusicVolume);
-        ImGui::InputFloat("Click Volume", &hacks.renderClickVolume);
-        ImGui::InputText("Bitrate", hacks.bitrate, 8);
-        ImGui::InputText("Codec", hacks.codec, 20);
-        ImGui::InputText("Extraargs Before -i", hacks.extraArgs, 60);
-        ImGui::InputText("Extraargs After -i", hacks.extraArgsAfter, 60);
-        ImGui::InputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
+        ImInputInt("Framerate", &hacks.videoFps, 0);
+        ImInputFloat("Music Volume", &hacks.renderMusicVolume);
+        ImInputFloat("Click Volume", &hacks.renderClickVolume);
+        ImInputText("Bitrate", hacks.bitrate, 8);
+        ImInputText("Codec", hacks.codec, 20);
+        ImInputText("Extraargs Before -i", hacks.extraArgs, 60);
+        ImInputText("Extraargs After -i", hacks.extraArgsAfter, 60);
+        ImInputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the whole rendered clicks, i have to split them to bypass the command character limit.\nTry increasing this if the clicks do not render.");
-        ImGui::InputFloat("Show End For", &hacks.afterEndDuration);
+        ImInputFloat("Show End For", &hacks.afterEndDuration);
         ImGui::PopItemWidth();
 
         Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: -hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
@@ -1559,34 +1791,34 @@ void RenderMain()
             ImGui::PushStyleColor(0, ImVec4(0, 1, 0, 1));
         else
             ImGui::PushStyleColor(0, ImVec4(1, 0, 0, 1));
-        if (ImGui::Button("Toggle Recording"))
+        if (ImButton("Toggle Recording"))
             ReplayPlayer::getInstance().ToggleRecording();
         if (ReplayPlayer::getInstance().IsPlaying())
             ImGui::PushStyleColor(0, ImVec4(0, 1, 0, 1));
         else
             ImGui::PushStyleColor(0, ImVec4(1, 0, 0, 1));
-        if (ImGui::Button("Toggle Playing"))
+        if (ImButton("Toggle Playing"))
             ReplayPlayer::getInstance().TogglePlaying();
         else
             ImGui::PushStyleColor(0, ImVec4(1, 1, 1, 1));
-        ImGui::Checkbox("Show Replay Label", &hacks.botTextEnabled);
+        ImCheckbox("Show Replay Label", &hacks.botTextEnabled);
 
-        ImGui::Checkbox("Click sounds", &hacks.clickbot);
+        ImCheckbox("Click sounds", &hacks.clickbot);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("clicks", 1))
             ImGui::OpenPopup("Click sounds settings");
         if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::InputFloat("Click volume", &hacks.baseVolume);
-            ImGui::InputFloat("Max pitch variation", &hacks.maxPitch);
-            ImGui::InputFloat("Min pitch variation", &hacks.minPitch);
+            ImInputFloat("Click volume", &hacks.baseVolume);
+            ImInputFloat("Max pitch variation", &hacks.maxPitch);
+            ImInputFloat("Min pitch variation", &hacks.minPitch);
             ImGui::InputDouble("Play Medium Clicks at", &hacks.playMediumClicksAt);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Amount of time between click so that a medium click is played");
-            ImGui::InputFloat("Minimum time difference", &hacks.minTimeDifference);
+            ImInputFloat("Minimum time difference", &hacks.minTimeDifference);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Minimum time difference for a click to play, to avoid tiny double clicks");
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
@@ -1594,37 +1826,37 @@ void RenderMain()
             Marker("?", "Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
             ImGui::EndPopup();
         }
-        ImGui::Checkbox("Prevent inputs", &hacks.preventInput);
+        ImCheckbox("Prevent inputs", &hacks.preventInput);
 
-        ImGui::Checkbox("Autoclicker", &hacks.autoclicker);
+        ImCheckbox("Autoclicker", &hacks.autoclicker);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("aut", 1))
             ImGui::OpenPopup("Autoclicker Settings");
 
         if (ImGui::BeginPopupModal("Autoclicker Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::InputFloat("Click time", &hacks.clickTime);
-            ImGui::InputFloat("Release time", &hacks.releaseTime);
-            if (ImGui::Button("Close"))
+            ImInputFloat("Click time", &hacks.clickTime);
+            ImInputFloat("Release time", &hacks.releaseTime);
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
         }
 
-        ImGui::Checkbox("Frame Step", &hacks.frameStep);
+        ImCheckbox("Frame Step", &hacks.frameStep);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("fra", 1))
             ImGui::OpenPopup("Frame Step Settings");
 
         if (ImGui::BeginPopupModal("Frame Step Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::InputInt("Step Count", &hacks.stepCount, 0);
+            ImInputInt("Step Count", &hacks.stepCount, 0);
             ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-            Hotkey("Step Key", &hacks.stepIndex);
+            ImHotkey("Step Key", &hacks.stepIndex);
             ImGui::PopItemWidth();
 
-            if (ImGui::Button("Close"))
+            if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
             }
@@ -1632,20 +1864,20 @@ void RenderMain()
         }
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-        ImGui::InputInt("Start At Action", &hacks.actionStart, 0);
+        ImInputInt("Start At Action", &hacks.actionStart, 0);
         ImGui::PopItemWidth();
 
         ImGui::Spacing();
-        if (ImGui::Button("Clear actions"))
+        if (ImButton("Clear actions"))
             ReplayPlayer::getInstance().ClearActions();
 
         ImGui::Spacing();
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-        ImGui::InputText("Replay Name", fileName, 30);
+        ImInputText("Replay Name", fileName, 30);
         ImGui::PopItemWidth();
-        if (ImGui::Button("Save"))
+        if (ImButton("Save"))
             ReplayPlayer::getInstance().Save(fileName);
-        if (ImGui::Button("Load"))
+        if (ImButton("Load"))
             ReplayPlayer::getInstance().Load(fileName);
         ImGui::PopStyleColor();
 

@@ -39,16 +39,20 @@ CustomCheckpoint *CustomCheckpoint::createHook()
     return cc;
 }
 
-int CheckpointData::Apply(gd::PlayerObject *p)
+int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
 {
     int out = 0;
     p->m_xAccel = xAccel;
     p->m_yAccel = yAccel;
     p->m_jumpAccel = jumpAccel;
+    Hacks::writeOutput(p->m_isHolding2);
     if (isHolding != p->m_isHolding)
     {
         out = p->m_isHolding ? 2 : 1; // 2 == press, 1 == release
     }
+
+    if(tp && isHolding2 == p->m_isHolding2) out = p->m_isHolding2 ? 2 : 1;
+
     p->m_position.x = xPos;
     p->m_position.y = yPos;
     p->setRotationX(rotationX);
@@ -92,7 +96,7 @@ void Practice::ApplyCheckpoint()
     if (playLayer)
     {
         Checkpoint c = GetLast();
-        auto click1 = c.p1.Apply(playLayer->m_pPlayer1);
+        auto click1 = c.p1.Apply(playLayer->m_pPlayer1, playLayer->m_pLevelSettings->m_twoPlayerMode);
         if (click1 != 0)
         {
             if (click1 == 2 && c.p1.touchRing <= 0)
@@ -109,7 +113,7 @@ void Practice::ApplyCheckpoint()
                 PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
         }
 
-        auto click2 = c.p2.Apply(playLayer->m_pPlayer2);
+        auto click2 = c.p2.Apply(playLayer->m_pPlayer2, playLayer->m_pLevelSettings->m_twoPlayerMode);
         if (click2 != 0)
         {
             if (click2 == 2 && c.p2.touchRing <= 0)

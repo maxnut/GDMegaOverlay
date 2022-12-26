@@ -38,7 +38,7 @@ struct CheckpointData
         return cd;
     }
 
-    int Apply(gd::PlayerObject *p);
+    int Apply(gd::PlayerObject *p, bool tp);
 
     static gd::Gamemode GetGamemode(gd::PlayerObject *p)
     {
