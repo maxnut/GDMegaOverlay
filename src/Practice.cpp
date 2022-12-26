@@ -45,7 +45,6 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     p->m_xAccel = xAccel;
     p->m_yAccel = yAccel;
     p->m_jumpAccel = jumpAccel;
-    Hacks::writeOutput(p->m_isHolding2);
     if (isHolding != p->m_isHolding)
     {
         out = p->m_isHolding ? 2 : 1; // 2 == press, 1 == release

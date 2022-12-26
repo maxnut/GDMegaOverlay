@@ -296,6 +296,7 @@ void ReplayPlayer::HandleActivatedObjects(bool a, bool b, gd::GameObject *object
 
 void ReplayPlayer::RecordAction(bool press, gd::PlayerObject *pl, bool player1)
 {
+    if(!IsRecording()) return;
     Action a;
     a.player2 = !player1;
     a.frame = GetFrame();

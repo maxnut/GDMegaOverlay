@@ -32,7 +32,7 @@ std::vector<gd::StartPosObject *> sp;
 std::vector<gd::GameObject *> gravityPortals, dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 std::vector<bool> willFlip;
 
-bool add = false, pressing, dead = false, hitboxDead = false, clickType = true, pressed = false, reset = true;
+bool add = false, pressing, dead = false, hitboxDead = false, clickType = true, pressed = false, reset = true, holdingAdvance = false;
 
 ccColor3B iconCol, secIconCol;
 
@@ -401,7 +401,7 @@ std::string oldRun = "";
 
 void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::PlayerObject *player, gd::GameObject *obj)
 {
-	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"])
+	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"] && !self->m_isDead)
 	{
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
@@ -411,6 +411,7 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 			bestRunRepeat = 0;
 			maxRun = run;
 			bestRun.clear();
+			bestRun = "";
 			bestRun = runStr;
 			oldRun = runStr;
 		}
@@ -438,6 +439,7 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 		bestRunRepeat = 0;
 		maxRun = run;
 		bestRun.clear();
+		bestRun = "";
 		bestRun = runStr;
 		oldRun = runStr;
 	}
@@ -1181,7 +1183,7 @@ void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
 {
 	if (hacks.frameStep)
 	{
-		if (steps > 0)
+		if (steps > 0 || holdingAdvance)
 		{
 			Update(self, dt);
 			steps--;
@@ -1621,8 +1623,15 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 	if (!playlayer)
 		return;
 
-	if (key == hacks.stepIndex && down)
-		steps = hacks.stepCount;
+	if (key == hacks.stepIndex)
+	{
+		if(down)
+		{
+			if(!hacks.holdAdvance) steps = hacks.stepCount;
+			else holdingAdvance = true;
+		}
+		else holdingAdvance = false;
+	}
 
 	if (!hacks.startPosSwitcher || sp.size() <= 0)
 		return;

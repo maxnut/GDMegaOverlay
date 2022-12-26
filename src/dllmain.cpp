@@ -1855,6 +1855,7 @@ void RenderMain()
             ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
             ImHotkey("Step Key", &hacks.stepIndex);
             ImGui::PopItemWidth();
+            ImCheckbox("Hold to Advance", &hacks.holdAdvance);
 
             if (ImButton("Close"))
             {

@@ -125,39 +125,51 @@ void Shortcuts::OnPress(int index)
             break;
         case 15:
             labels.statuses[0] = !labels.statuses[0];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 16:
             labels.statuses[1] = !labels.statuses[1];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 17:
             labels.statuses[2] = !labels.statuses[2];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 18:
             labels.statuses[3] = !labels.statuses[3];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 19:
             labels.statuses[4] = !labels.statuses[4];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 20:
             labels.statuses[5] = !labels.statuses[5];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 21:
             labels.statuses[6] = !labels.statuses[6];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 22:
             labels.statuses[7] = !labels.statuses[7];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 23:
             labels.statuses[8] = !labels.statuses[8];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 24:
             labels.statuses[9] = !labels.statuses[9];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 25:
             labels.statuses[10] = !labels.statuses[10];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 26:
             labels.statuses[11] = !labels.statuses[11];
+            for(size_t i = 0; i < STATUSSIZE; i++) PlayLayer::UpdatePositions(i);
             break;
         case 27:
             auto pl = gd::GameManager::sharedState()->getPlayLayer();

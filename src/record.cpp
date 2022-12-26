@@ -147,7 +147,7 @@ void Recorder::start()
                     size_t actionTracker = 0;
 
                     auto actions = ReplayPlayer::getInstance().GetReplay()->getActions();
-                    float prevClick = 0;
+                    float prevClick = 0, prevClickP2 = 0;
 
                     {
                         while (actionTracker < ReplayPlayer::getInstance().GetActionsSize())
@@ -163,13 +163,14 @@ void Recorder::start()
 
                                 if (actions[actionTracker + i].press)
                                 {
-                                    (actions[actionTracker + i].frame / hacks.fps) - prevClick > hacks.playMediumClicksAt ? path += "\\clicks\\" + std::to_string(rand() % Hacks::amountOfClicks + 1) + ".wav" : path += "\\mediumclicks\\" + std::to_string(rand() % Hacks::amountOfMediumClicks + 1) + ".wav";
+                                    (actions[actionTracker + i].frame / hacks.fps) - (actions[actionTracker + i].player2 ? prevClickP2 : prevClick) > hacks.playMediumClicksAt ? path += "\\clicks\\" + std::to_string(rand() % Hacks::amountOfClicks + 1) + ".wav" : path += "\\mediumclicks\\" + std::to_string(rand() % Hacks::amountOfMediumClicks + 1) + ".wav";
                                 }
                                 else
                                 {
                                     path += "\\releases\\" + std::to_string(rand() % Hacks::amountOfReleases + 1) + ".wav";
                                 }
-                                prevClick = actions[actionTracker + i].frame / hacks.fps;
+                                if(actions[actionTracker + i].player2) prevClickP2 = actions[actionTracker + i].frame / hacks.fps;
+                                else prevClick = actions[actionTracker + i].frame / hacks.fps;
                                 stream << " -i " << '"' << path << '"';
                             }
 
@@ -181,12 +182,13 @@ void Recorder::start()
                                 if (actionTracker + i >= ReplayPlayer::getInstance().GetActionsSize())
                                     break;
                                 
-                                float volume = ((actions[actionTracker + i].frame / hacks.fps) - prevClick) * 15.0f;
+                                float volume = ((actions[actionTracker + i].frame / hacks.fps) - (actions[actionTracker + i].player2 ? prevClickP2 : prevClick)) * 15.0f;
                                 if(volume > 1 || volume < 0) volume = 1;
                                 if(!actions[actionTracker + i].press) volume *= 2;
                                 //if(actions[actionTracker + i].press == oldClick) volume = 0;
                                 stream << '[' << i << ":a]atrim=start=0ms:end=1000ms,adelay=" << (actions[actionTracker + i].frame / hacks.fps) * 1000 << "ms:all=1,volume=" << volume << "[a" << i << "];";
-                                prevClick = actions[actionTracker + i].frame / hacks.fps;
+                                if(actions[actionTracker + i].player2) prevClickP2 = actions[actionTracker + i].frame / hacks.fps;
+                                else prevClick = actions[actionTracker + i].frame / hacks.fps;
                                 oldClick = actions[actionTracker + i].press;
                             }
 

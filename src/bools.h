@@ -75,6 +75,7 @@ struct HacksStr
     float hitboxSolids, hitboxSpecial;
     bool twoPlayerOneKey;
     float pastel;
+    bool holdAdvance;
 };
 
 enum position {TR, TL, BR, BL};
