@@ -75,23 +75,25 @@ struct HacksStr
     float hitboxSolids, hitboxSpecial;
     bool twoPlayerOneKey;
     float pastel;
-    bool holdAdvance;
+    bool holdAdvance, trajectory = false;
+    float musicSpeed = 1;
+
+    bool tpsBypassBool = false, drawDivideBool = false, lockCursor = false;
 };
 
 enum position {TR, TL, BR, BL};
 
 struct Labels
 {
-    bool statuses[13];
-    float scale[13];
-    float opacity[13];
-    int fonts[13];
-    int styles[2];
-    position positions[13];
+    bool statuses[14];
+    float scale[14];
+    float opacity[14];
+    int fonts[14];
+    char styles[4][20] = {"%.0f/%.0f", "%i/%i", "Accuracy: %.2f%%", "Deaths: %i"};
+    position positions[14] = {TR,TR,TR,TR,TR,TR,TR,TR,TR,TR,TR,TR,TR,TR};
     float labelSpacing = 20.0f;
     bool hideLabels, rainbowLabels = false;
     float rainbowSpeed = 1.0f;
-    bool showReal = false;
     float fpsUpdate = 0.5f;
 };
 

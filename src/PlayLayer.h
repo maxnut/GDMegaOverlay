@@ -79,6 +79,16 @@ namespace PlayLayer
 	inline void(__thiscall* bump)(gd::GJBaseGameLayer* self, gd::PlayerObject* player, gd::GameObject* object);
 	void __fastcall bumpHook(gd::GJBaseGameLayer* self, void*, gd::PlayerObject* player, gd::GameObject* object);
 
+	inline void(__thiscall* checkCollisions)(gd::PlayLayer *self, gd::PlayerObject* player);
+	void __fastcall checkCollisionsHook(gd::PlayLayer *self, void*, gd::PlayerObject* player);
+
+	inline gd::GameObject*(__thiscall* hasBeenActivatedByPlayer)(gd::GameObject *self, gd::GameObject *other);
+	gd::GameObject* __fastcall hasBeenActivatedByPlayerHook(gd::GameObject *self, void*, gd::GameObject *other);
+
+	inline void(__thiscall* addPoint)(gd::HardStreak *self, CCPoint point);
+	void __fastcall addPointHook(gd::HardStreak *self, void*, CCPoint point);
+
+
 	void SetHitboxSize(float size);
 
 	void UpdatePositions(int index);

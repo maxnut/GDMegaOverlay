@@ -21,7 +21,8 @@
 
 using json = nlohmann::json;
 
-bool show = false, loaded = false;
+extern bool Hacks::show = false;
+bool loaded = false;
 bool isDecember = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
@@ -424,16 +425,16 @@ int roundInt(int n)
 void TextSettings(int index, bool font)
 {
     if (ImCombo(("Position##" + std::to_string(index)).c_str(), (int *)&labels.positions[index], positions, IM_ARRAYSIZE(positions)))
-        for (size_t i = 0; i < 13; i++)
+        for (size_t i = 0; i < STATUSSIZE; i++)
             PlayLayer::UpdatePositions(i);
     if (ImInputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
-        for (size_t i = 0; i < 13; i++)
+        for (size_t i = 0; i < STATUSSIZE; i++)
             PlayLayer::UpdatePositions(i);
     if (ImInputFloat(("Opacity##" + std::to_string(index)).c_str(), &labels.opacity[index]))
-        for (size_t i = 0; i < 13; i++)
+        for (size_t i = 0; i < STATUSSIZE; i++)
             PlayLayer::UpdatePositions(i);
     if (font && ImCombo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
-        for (size_t i = 0; i < 13; i++)
+        for (size_t i = 0; i < STATUSSIZE; i++)
             PlayLayer::UpdatePositions(i);
 }
 
@@ -708,6 +709,15 @@ void Init()
 
     f.close();
 
+    f.open("GDMenu/windows.bin", std::fstream::binary);
+    if (f)
+    {
+        f.read((char *)&windowPositions, sizeof(windowPositions));
+    }
+
+    f.close();
+
+
     f.open("GDMenu/labels.bin", std::fstream::binary);
     if (f)
     {
@@ -753,7 +763,7 @@ void RenderMain()
             ReplayPlayer::getInstance().recorder.stop();
     }
 
-    if (show || debug.enabled)
+    if (Hacks::show || debug.enabled)
         SetStyle();
 
     if (debug.enabled)
@@ -771,6 +781,7 @@ void RenderMain()
 
         ImInputFloat("N", &debug.debugNumber);
         ImGui::Text(debug.debugString.c_str());
+        ImCheckbox("Show Trajectory", &hacks.trajectory);
 
         ImGui::End();
 
@@ -789,7 +800,7 @@ void RenderMain()
         ImGui::PopStyleColor();
     }
 
-    if (show)
+    if (Hacks::show)
     {
 
         oldScreenSize = screenSize;
@@ -906,7 +917,7 @@ void RenderMain()
             windowPositions.positions[1] = {(int)pos.x, (int)pos.y};
         }
 
-        ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
+        ImGui::PushItemWidth(70 * screenSize * hacks.menuSize);
         ImInputFloat("FPS Bypass", &hacks.fps);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
@@ -914,11 +925,16 @@ void RenderMain()
         ImInputFloat("TPS Bypass", &hacks.tpsBypass);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        ImCheckbox("##tpsbypasscheck", &hacks.tpsBypassBool);
         ImInputFloat("Draw Divide", &hacks.screenFPS);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        ImCheckbox("##ddcheck", &hacks.drawDivideBool);
 
         ImInputFloat("Speedhack", &hacks.speed);
+        ImInputFloat("Music Speed", &hacks.musicSpeed);
 
         ImCombo("Thread Priority", &hacks.priority, priorities, 5);
         ImGui::PopItemWidth();
@@ -930,6 +946,7 @@ void RenderMain()
             if (hacks.speed <= 0)
                 hacks.speed = 1;
             Hacks::Speedhack(hacks.speed);
+            SpeedhackAudio::set(hacks.musicSpeed);
             Hacks::Priority(hacks.priority);
             Hacks::tps = hacks.tpsBypass;
             Hacks::screenFps = hacks.screenFPS;
@@ -1132,7 +1149,7 @@ void RenderMain()
         {
             ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
             ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
-            ImCheckbox("Cheat Indicator", &hacks.cheatIndicatorEndscreen);
+            ImCheckbox("Cheat Indicator##chea", &hacks.cheatIndicatorEndscreen);
             if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -1213,7 +1230,7 @@ void RenderMain()
         DrawFromJSON(Hacks::player);
 
         ImCheckbox("Void Click Fix", &hacks.voidClick);
-
+        ImCheckbox("Lock Cursor", &hacks.lockCursor);
         ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
         ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
@@ -1312,7 +1329,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Cheat Indicator", &labels.statuses[0]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("ci", 1))
@@ -1328,7 +1345,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("FPS Counter", &labels.statuses[1]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("fps", 1))
@@ -1336,9 +1353,8 @@ void RenderMain()
         if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(1, true);
-            ImCombo("Style##fpsc", &labels.styles[0], style, IM_ARRAYSIZE(style));
+            ImInputText("Style##fpsc", labels.styles[0], 15);
             ImInputFloat("Update Interval", &labels.fpsUpdate);
-            ImCheckbox("Show TPS", &labels.showReal);
             if (ImButton("Close"))
             {
                 ImGui::CloseCurrentPopup();
@@ -1347,7 +1363,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("CPS Counter", &labels.statuses[2]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("cps", 1))
@@ -1355,7 +1371,7 @@ void RenderMain()
         if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(2, true);
-            ImCombo("Style##cpsc", &labels.styles[1], style, IM_ARRAYSIZE(style));
+            ImInputText("Style##fpsc", labels.styles[1], 15);
             ImColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
             if (ImButton("Close"))
             {
@@ -1365,7 +1381,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Noclip accuracy", &labels.statuses[3]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("nca", 1))
@@ -1374,6 +1390,7 @@ void RenderMain()
         if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             TextSettings(3, true);
+            ImInputText("Style##noclipacc", labels.styles[2], 15);
             ImInputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
             ImCheckbox("Enable Screen Effect", &hacks.noclipRed);
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
@@ -1389,7 +1406,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Noclip deaths", &labels.statuses[4]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("ncd", 1))
@@ -1397,6 +1414,7 @@ void RenderMain()
 
         if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
+            ImInputText("Style##noclipdeaths", labels.styles[3], 15);
             TextSettings(4, true);
             if (ImButton("Close"))
             {
@@ -1406,7 +1424,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Clock", &labels.statuses[5]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("clock", 1))
@@ -1422,7 +1440,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Best Run", &labels.statuses[6]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("best run", 1))
@@ -1439,7 +1457,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Attempts", &labels.statuses[7]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("attempts", 1))
@@ -1455,7 +1473,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("From %", &labels.statuses[8]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("from", 1))
@@ -1472,7 +1490,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Message Status", &labels.statuses[9]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("stat", 1))
@@ -1489,7 +1507,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Current Attempt", &labels.statuses[10]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("curr", 1))
@@ -1505,7 +1523,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Level ID", &labels.statuses[11]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("levelid", 1))
@@ -1521,7 +1539,7 @@ void RenderMain()
         }
 
         if (ImCheckbox("Jumps", &labels.statuses[12]))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("jumps", 1))
@@ -1536,9 +1554,25 @@ void RenderMain()
             ImGui::EndPopup();
         }
 
+        if (ImCheckbox("Frame", &labels.statuses[13]))
+            for (size_t i = 0; i < STATUSSIZE; i++)
+                PlayLayer::UpdatePositions(i);
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        if (ImGui::ArrowButton("frame", 1))
+            ImGui::OpenPopup("Frame Settings");
+        if (ImGui::BeginPopupModal("Frame Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            TextSettings(13, true);
+            if (ImButton("Close"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
+
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
         if (ImInputFloat("Label Spacing", &labels.labelSpacing))
-            for (size_t i = 0; i < 13; i++)
+            for (size_t i = 0; i < STATUSSIZE; i++)
                 PlayLayer::UpdatePositions(i);
         ImGui::PopItemWidth();
 
@@ -1906,6 +1940,7 @@ void RenderMain()
         auto p = playLayer;
         if (p && !p->m_bIsPaused && !p->m_hasCompletedLevel)
             cocos2d::CCEGLView::sharedOpenGLView()->showCursor(false);
+
         Hacks::SaveSettings();
     }
 }
@@ -1915,7 +1950,7 @@ DWORD WINAPI my_thread(void *hModule)
     ImGuiHook::setRenderFunction(RenderMain);
     ImGuiHook::setInitFunction(Init);
     ImGuiHook::setToggleCallback([]()
-                                 { show = !show; });
+                                 { Hacks::show = !Hacks::show; });
     if (MH_Initialize() == MH_OK)
     {
         ImGuiHook::setupHooks([](void *target, void *hook, void **trampoline)
@@ -1946,6 +1981,9 @@ DWORD WINAPI my_thread(void *hModule)
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x1FE3A0), PlayLayer::newBestHook, reinterpret_cast<void **>(&PlayLayer::newBest));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xE4A70), PlayLayer::getObjectRectHook, reinterpret_cast<void **>(&PlayLayer::getObjectRect));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xE4B90), PlayLayer::getObjectRectHook2, reinterpret_cast<void **>(&PlayLayer::getObjectRect2));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x203CD0), PlayLayer::checkCollisionsHook, reinterpret_cast<void **>(&PlayLayer::checkCollisions));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0xEF110), PlayLayer::hasBeenActivatedByPlayerHook, reinterpret_cast<void **>(&PlayLayer::hasBeenActivatedByPlayer));
+        MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x14ebc0), PlayLayer::addPointHook, reinterpret_cast<void **>(&PlayLayer::addPoint));
 
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook, reinterpret_cast<void **>(&LevelEditorLayer::draw));
         MH_CreateHook(reinterpret_cast<void *>(gd::base + 0x75660), LevelEditorLayer::exitHook, reinterpret_cast<void **>(&LevelEditorLayer::exit));

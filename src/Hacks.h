@@ -14,7 +14,7 @@
 #include "json.hpp"
 #include "DiscordManager.h"
 
-#define STATUSSIZE 13
+#define STATUSSIZE 14
 
 static DWORD libcocosbase = (DWORD)GetModuleHandleA("libcocos2d.dll");
 extern struct HacksStr hacks;
@@ -39,6 +39,8 @@ namespace Hacks
     extern int amountOfClicks, amountOfReleases, amountOfMediumClicks;
 
     extern float tps, screenFps;
+
+    extern bool show;
 
     static std::string utf16ToUTF8(const std::wstring &s)
     {
@@ -219,8 +221,6 @@ namespace Hacks
         if (value <= 0)
             value = 1;
         CCDirector::sharedDirector()->getScheduler()->setTimeScale(value);
-        // Speedhack::SetSpeed(value);
-        SpeedhackAudio::set(value);
     }
 
     static std::vector<uint8_t> HexToBytes(const std::string &hex)

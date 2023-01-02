@@ -24,7 +24,7 @@ void __fastcall CCScheduler_update_H(CCScheduler *self, int, float dt)
             pauseLayer->setVisible(!hacks.hidePause);
     }
 
-    if (play_layer && (rs.IsRecording() || rs.IsPlaying() || Hacks::tps != hacks.fps) && !play_layer->m_bIsPaused)
+    if (play_layer && (rs.IsRecording() || rs.IsPlaying() || hacks.tpsBypassBool) && !play_layer->m_bIsPaused)
     {
         const auto fps = Hacks::tps;
         auto speedhack = CCDirector::sharedDirector()->getScheduler()->getTimeScale();
@@ -99,7 +99,7 @@ void(__thiscall *CCDirector_drawScene)(CCDirector *);
 void __fastcall CCDirector_drawSceneHook(CCDirector *self, void *)
 {
     // disable for first 300 frames of game being open
-    if (Hacks::screenFps == hacks.fps || self->getTotalFrames() < 300)
+    if (!hacks.drawDivideBool || self->getTotalFrames() < 300)
     {
         return CCDirector_drawScene(self);
     }

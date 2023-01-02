@@ -58,6 +58,7 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     p->setRotationY(rotationY);
     p->m_playerSpeed = playerSpeed;
     p->m_vehicleSize = vehichleSize;
+    p->m_decelerationRate = decelerationRate;
     p->m_hasJustHeld = hasJustHeld;
     p->m_hasJustHeld2 = hasJustHeld2;
     p->m_isHolding = isHolding;
