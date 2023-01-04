@@ -1103,6 +1103,7 @@ void RenderMain()
         {
             ImCheckbox("Only on Death", &hacks.onlyOnDeath);
             ImCheckbox("Show Decorations", &hacks.showDecorations);
+            ImCheckbox("Coin Tracker", &hacks.coinTracker);
             ImCheckbox("Hitboxes only", &hacks.hitboxOnly);
             ImCheckbox("Hitbox trail", &hacks.hitboxTrail);
             ImInputFloat("Trail Length", &hacks.hitboxTrailLength);

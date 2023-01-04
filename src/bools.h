@@ -78,7 +78,7 @@ struct HacksStr
     bool holdAdvance, trajectory = false;
     float musicSpeed = 1;
 
-    bool tpsBypassBool = false, drawDivideBool = false, lockCursor = false;
+    bool tpsBypassBool = false, drawDivideBool = false, lockCursor = false, coinTracker = false;
 };
 
 enum position {TR, TL, BR, BL};

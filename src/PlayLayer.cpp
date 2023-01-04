@@ -47,6 +47,8 @@ CCScheduler *scheduler;
 CCSize size, pixelSize;
 CCSprite *noclipRed;
 
+std::vector<gd::GameObject *> coinPos;
+
 ReplayPlayer *replayPlayer;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> previous_frame, last_update;
@@ -222,6 +224,11 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 		if (g->m_nObjectID == 31)
 			sp.push_back(reinterpret_cast<gd::StartPosObject *>(obje));
+
+		if (g->m_nObjectID == 1329 || g->m_nObjectID == 142)
+		{
+			coinPos.push_back(g);
+		}
 
 		if (hacks.smartStartPos)
 		{
@@ -429,7 +436,8 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 			bestRunRepeat++;
 			if (bestRunRepeat > 1)
 			{
-				for(size_t i = 0; i < 1 + bestRunRepeat / 10; i++) bestRun.pop_back();
+				for (size_t i = 0; i < 1 + bestRunRepeat / 10; i++)
+					bestRun.pop_back();
 				bestRun.pop_back();
 			}
 			bestRun += "x" + std::to_string(bestRunRepeat + 1);
@@ -891,7 +899,7 @@ void PlayLayer::UpdatePositions(int index)
 		labels.scale[index] = 1.0f;
 
 	float sc = labels.scale[index] * 0.45f;
-	if(index == 0) 
+	if (index == 0)
 	{
 		sc *= 1.8f;
 		statuses[index]->setPosition(x, height + 10);
@@ -917,13 +925,6 @@ void PlayLayer::UpdatePositions(int index)
 }
 
 bool lastFrameDead = false;
-
-struct hitboxInfo
-{
-	gd::GameObject *obj;
-	CCRect rect;
-	float rad;
-};
 
 void Update(gd::PlayLayer *self, float dt)
 {
@@ -1089,7 +1090,8 @@ void Update(gd::PlayLayer *self, float dt)
 
 	UpdateLabels(self);
 
-	if(hacks.lockCursor && !Hacks::show) SetCursorPos(pixelSize.width, pixelSize.height);
+	if (hacks.lockCursor && !Hacks::show && !self->m_hasCompletedLevel && !self->m_isDead)
+		SetCursorPos(pixelSize.width, pixelSize.height);
 
 	dead = false;
 
@@ -1137,6 +1139,16 @@ void Update(gd::PlayLayer *self, float dt)
 	if (drawer && hacks.showHitboxes && !hacks.onlyOnDeath || drawer && hacks.showHitboxes && hacks.onlyOnDeath && hitboxDead && playlayer->m_isDead)
 	{
 		drawer->setVisible(true);
+
+		if (hacks.coinTracker)
+		{
+			for (size_t i = 0; i < coinPos.size(); i++)
+			{
+				if (coinPos[i] && self->m_pPlayer1->getPositionX() <= coinPos[i]->getPositionX())
+					drawer->drawSegment(self->m_pPlayer1->getPosition(), coinPos[i]->getPosition(), 0.5f, ccc4f(0, 1, 0, 1));
+			}
+		}
+
 		if (self->m_pPlayer1)
 		{
 			if (hacks.hitboxTrail)
@@ -1239,7 +1251,6 @@ void ProcessUpdate(gd::PlayLayer *self, float dt)
 		{
 			PlayLayer::checkCollisionsHook(self, 0, self->m_pPlayer1);
 			auto prevPos = self->m_pPlayer1->getPosition();
-			self->m_pPlayer1->updateRotation(0.25f);
 			self->m_pPlayer1->update(0.25f);
 			if (i == 239 || diedWhileSimulating)
 				drawer->drawForPlayer1(self->m_pPlayer1);
@@ -1259,7 +1270,6 @@ void ProcessUpdate(gd::PlayLayer *self, float dt)
 		{
 			PlayLayer::checkCollisionsHook(self, 0, self->m_pPlayer1);
 			auto prevPos = self->m_pPlayer1->getPosition();
-			self->m_pPlayer1->updateRotation(0.25f);
 			self->m_pPlayer1->update(0.25f);
 			if (i == 239 || diedWhileSimulating)
 				drawer->drawForPlayer1(self->m_pPlayer1);
@@ -1289,7 +1299,8 @@ void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
 			steps--;
 		}
 	}
-	else ProcessUpdate(self, dt);
+	else
+		ProcessUpdate(self, dt);
 
 	return;
 }
