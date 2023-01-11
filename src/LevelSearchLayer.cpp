@@ -71,21 +71,17 @@ bool __fastcall LevelSearchLayer::hook(gd::LevelSearchLayer *self)
 
 void __fastcall LevelSearchLayer::httpHook(gd::GameLevelManager *self, void*, std::string gdurl, std::string gdquery, std::string idk, int type)
 {
-	std::string url(gdurl);
-	std::string query(gdquery);
-
-	if (url == "http://www.boomlings.com/database/getGJLevels21.php")
+	if (gdurl == "http://www.boomlings.com/database/getGJLevels21.php")
 	{
-		auto thing = atoi(query.substr(query.find("page=") + 5).c_str());
-		if (query.find("type=3141") != std::string::npos)
+		auto thing = atoi(gdquery.substr(gdquery.find("page=") + 5).c_str());
+		if (gdquery.find("type=3141") != std::string::npos)
 		{
-			url = std::string("http://absolllute.com/api/mega_hack/demonlist/page") + std::to_string(thing) + ".txt";
+			gdurl = std::string("http://absolllute.com/api/mega_hack/demonlist/page") + std::to_string(thing) + ".txt";
 		}
-		else if (query.find("type=3142") != std::string::npos)
+		else if (gdquery.find("type=3142") != std::string::npos)
 		{
-			url = std::string("http://absolllute.com/api/mega_hack/challengelist/page") + std::to_string(thing) + ".txt";
+			gdurl = std::string("http://absolllute.com/api/mega_hack/challengelist/page") + std::to_string(thing) + ".txt";
 		}
 	}
-
-	LevelSearchLayer::http(self, url, query, idk, type);
+	LevelSearchLayer::http(self, gdurl, gdquery, idk, type);
 }

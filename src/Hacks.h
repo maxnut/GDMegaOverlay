@@ -40,7 +40,11 @@ namespace Hacks
 
     extern float tps, screenFps;
 
-    extern bool show;
+    extern bool show, fake;
+
+    extern std::string hackName;
+
+    void RenderMain();
 
     static std::string utf16ToUTF8(const std::wstring &s)
     {

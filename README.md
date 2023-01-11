@@ -68,3 +68,17 @@ After extensions installation, you need to configure the project:
 ![alt text](/docs/img/vscode_config.png)
 
 You should find the result in build/Release
+
+## Credits
+
+https://github.com/altalk23/HitboxVisualizer for the hitbox code (i converted it from geode to gd.h, corrected a bug and implemented them in the editor)
+
+https://github.com/matcool/ReplayBot internal recorder, i integrated my clickbot into it
+
+https://github.com/Very-Tall-Midget/OmegaBot2 practice fixes
+
+https://github.com/adafcaefc/ProxyDllLoader/ for the mod loader
+
+https://discord.gg/AXhTdHUd2R for the json files and the endscreen code
+
+

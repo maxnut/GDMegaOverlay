@@ -195,6 +195,7 @@ void render_node_properties(CCNode *node)
 			if (frame->getTexture() == texture && frame->getRect() == rect)
 			{
 				ImGui::Text("Frame name: %s", el->getStrKey());
+				ImGui::SetClipboardText(el->getStrKey());
 				break;
 			}
 		}

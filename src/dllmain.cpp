@@ -21,12 +21,14 @@
 
 using json = nlohmann::json;
 
-extern bool Hacks::show = false;
+extern bool Hacks::show = false, Hacks::fake = false;
 bool loaded = false;
 bool isDecember = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
+
+std::string Hacks::hackName;
 Windows windowPositions;
 
 DiscordManager Hacks::ds;
@@ -42,6 +44,8 @@ char fileName[30], searchbar[30];
 std::vector<std::string> Hacks::musicPaths;
 std::filesystem::path Hacks::path;
 std::vector<const char *> musicPathsVet;
+
+std::string hoveredHack = "";
 
 const char *const priorities[] = {"Low", "Below Normal", "Normal", "Above Normal", "High"};
 const char *const style[] = {"Number and text", "Number Only"};
@@ -167,14 +171,14 @@ void Marker(const char *marker, const char *desc)
     }
 }
 
-bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
+bool findStringIC(const std::string &strHaystack, const std::string &strNeedle)
 {
-  auto it = std::search(
-    strHaystack.begin(), strHaystack.end(),
-    strNeedle.begin(),   strNeedle.end(),
-    [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
-  );
-  return (it != strHaystack.end() );
+    auto it = std::search(
+        strHaystack.begin(), strHaystack.end(),
+        strNeedle.begin(), strNeedle.end(),
+        [](char ch1, char ch2)
+        { return std::toupper(ch1) == std::toupper(ch2); });
+    return (it != strHaystack.end());
 }
 
 bool ImHotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
@@ -189,18 +193,19 @@ bool ImHotkey(const char *label, int *k, const ImVec2 &size_arg = ImVec2(0, 0))
             res = Hotkey(label, k, size_arg);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = Hotkey(label, k, size_arg);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = Hotkey(label, k, size_arg);
+    else
+        res = Hotkey(label, k, size_arg);
     return res;
 }
 
-bool ImCheckbox(const char *label, bool *v)
+bool ImCheckbox(const char *label, bool *v, bool canMakeShortcut = true)
 {
     bool res = false;
     if (strlen(searchbar) > 0)
@@ -212,18 +217,73 @@ bool ImCheckbox(const char *label, bool *v)
             res = ImGui::Checkbox(label, v);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::Checkbox(label, v);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::Checkbox(label, v);
+    else
+        res = ImGui::Checkbox(label, v);
+
+    if (canMakeShortcut)
+    {
+        std::string labelString = label;
+
+        bool openpopuptemp = false;
+
+        if (ImGui::BeginPopupContextItem(label, ImGuiPopupFlags_MouseButtonRight))
+        {
+            if (ImGui::MenuItem(("Add shortcut##" + labelString).c_str()))
+            {
+                openpopuptemp = true;
+            }
+            if (!Hacks::fake)
+                ImGui::EndPopup();
+        }
+
+        if (openpopuptemp == true)
+        {
+            ImGui::OpenPopup(("Create shortcut for " + labelString).c_str());
+            openpopuptemp = false;
+        }
+
+        if (ImGui::BeginPopupModal(("Create shortcut for " + labelString).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            Hotkey("Shortcut Key", &shortcutIndexKey);
+
+            if (ImGui::Button("Add"))
+            {
+                Shortcuts::Shortcut s;
+                s.key = shortcutIndexKey;
+                strcpy(s.name, labelString.c_str());
+                Shortcuts::shortcuts.push_back(s);
+                Shortcuts::Save();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            if (!Hacks::fake)
+                ImGui::EndPopup();
+        }
+
+        if (labelString == Hacks::hackName)
+        {
+            Hacks::hackName = "";
+            *v = !*v;
+            res = true;
+            Hacks::SaveSettings();
+        }
+    }
+
     return res;
 }
 
-bool ImButton(const char *label)
+bool ImButton(const char *label, bool canMakeShortcut = true)
 {
     bool res = false;
     if (strlen(searchbar) > 0)
@@ -235,14 +295,67 @@ bool ImButton(const char *label)
             res = ImGui::Button(label);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::Button(label);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::Button(label);
+    else
+        res = ImGui::Button(label);
+
+    if (canMakeShortcut)
+    {
+        std::string labelString = label;
+
+        bool openpopuptemp = false;
+
+        if (ImGui::BeginPopupContextItem(label, ImGuiPopupFlags_MouseButtonRight))
+        {
+            if (ImGui::MenuItem(("Add shortcut##" + labelString).c_str()))
+            {
+                openpopuptemp = true;
+            }
+            if (!Hacks::fake)
+                ImGui::EndPopup();
+        }
+
+        if (openpopuptemp == true)
+        {
+            ImGui::OpenPopup(("Create shortcut for " + labelString).c_str());
+            openpopuptemp = false;
+        }
+
+        if (ImGui::BeginPopupModal(("Create shortcut for " + labelString).c_str(), NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            Hotkey("Shortcut Key", &shortcutIndexKey);
+
+            if (ImGui::Button("Add"))
+            {
+                Shortcuts::Shortcut s;
+                s.key = shortcutIndexKey;
+                strcpy(s.name, labelString.c_str());
+                Shortcuts::shortcuts.push_back(s);
+                Shortcuts::Save();
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            if (!Hacks::fake)
+                ImGui::EndPopup();
+        }
+
+        if (labelString == Hacks::hackName)
+        {
+            Hacks::hackName = "";
+            res = true;
+        }
+    }
+
     return res;
 }
 
@@ -258,14 +371,15 @@ bool ImInputFloat(const char *label, float *v)
             res = ImGui::InputFloat(label, v);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::InputFloat(label, v);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::InputFloat(label, v);
+    else
+        res = ImGui::InputFloat(label, v);
     return res;
 }
 
@@ -281,14 +395,15 @@ bool ImInputInt(const char *label, int *v, int step = 1)
             res = ImGui::InputInt(label, v, step);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::InputInt(label, v, step);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::InputInt(label, v, step);
+    else
+        res = ImGui::InputInt(label, v, step);
     return res;
 }
 
@@ -304,14 +419,15 @@ bool ImInputInt2(const char *label, int *v)
             res = ImGui::InputInt2(label, v);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::InputInt2(label, v);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::InputInt2(label, v);
+    else
+        res = ImGui::InputInt2(label, v);
     return res;
 }
 
@@ -327,18 +443,19 @@ bool ImInputText(const char *label, char *buf, size_t buf_size)
             res = ImGui::InputText(label, buf, buf_size);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::InputText(label, buf, buf_size);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::InputText(label, buf, buf_size);
+    else
+        res = ImGui::InputText(label, buf, buf_size);
     return res;
 }
 
-bool ImCombo(const char *label, int *current_item, const char* const *items, int items_count)
+bool ImCombo(const char *label, int *current_item, const char *const *items, int items_count)
 {
     bool res = false;
     if (strlen(searchbar) > 0)
@@ -350,14 +467,15 @@ bool ImCombo(const char *label, int *current_item, const char* const *items, int
             res = ImGui::Combo(label, current_item, items, items_count);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::Combo(label, current_item, items, items_count);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::Combo(label, current_item, items, items_count);
+    else
+        res = ImGui::Combo(label, current_item, items, items_count);
     return res;
 }
 
@@ -373,24 +491,22 @@ bool ImColorEdit3(const char *label, float *col, ImGuiColorEditFlags flags = 0)
             res = ImGui::ColorEdit3(label, col, flags);
             ImGui::PopStyleColor();
         }
-        else 
+        else
         {
-            ImGui::BeginDisabled();
+            ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
             res = ImGui::ColorEdit3(label, col, flags);
-            ImGui::EndDisabled();
+            ImGui::PopStyleColor();
         }
     }
-    else res = ImGui::ColorEdit3(label, col, flags);
+    else
+        res = ImGui::ColorEdit3(label, col, flags);
     return res;
 }
-
-
 
 void InitJSONHacks(json &js)
 {
     for (size_t i = 0; i < js["mods"].size(); i++)
     {
-        hackNamesString.push_back(js["mods"][i]["name"].get<std::string>());
         Hacks::ToggleJSONHack(js, i, false);
     }
 }
@@ -470,29 +586,29 @@ void SetStyle()
 
     if (!hacks.rainbowMenu)
     {
-        style->Colors[ImGuiCol_Border] = ImVec4(hacks.borderColor[0], hacks.borderColor[1], hacks.borderColor[2], hacks.borderColor[3]);
-        style->Colors[ImGuiCol_TitleBg] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], hacks.titleColor[3]);
+        style->Colors[ImGuiCol_Border] = ImVec4(hacks.borderColor[0], hacks.borderColor[1], hacks.borderColor[2], 1);
+        style->Colors[ImGuiCol_TitleBg] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], 1);
+        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], 1);
+        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(hacks.titleColor[0], hacks.titleColor[1], hacks.titleColor[2], 1);
 
-        style->Colors[ImGuiCol_Tab] = ImVec4(hacks.titleColor[0] * 0.85f, hacks.titleColor[1] * 0.85f, hacks.titleColor[2] * 0.85f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabActive] = ImVec4(hacks.titleColor[0] * 0.85f, hacks.titleColor[1] * 0.85f, hacks.titleColor[2] * 0.85f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabHovered] = ImVec4(hacks.titleColor[0] * 0.70f, hacks.titleColor[1] * 0.70f, hacks.titleColor[2] * 0.70f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabUnfocused] = ImVec4(hacks.titleColor[0] * 0.60f, hacks.titleColor[1] * 0.60f, hacks.titleColor[2] * 0.60f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(hacks.titleColor[0] * 0.60f, hacks.titleColor[1] * 0.60f, hacks.titleColor[2] * 0.60f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_Tab] = ImVec4(hacks.titleColor[0] * 0.85f, hacks.titleColor[1] * 0.85f, hacks.titleColor[2] * 0.85f, 1);
+        style->Colors[ImGuiCol_TabActive] = ImVec4(hacks.titleColor[0] * 0.85f, hacks.titleColor[1] * 0.85f, hacks.titleColor[2] * 0.85f, 1);
+        style->Colors[ImGuiCol_TabHovered] = ImVec4(hacks.titleColor[0] * 0.70f, hacks.titleColor[1] * 0.70f, hacks.titleColor[2] * 0.70f, 1);
+        style->Colors[ImGuiCol_TabUnfocused] = ImVec4(hacks.titleColor[0] * 0.60f, hacks.titleColor[1] * 0.60f, hacks.titleColor[2] * 0.60f, 1);
+        style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(hacks.titleColor[0] * 0.60f, hacks.titleColor[1] * 0.60f, hacks.titleColor[2] * 0.60f, 1);
     }
     else
     {
-        style->Colors[ImGuiCol_Border] = ImVec4(r, g, b, hacks.borderColor[3]);
-        style->Colors[ImGuiCol_TitleBg] = ImVec4(r, g, b, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(r, g, b, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(r, g, b, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_Border] = ImVec4(r, g, b, 1);
+        style->Colors[ImGuiCol_TitleBg] = ImVec4(r, g, b, 1);
+        style->Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(r, g, b, 1);
+        style->Colors[ImGuiCol_TitleBgActive] = ImVec4(r, g, b, 1);
 
-        style->Colors[ImGuiCol_Tab] = ImVec4(r * 0.85f, g * 0.85f, b * 0.85f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabActive] = ImVec4(r * 0.85f, g * 0.85f, b * 0.85f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabHovered] = ImVec4(r * 0.70f, g * 0.70f, b * 0.70f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabUnfocused] = ImVec4(r * 0.60f, g * 0.60f, b * 0.60f, hacks.titleColor[3]);
-        style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(r * 0.60f, g * 0.60f, b * 0.60f, hacks.titleColor[3]);
+        style->Colors[ImGuiCol_Tab] = ImVec4(r * 0.85f, g * 0.85f, b * 0.85f, 1);
+        style->Colors[ImGuiCol_TabActive] = ImVec4(r * 0.85f, g * 0.85f, b * 0.85f, 1);
+        style->Colors[ImGuiCol_TabHovered] = ImVec4(r * 0.70f, g * 0.70f, b * 0.70f, 1);
+        style->Colors[ImGuiCol_TabUnfocused] = ImVec4(r * 0.60f, g * 0.60f, b * 0.60f, 1);
+        style->Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(r * 0.60f, g * 0.60f, b * 0.60f, 1);
     }
 
     style->Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
@@ -648,16 +764,6 @@ void Init()
     buffer.clear();
     InitJSONHacks(Hacks::player);
 
-    for (size_t i = 0; i < hackNamesString.size(); i++)
-    {
-        hackNames.push_back(hackNamesString[i].c_str());
-    }
-
-    for (size_t i = 0; i < sizeof(manualHackNames) / sizeof(const char *); i++)
-    {
-        hackNames.push_back(manualHackNames[i]);
-    }
-
     std::ofstream w;
     if (!std::filesystem::exists("imgui.ini") || !std::filesystem::exists("GDmenu/windows.bin"))
     {
@@ -717,7 +823,6 @@ void Init()
 
     f.close();
 
-
     f.open("GDMenu/labels.bin", std::fstream::binary);
     if (f)
     {
@@ -740,7 +845,7 @@ void Init()
     loaded = true;
 }
 
-void RenderMain()
+void Hacks::RenderMain()
 {
     if (Hacks::ds.core)
         Hacks::ds.core->RunCallbacks();
@@ -782,6 +887,8 @@ void RenderMain()
         ImInputFloat("N", &debug.debugNumber);
         ImGui::Text(debug.debugString.c_str());
         ImCheckbox("Show Trajectory", &hacks.trajectory);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
 
         ImGui::End();
 
@@ -814,7 +921,8 @@ void RenderMain()
             oldScreenSize = screenSize;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
-        cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
+        if (!Hacks::fake)
+            cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
         closed = false;
 
         ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
@@ -926,14 +1034,17 @@ void RenderMain()
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-        ImCheckbox("##tpsbypasscheck", &hacks.tpsBypassBool);
+        ImCheckbox("TPSBypass", &hacks.tpsBypassBool);
         ImInputFloat("Draw Divide", &hacks.screenFPS);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-        ImCheckbox("##ddcheck", &hacks.drawDivideBool);
+        ImCheckbox("DrawDivide", &hacks.drawDivideBool);
 
         ImInputFloat("Speedhack", &hacks.speed);
+        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+        if (ImCheckbox("Speed Hack", &hacks.speedhackBool))
+            Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
         ImInputFloat("Music Speed", &hacks.musicSpeed);
 
         ImCombo("Thread Priority", &hacks.priority, priorities, 5);
@@ -981,7 +1092,7 @@ void RenderMain()
         if (ImGui::ArrowButton("autod", 1))
             ImGui::OpenPopup("Auto Deafen Settings");
 
-        if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
             ImInputFloat("Auto Deafen %", &hacks.percentage);
@@ -993,11 +1104,12 @@ void RenderMain()
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Set a key combination in discord with leftalt + the key you set here");
             ImGui::PopItemWidth();
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Discord RPC", &hacks.discordRPC))
@@ -1016,7 +1128,7 @@ void RenderMain()
         if (ImGui::ArrowButton("custmm", 1))
             ImGui::OpenPopup("Custom Menu Music Settings");
 
-        if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
             if (ImButton("Select Song"))
@@ -1043,11 +1155,12 @@ void RenderMain()
                 ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
             else
                 ImGui::Text(("Playing: " + diobono).c_str());
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         DrawFromJSON(Hacks::global);
@@ -1082,16 +1195,17 @@ void RenderMain()
         if (ImGui::ArrowButton("smar", 1))
             ImGui::OpenPopup("Smart StartPos Settings");
 
-        if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Enable auto detection of gravity, might not work since it does not account for blue pads or orbs");
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImCheckbox("Show Hitboxes", &hacks.showHitboxes);
@@ -1099,7 +1213,7 @@ void RenderMain()
         if (ImGui::ArrowButton("hit", 1))
             ImGui::OpenPopup("Hitbox Settings");
 
-        if (ImGui::BeginPopupModal("Hitbox Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Hitbox Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImCheckbox("Only on Death", &hacks.onlyOnDeath);
             ImCheckbox("Show Decorations", &hacks.showDecorations);
@@ -1110,11 +1224,12 @@ void RenderMain()
             ImInputInt("Hitbox Opacity", &hacks.borderOpacity, 0);
             ImInputInt("Fill Opacity", &hacks.hitboxOpacity, 0);
             ImInputFloat("Hitbox Thickness", &hacks.hitboxThickness);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
         ImCheckbox("Layout Mode", &hacks.layoutMode);
         ImCheckbox("Hide Attempts", &hacks.hideattempts);
@@ -1130,14 +1245,15 @@ void RenderMain()
         if (ImGui::ArrowButton("ausm", 1))
             ImGui::OpenPopup("Auto Sync Music Settings");
 
-        if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImInputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImCheckbox("Confirm Quit", &hacks.confirmQuit);
@@ -1151,11 +1267,12 @@ void RenderMain()
             ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
             ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
             ImCheckbox("Cheat Indicator##chea", &hacks.cheatIndicatorEndscreen);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
@@ -1171,11 +1288,12 @@ void RenderMain()
             ImInputFloat("Harards", &hacks.hitboxMultiplier);
             ImInputFloat("Solids", &hacks.hitboxSolids);
             ImInputFloat("Special", &hacks.hitboxSpecial);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImGui::End();
@@ -1238,7 +1356,7 @@ void RenderMain()
         if (ImGui::ArrowButton("rain", 1))
             ImGui::OpenPopup("Rainbow Icons Settings");
 
-        if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImCheckbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
             ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
@@ -1253,11 +1371,12 @@ void RenderMain()
                                                                                  : hacks.pastel;
             }
             ImGui::PopItemWidth();
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
@@ -1335,14 +1454,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("ci", 1))
             ImGui::OpenPopup("Cheat Indicator Settings");
-        if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(0, false);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("FPS Counter", &labels.statuses[1]))
@@ -1351,16 +1471,17 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("fps", 1))
             ImGui::OpenPopup("FPS Counter Settings");
-        if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(1, true);
             ImInputText("Style##fpsc", labels.styles[0], 15);
             ImInputFloat("Update Interval", &labels.fpsUpdate);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("CPS Counter", &labels.statuses[2]))
@@ -1369,16 +1490,17 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("cps", 1))
             ImGui::OpenPopup("CPS Counter Settings");
-        if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(2, true);
             ImInputText("Style##fpsc", labels.styles[1], 15);
             ImColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Noclip accuracy", &labels.statuses[3]))
@@ -1388,7 +1510,7 @@ void RenderMain()
         if (ImGui::ArrowButton("nca", 1))
             ImGui::OpenPopup("Noclip Accuracy Settings");
 
-        if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(3, true);
             ImInputText("Style##noclipacc", labels.styles[2], 15);
@@ -1399,11 +1521,12 @@ void RenderMain()
             ImInputFloat("Opacity Rate Up", &hacks.noclipRedRate);
             ImInputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
             ImColorEdit3("Overlay Color", hacks.noclipColor, ImGuiColorEditFlags_NoInputs);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Noclip deaths", &labels.statuses[4]))
@@ -1413,15 +1536,16 @@ void RenderMain()
         if (ImGui::ArrowButton("ncd", 1))
             ImGui::OpenPopup("Noclip Deaths Settings");
 
-        if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImInputText("Style##noclipdeaths", labels.styles[3], 15);
             TextSettings(4, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Clock", &labels.statuses[5]))
@@ -1430,14 +1554,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("clock", 1))
             ImGui::OpenPopup("Clock Settings");
-        if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(5, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Best Run", &labels.statuses[6]))
@@ -1446,15 +1571,16 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("best run", 1))
             ImGui::OpenPopup("Best Run Settings");
-        if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(6, true);
             ImCheckbox("Accumulate Runs", &hacks.accumulateRuns);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Attempts", &labels.statuses[7]))
@@ -1463,14 +1589,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("attempts", 1))
             ImGui::OpenPopup("Attempts Settings");
-        if (ImGui::BeginPopupModal("Attempts Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Attempts Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(7, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("From %", &labels.statuses[8]))
@@ -1479,15 +1606,16 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("from", 1))
             ImGui::OpenPopup("From % Settings");
-        if (ImGui::BeginPopupModal("From % Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("From % Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(8, true);
             ImCheckbox("Only in Runs", &hacks.onlyInRuns);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Message Status", &labels.statuses[9]))
@@ -1496,15 +1624,16 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("stat", 1))
             ImGui::OpenPopup("Message Status Settings");
-        if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(9, true);
             ImInputText("Message", hacks.message, 30);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Current Attempt", &labels.statuses[10]))
@@ -1513,14 +1642,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("curr", 1))
             ImGui::OpenPopup("Current Attempt Settings");
-        if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(10, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Level ID", &labels.statuses[11]))
@@ -1529,14 +1659,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("levelid", 1))
             ImGui::OpenPopup("Level ID Settings");
-        if (ImGui::BeginPopupModal("Level ID Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Level ID Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(11, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Jumps", &labels.statuses[12]))
@@ -1545,14 +1676,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("jumps", 1))
             ImGui::OpenPopup("Jumps Settings");
-        if (ImGui::BeginPopupModal("Jumps Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Jumps Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(12, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         if (ImCheckbox("Frame", &labels.statuses[13]))
@@ -1561,14 +1693,15 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("frame", 1))
             ImGui::OpenPopup("Frame Settings");
-        if (ImGui::BeginPopupModal("Frame Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Frame Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             TextSettings(13, true);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
@@ -1601,41 +1734,18 @@ void RenderMain()
             windowPositions.positions[8] = {(int)pos.x, (int)pos.y};
         }
 
-        ImGui::PushItemWidth(150 * screenSize * hacks.menuSize);
-        ImCombo("Hack", &shortcutIndex, hackNames.data(), hackNames.size());
-        ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-        ImHotkey("Shortcut Key", &shortcutIndexKey);
-        ImGui::PopItemWidth();
-
-        if (ImButton("Add"))
+        if (Shortcuts::shortcuts.size() == 0)
         {
-
-            bool addShortcut = true;
-
-            for (size_t i = 0; i < Shortcuts::shortcuts.size(); i++)
-            {
-                if (Shortcuts::shortcuts[i].key == shortcutIndexKey && Shortcuts::shortcuts[i].shortcutIndex == shortcutIndex)
-                    addShortcut = false;
-            }
-
-            if (addShortcut)
-            {
-                Shortcuts::Shortcut s;
-                s.key = shortcutIndexKey;
-                s.shortcutIndex = shortcutIndex;
-                Shortcuts::shortcuts.push_back(s);
-                Shortcuts::Save();
-            }
+            ImGui::Text("Right click an option\nto make a shortcut.");
+            ImGui::Spacing();
         }
-
-        ImGui::Separator();
 
         for (size_t i = 0; i < Shortcuts::shortcuts.size(); i++)
         {
             ImGui::AlignTextToFramePadding();
             ImGui::Text(KeyNames[Shortcuts::shortcuts[i].key]);
             ImGui::SameLine();
-            ImGui::Text(hackNames[Shortcuts::shortcuts[i].shortcutIndex]);
+            ImGui::Text(Shortcuts::shortcuts[i].name);
             ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
             if (ImButton(("x##" + std::to_string(i)).c_str()))
             {
@@ -1645,7 +1755,6 @@ void RenderMain()
 
             ImGui::Separator();
         }
-        ImGui::PopItemWidth();
 
         if (ImButton("Open GD Settings"))
             gd::OptionsLayer::addToCurrentScene(false);
@@ -1690,6 +1799,18 @@ void RenderMain()
                                  .result();
             for (auto const &filename : selection)
                 LoadLibrary(filename.c_str());
+        }
+
+        if (ImButton("Reset Level"))
+        {
+            if (playLayer)
+                PlayLayer::resetLevelHook(playLayer, 0);
+        }
+
+        if (ImButton("Toggle Practice Mode"))
+        {
+            if (playLayer)
+                PlayLayer::togglePracticeModeHook(playLayer, 0, !playLayer->m_isPracticeMode);
         }
 
         ImGui::End();
@@ -1842,7 +1963,7 @@ void RenderMain()
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("clicks", 1))
             ImGui::OpenPopup("Click sounds settings");
-        if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImInputFloat("Click volume", &hacks.baseVolume);
             ImInputFloat("Max pitch variation", &hacks.maxPitch);
@@ -1853,13 +1974,14 @@ void RenderMain()
             ImInputFloat("Minimum time difference", &hacks.minTimeDifference);
             if (ImGui::IsItemHovered())
                 ImGui::SetTooltip("Minimum time difference for a click to play, to avoid tiny double clicks");
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
             Marker("?", "Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
         ImCheckbox("Prevent inputs", &hacks.preventInput);
 
@@ -1868,15 +1990,16 @@ void RenderMain()
         if (ImGui::ArrowButton("aut", 1))
             ImGui::OpenPopup("Autoclicker Settings");
 
-        if (ImGui::BeginPopupModal("Autoclicker Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Autoclicker Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImInputFloat("Click time", &hacks.clickTime);
             ImInputFloat("Release time", &hacks.releaseTime);
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImCheckbox("Frame Step", &hacks.frameStep);
@@ -1884,7 +2007,7 @@ void RenderMain()
         if (ImGui::ArrowButton("fra", 1))
             ImGui::OpenPopup("Frame Step Settings");
 
-        if (ImGui::BeginPopupModal("Frame Step Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        if (ImGui::BeginPopupModal("Frame Step Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImInputInt("Step Count", &hacks.stepCount, 0);
             ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
@@ -1892,11 +2015,12 @@ void RenderMain()
             ImGui::PopItemWidth();
             ImCheckbox("Hold to Advance", &hacks.holdAdvance);
 
-            if (ImButton("Close"))
+            if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
             }
-            ImGui::EndPopup();
+            if (!Hacks::fake)
+                ImGui::EndPopup();
         }
 
         ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
@@ -1948,7 +2072,7 @@ void RenderMain()
 
 DWORD WINAPI my_thread(void *hModule)
 {
-    ImGuiHook::setRenderFunction(RenderMain);
+    ImGuiHook::setRenderFunction(Hacks::RenderMain);
     ImGuiHook::setInitFunction(Init);
     ImGuiHook::setToggleCallback([]()
                                  { Hacks::show = !Hacks::show; });

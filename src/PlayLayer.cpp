@@ -76,27 +76,27 @@ void SmartStartPosSetup(gd::PlayLayer *self)
 	{
 		for (size_t i = 0; i < gravityPortals.size(); i++)
 		{
-			if (gravityPortals[i]->getPositionX() > startPos->getPositionX())
+			if (gravityPortals[i]->getPositionX() - 10 > startPos->getPositionX())
 				break;
-			if (gravityPortals[i]->getPositionX() < startPos->getPositionX())
+			if (gravityPortals[i]->getPositionX() - 10 < startPos->getPositionX())
 				willFlip[i] = gravityPortals[i]->m_nObjectID == 11;
 		}
 
 		startPos->m_levelSettings->m_startDual = self->m_pLevelSettings->m_startDual;
 		for (size_t i = 0; i < dualPortals.size(); i++)
 		{
-			if (dualPortals[i]->getPositionX() > startPos->getPositionX())
+			if (dualPortals[i]->getPositionX() - 10 > startPos->getPositionX())
 				break;
-			if (dualPortals[i]->getPositionX() < startPos->getPositionX())
+			if (dualPortals[i]->getPositionX() - 10 < startPos->getPositionX())
 				startPos->m_levelSettings->m_startDual = dualPortals[i]->m_nObjectID == 286;
 		}
 
 		startPos->m_levelSettings->m_startGamemode = self->m_pLevelSettings->m_startGamemode;
 		for (size_t i = 0; i < gamemodePortals.size(); i++)
 		{
-			if (gamemodePortals[i]->getPositionX() > startPos->getPositionX())
+			if (gamemodePortals[i]->getPositionX() - 10 > startPos->getPositionX())
 				break;
-			if (gamemodePortals[i]->getPositionX() < startPos->getPositionX())
+			if (gamemodePortals[i]->getPositionX() - 10 < startPos->getPositionX())
 			{
 				switch (gamemodePortals[i]->m_nObjectID)
 				{
@@ -128,18 +128,18 @@ void SmartStartPosSetup(gd::PlayLayer *self)
 		startPos->m_levelSettings->m_startMini = self->m_pLevelSettings->m_startMini;
 		for (size_t i = 0; i < miniPortals.size(); i++)
 		{
-			if (miniPortals[i]->getPositionX() > startPos->getPositionX())
+			if (miniPortals[i]->getPositionX() - 10 > startPos->getPositionX())
 				break;
-			if (miniPortals[i]->getPositionX() < startPos->getPositionX())
+			if (miniPortals[i]->getPositionX() - 10 < startPos->getPositionX())
 				startPos->m_levelSettings->m_startMini = miniPortals[i]->m_nObjectID == 101;
 		}
 
 		startPos->m_levelSettings->m_startSpeed = self->m_pLevelSettings->m_startSpeed;
 		for (size_t i = 0; i < speedChanges.size(); i++)
 		{
-			if (speedChanges[i]->getPositionX() > startPos->getPositionX())
+			if (speedChanges[i]->getPositionX() - 50 > startPos->getPositionX())
 				break;
-			if (speedChanges[i]->getPositionX() < startPos->getPositionX())
+			if (speedChanges[i]->getPositionX() - 50 < startPos->getPositionX())
 			{
 				switch (speedChanges[i]->m_nObjectID)
 				{
@@ -545,6 +545,7 @@ bool PlayLayer::IsCheating()
 
 void UpdateLabels(gd::PlayLayer *self)
 {
+
 	if (labels.hideLabels)
 	{
 		self->m_uiLayer->setVisible(false);
@@ -1103,7 +1104,20 @@ void Update(gd::PlayLayer *self, float dt)
 
 	float xp = self->m_pPlayer1->getPositionX();
 
-	PlayLayer::update(self, dt);
+	if (debug.enabled)
+	{
+		float prevYAccel = self->m_pPlayer1->m_yAccel;
+		float prex = self->m_pPlayer1->m_position.x;
+		std::stringstream strstr;
+		strstr << " yaccel:" << self->m_pPlayer1->m_yAccel << " xaccel:" << self->m_pPlayer1->m_xAccel << " playerspeed:" << self->m_pPlayer1->m_playerSpeed;
+
+		PlayLayer::update(self, dt);
+
+		strstr << " yacceldiff:" << self->m_pPlayer1->m_yAccel - prevYAccel << " xdiff:" << self->m_pPlayer1->m_position.x - prex << " scale:" << self->m_pPlayer1->getScale();
+		debug.debugString = strstr.str();
+	}
+	else
+		PlayLayer::update(self, dt);
 
 	if (self->m_pPlayer1->m_waveTrail && hacks.solidWavePulse)
 		self->m_pPlayer1->m_waveTrail->m_pulseSize = hacks.waveSize;
@@ -1744,7 +1758,23 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 	{
 		if (key == Shortcuts::shortcuts[i].key && down)
 		{
-			Shortcuts::OnPress(Shortcuts::shortcuts[i].shortcutIndex);
+			// this is an horrible way to do it but i cant think of any other solution
+			bool prev = Hacks::show;
+
+			if (!prev)
+			{
+				ImGui::GetStyle().Alpha = 0;
+				Hacks::show = true;
+				Hacks::fake = true;
+			}
+			Hacks::hackName = Shortcuts::shortcuts[i].name;
+			if (!prev)
+			{
+				Hacks::RenderMain();
+				Hacks::show = false;
+				Hacks::fake = false;
+				ImGui::GetStyle().Alpha = 1;
+			}
 		}
 	}
 
