@@ -51,7 +51,6 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     }
 
     if(tp && isHolding2 == p->m_isHolding2) out = p->m_isHolding2 ? 2 : 1;
-
     p->m_position.x = xPos;
     p->m_position.y = yPos;
     p->setRotationX(rotationX);

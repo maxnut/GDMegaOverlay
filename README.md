@@ -81,4 +81,6 @@ https://github.com/adafcaefc/ProxyDllLoader/ for the mod loader
 
 https://discord.gg/AXhTdHUd2R for the json files and the endscreen code
 
+Absolute for the json files and the demonlist/challenge list files
+
 

@@ -890,6 +890,11 @@ void Hacks::RenderMain()
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
 
+        if(ImButton("Copy levelstring"))
+        {
+            if(playLayer) ImGui::SetClipboardText(playLayer->m_level->levelString.c_str());
+        }
+
         ImGui::End();
 
         ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
