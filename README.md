@@ -2,7 +2,7 @@
 
 Free, feature-rich, gui-integrated geometry dash mod menu
 
-![alt text](https://media.discordapp.net/attachments/587598582308143125/1055961835888722010/20221223223845_1.jpg)
+![alt text](https://media.discordapp.net/attachments/587598582308143125/1064198417804431491/20230115160755_1.jpg)
 
 ## Features
 
