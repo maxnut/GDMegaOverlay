@@ -621,7 +621,7 @@ void SetStyle()
     style->Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
     style->Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
     style->Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
-    style->Colors[ImGuiCol_CheckMark] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
+    style->Colors[ImGuiCol_CheckMark] = ImVec4(0.0f, 0.80f, 0.0f, 0.61f);
     style->Colors[ImGuiCol_SliderGrab] = ImVec4(0.80f, 0.80f, 0.83f, 0.31f);
     style->Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
     style->Colors[ImGuiCol_PopupBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
@@ -805,7 +805,7 @@ void Init()
     }
     else
     {
-        Hacks::FPSBypass(60.0f);
+        Hacks::FPSBypass(60);
     }
 
     if (hacks.dockSpace)
@@ -1034,39 +1034,54 @@ void Hacks::RenderMain()
         ImInputFloat("FPS Bypass", &hacks.fps);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
-
-        ImInputFloat("TPS Bypass", &hacks.tpsBypass);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
-        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-        ImCheckbox("TPSBypass", &hacks.tpsBypassBool);
-        ImInputFloat("Draw Divide", &hacks.screenFPS);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
-        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-        ImCheckbox("DrawDivide", &hacks.drawDivideBool);
-
-        ImInputFloat("Speedhack", &hacks.speed);
-        ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-        if (ImCheckbox("Speed Hack", &hacks.speedhackBool))
-            Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
-        ImInputFloat("Music Speed", &hacks.musicSpeed);
-
-        ImCombo("Thread Priority", &hacks.priority, priorities, 5);
-        ImGui::PopItemWidth();
-        if (ImButton("Apply##sv"))
+        if(ImGui::IsItemDeactivatedAfterEdit())
         {
             if (hacks.fps <= 1)
                 hacks.fps = 60;
             Hacks::FPSBypass(hacks.fps);
+        }
+
+        ImInputFloat("##TPSBypass", &hacks.tpsBypass);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
+        if(ImGui::IsItemDeactivatedAfterEdit())
+        {
+            Hacks::tps = hacks.tpsBypass;
+        }
+        ImGui::SameLine();
+        ImCheckbox("TPS Bypass", &hacks.tpsBypassBool);
+        ImInputFloat("##Draw Divide", &hacks.screenFPS);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
+        if(ImGui::IsItemDeactivatedAfterEdit())
+        {
+            Hacks::screenFps = hacks.screenFPS;
+        }
+        ImGui::SameLine();
+        ImCheckbox("Draw Divide", &hacks.drawDivideBool);
+
+        ImInputFloat("##Speed hack", &hacks.speed);
+        if(ImGui::IsItemDeactivatedAfterEdit() && hacks.speedhackBool)
+        {
             if (hacks.speed <= 0)
                 hacks.speed = 1;
             Hacks::Speedhack(hacks.speed);
-            SpeedhackAudio::set(hacks.musicSpeed);
-            Hacks::Priority(hacks.priority);
-            Hacks::tps = hacks.tpsBypass;
-            Hacks::screenFps = hacks.screenFPS;
         }
+        ImGui::SameLine();
+        if (ImCheckbox("Speedhack", &hacks.speedhackBool))
+            Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
+        ImInputFloat("Music Speed", &hacks.musicSpeed);
+        if(ImGui::IsItemDeactivatedAfterEdit())
+        {
+            SpeedhackAudio::set(hacks.musicSpeed);
+        }
+
+        ImCombo("Thread Priority", &hacks.priority, priorities, 5);
+        if(ImGui::IsItemDeactivatedAfterEdit())
+        {
+            Hacks::Priority(hacks.priority);
+        }
+        ImGui::PopItemWidth();
 
         ImGui::End();
 
@@ -1241,6 +1256,7 @@ void Hacks::RenderMain()
 
         DrawFromJSON(Hacks::level);
 
+        ImCheckbox("Auto Safe Mode", &hacks.autoSafeMode);
         ImCheckbox("Practice Fix", &hacks.fixPractice);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Activate this if you want the practice fixes to be active even if macrobot is not recording");

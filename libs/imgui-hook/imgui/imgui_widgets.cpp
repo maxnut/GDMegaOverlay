@@ -776,7 +776,7 @@ bool ImGui::ArrowButtonEx(const char* str_id, ImGuiDir dir, ImVec2 size, ImGuiBu
     const ImGuiID id = window->GetID(str_id);
     const ImRect bb(window->DC.CursorPos, window->DC.CursorPos + size);
     const float default_size = GetFrameHeight();
-    ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : -1.0f);
+    ItemSize({size.x, size.y - 3}, (size.y >= default_size) ? g.Style.FramePadding.y : -1.0f);
     if (!ItemAdd(bb, id))
         return false;
 
@@ -1111,7 +1111,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
 {
     ImGuiIO& io = ImGui::GetIO();
     const float cc_sz = 3.0f * io.FontGlobalScale;
-    const float cc_pad = 5.0f;
+    const float cc_pad = 10.0f;
 
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -1123,7 +1123,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
     const ImVec2 label_size = CalcTextSize(label, NULL, true);
 
     const ImRect check_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(label_size.y + style.FramePadding.y * 2, label_size.y + style.FramePadding.y * 2));
-    ItemSize(check_bb, style.FramePadding.y);
+    ItemSize({check_bb.GetWidth(), check_bb.GetHeight() - 3}, style.FramePadding.y);
 
     ImRect total_bb = check_bb;
     if (label_size.x > 0)
@@ -1131,7 +1131,7 @@ bool ImGui::Checkbox(const char* label, bool* v)
     const ImRect text_bb(window->DC.CursorPos + ImVec2(0, style.FramePadding.y), window->DC.CursorPos + ImVec2(0, style.FramePadding.y) + label_size);
     if (label_size.x > 0)
     {
-        ItemSize(ImVec2(text_bb.GetWidth(), check_bb.GetHeight()), style.FramePadding.y);
+        ItemSize({check_bb.GetWidth(), check_bb.GetHeight() - 3}, style.FramePadding.y);
         total_bb = ImRect(check_bb.Min, ImVec2(text_bb.Max.x - cc_pad * 2.0f * io.FontGlobalScale, check_bb.Max.y));
     }
 
@@ -7054,7 +7054,7 @@ bool ImGui::BeginMenuEx(const char* label, const char* icon, bool enabled)
         RenderText(text_pos, label);
         if (icon_w > 0.0f)
             RenderText(pos + ImVec2(offsets->OffsetIcon, 0.0f), icon);
-        RenderArrow(window->DrawList, pos + ImVec2(offsets->OffsetMark + extra_w + g.FontSize * 0.30f, 0.0f), GetColorU32(ImGuiCol_Text), ImGuiDir_Right);
+        RenderArrow(window->DrawList, pos + ImVec2(offsets->OffsetMark + extra_w + g.FontSize * 0.30f, 5.0f), GetColorU32(ImGuiCol_Text), ImGuiDir_Right);
     }
     if (!enabled)
         EndDisabled();

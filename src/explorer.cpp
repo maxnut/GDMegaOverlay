@@ -4,9 +4,15 @@
 #include <filesystem>
 #include "explorerUtils.hpp"
 #include "explorer.hpp"
+#include "Hacks.h"
+#include "json.hpp"
 
 using namespace cocos2d;
+using json = nlohmann::json;
 
+json j;
+size_t index = 0;
+std::vector<int> ids;
 const char *get_node_name(CCNode *node)
 {
 	// works because msvc's typeid().name() returns undecorated name
@@ -273,6 +279,16 @@ void CocosExplorer::draw()
 	else
 		ImGui::Text("Select a node to edit its properties :-)");
 
+	if (ImGui::Button("Out Textures"))
+	{
+		ids.clear();
+		index = 0;
+		j.clear();
+		j = json::array();
+		GenerateJsonTextures(gd::GameManager::sharedState()->getPlayLayer()->getAllObjects(), false);
+		Hacks::writeOutput(j.dump());
+	}
+
 	ImGui::EndChild();
 
 	if (highlight && (selected_node || hovered_node))
@@ -281,5 +297,62 @@ void CocosExplorer::draw()
 			render_node_highlight(selected_node, true);
 		if (hovered_node)
 			render_node_highlight(hovered_node, false);
+	}
+}
+
+void CocosExplorer::GenerateJsonTextures(cocos2d::CCArray *children, bool isAGObject)
+{
+	bool is = false;
+	CCNode *obj;
+	for (unsigned int i = 0; i < children->count(); ++i)
+	{
+		auto child = children->objectAtIndex(i);
+		obj = static_cast<CCNode *>(child);
+		if (auto sprite_node = dynamic_cast<CCSprite *>(obj); sprite_node)
+		{
+			if (auto gob = static_cast<gd::GameObject *>(sprite_node); gob && (gob->m_nObjectID > 0 && gob->m_nObjectID < 1911 || isAGObject) && !(gob->m_nObjectID == 8 && gob->getPositionX() == 0 && gob->getPositionY() == 105))
+			{
+				is = true;
+				auto *texture = sprite_node->getTexture();
+				CCDictElement *el;
+
+				auto *frame_cache = CCSpriteFrameCache::sharedSpriteFrameCache();
+				auto *cached_frames = public_cast(frame_cache, m_pSpriteFrames);
+				const auto rect = sprite_node->getTextureRect();
+				CCDICT_FOREACH(cached_frames, el)
+				{
+					auto *frame = static_cast<CCSpriteFrame *>(el->getObject());
+					if (frame->getTexture() == texture && frame->getRect() == rect)
+					{
+						if(!isAGObject)
+						{
+							if (std::count(ids.begin(), ids.end(), gob->m_nObjectID)) break;
+							auto objet = json::object();
+							ids.push_back(gob->m_nObjectID);
+							objet["id"] = gob->m_nObjectID;
+							objet["child_count"] = gob->getChildrenCount();
+							j.push_back(objet);
+							index++;
+						}
+						else if(std::string(el->getStrKey()) != "square_02_001.png")
+						{
+							auto objet = json::object();
+							objet["texture"] = el->getStrKey();
+							objet["x"] = gob->getPositionX();
+							objet["y"] = gob->getPositionY();
+							objet["z"] = gob->getZOrder();
+							objet["rx"] = gob->getRotationX();
+							objet["ry"] = gob->getRotationY();
+							objet["sx"] = gob->getScaleX();
+							objet["sy"] = gob->getScaleY();
+							j[index - 1]["children"].push_back(objet);
+						}
+						break;
+					}
+				}
+			}
+		}
+		if (obj->getChildrenCount() > 0)
+			GenerateJsonTextures(obj->getChildren(), is);
 	}
 }

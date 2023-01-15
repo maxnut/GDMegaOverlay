@@ -329,6 +329,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 	UpdateLabels(self);
 
+
 	auto gm = gd::GameManager::sharedState();
 
 	iconCol = gm->colorForIdx(gm->getPlayerColor());
@@ -1030,6 +1031,13 @@ void Update(gd::PlayLayer *self, float dt)
 		noclipRed->setOpacity((int)opacity);
 	}
 	prevP = self->m_pPlayer1->getPositionX();
+
+	bool cheat = PlayLayer::IsCheating();
+	if(cheat != (bool)Hacks::level["mods"][24]["toggle"] && hacks.autoSafeMode)
+	{
+		Hacks::level["mods"][24]["toggle"] = cheat;
+    	Hacks::ToggleJSONHack(Hacks::level, 24, false);
+	}
 
 	if (noClipDeaths == 0)
 	{
