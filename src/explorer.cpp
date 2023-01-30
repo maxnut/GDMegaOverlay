@@ -329,6 +329,7 @@ void CocosExplorer::GenerateJsonTextures(cocos2d::CCArray *children, bool isAGOb
 							if (std::count(ids.begin(), ids.end(), gob->m_nObjectID)) break;
 							auto objet = json::object();
 							ids.push_back(gob->m_nObjectID);
+							objet["texture"] = el->getStrKey();
 							objet["id"] = gob->m_nObjectID;
 							objet["child_count"] = gob->getChildrenCount();
 							j.push_back(objet);

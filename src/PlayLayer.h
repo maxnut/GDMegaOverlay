@@ -99,4 +99,6 @@ namespace PlayLayer
 
 	float GetStartPercent();
 
+	void SyncMusic();
+
 }

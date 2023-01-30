@@ -886,13 +886,11 @@ void Hacks::RenderMain()
 
         ImInputFloat("N", &debug.debugNumber);
         ImGui::Text(debug.debugString.c_str());
-        ImCheckbox("Show Trajectory", &hacks.trajectory);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
 
-        if(ImButton("Copy levelstring"))
+        if (ImButton("Copy levelstring"))
         {
-            if(playLayer) ImGui::SetClipboardText(playLayer->m_level->levelString.c_str());
+            if (playLayer)
+                ImGui::SetClipboardText(playLayer->m_level->levelString.c_str());
         }
 
         ImGui::End();
@@ -973,6 +971,8 @@ void Hacks::RenderMain()
         }
         ImGui::PopItemWidth();
 
+        ImCheckbox("Experimental Features", &hacks.experimentalFeatures);
+
         if (isDecember)
             ImCheckbox("Snow", &hacks.snow);
 
@@ -1034,7 +1034,7 @@ void Hacks::RenderMain()
         ImInputFloat("FPS Bypass", &hacks.fps);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
-        if(ImGui::IsItemDeactivatedAfterEdit())
+        if (ImGui::IsItemDeactivatedAfterEdit())
         {
             if (hacks.fps <= 1)
                 hacks.fps = 60;
@@ -1044,7 +1044,7 @@ void Hacks::RenderMain()
         ImInputFloat("##TPSBypass", &hacks.tpsBypass);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
-        if(ImGui::IsItemDeactivatedAfterEdit())
+        if (ImGui::IsItemDeactivatedAfterEdit())
         {
             Hacks::tps = hacks.tpsBypass;
         }
@@ -1053,7 +1053,7 @@ void Hacks::RenderMain()
         ImInputFloat("##Draw Divide", &hacks.screenFPS);
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be only processed.");
-        if(ImGui::IsItemDeactivatedAfterEdit())
+        if (ImGui::IsItemDeactivatedAfterEdit())
         {
             Hacks::screenFps = hacks.screenFPS;
         }
@@ -1061,7 +1061,7 @@ void Hacks::RenderMain()
         ImCheckbox("Draw Divide", &hacks.drawDivideBool);
 
         ImInputFloat("##Speed hack", &hacks.speed);
-        if(ImGui::IsItemDeactivatedAfterEdit() && hacks.speedhackBool)
+        if (ImGui::IsItemDeactivatedAfterEdit() && hacks.speedhackBool)
         {
             if (hacks.speed <= 0)
                 hacks.speed = 1;
@@ -1071,13 +1071,13 @@ void Hacks::RenderMain()
         if (ImCheckbox("Speedhack", &hacks.speedhackBool))
             Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
         ImInputFloat("Music Speed", &hacks.musicSpeed);
-        if(ImGui::IsItemDeactivatedAfterEdit())
+        if (ImGui::IsItemDeactivatedAfterEdit())
         {
             SpeedhackAudio::set(hacks.musicSpeed);
         }
 
         ImCombo("Thread Priority", &hacks.priority, priorities, 5);
-        if(ImGui::IsItemDeactivatedAfterEdit())
+        if (ImGui::IsItemDeactivatedAfterEdit())
         {
             Hacks::Priority(hacks.priority);
         }
@@ -1269,6 +1269,8 @@ void Hacks::RenderMain()
         if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
         {
             ImInputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
+            if (ImButton("Sync Now"))
+                PlayLayer::SyncMusic();
             if (ImButton("Close", false))
             {
                 ImGui::CloseCurrentPopup();
@@ -1372,6 +1374,12 @@ void Hacks::RenderMain()
         ImCheckbox("Void Click Fix", &hacks.voidClick);
         ImCheckbox("Lock Cursor", &hacks.lockCursor);
         ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
+        if (hacks.experimentalFeatures)
+        {
+            ImCheckbox("Show Trajectory", &hacks.trajectory);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
+        }
         ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("rain", 1))
@@ -2006,6 +2014,10 @@ void Hacks::RenderMain()
         }
         ImCheckbox("Prevent inputs", &hacks.preventInput);
 
+        ImCheckbox("Disable Corrections", &hacks.disableBotCorrection);
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Disable physics correction with the bot, only uses the clicks.");
+
         ImCheckbox("Autoclicker", &hacks.autoclicker);
         ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
         if (ImGui::ArrowButton("aut", 1))
@@ -2060,6 +2072,202 @@ void Hacks::RenderMain()
             ReplayPlayer::getInstance().Save(fileName);
         if (ImButton("Load"))
             ReplayPlayer::getInstance().Load(fileName);
+
+        ImGui::Spacing();
+
+        if (ImButton("Open Converter"))
+        {
+            ImGui::OpenPopup("Converter");
+        }
+
+        if (ImGui::BeginPopupModal("Converter"))
+        {
+            if (ImButton("From TASBOT"))
+            {
+                auto selection = pfd::open_file("Select a macro", "",
+                                                {"JSON File", "*.json"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    ReplayPlayer::getInstance().ClearActions();
+                    std::ifstream stream(filename);
+                    json tasmacro = json::parse(stream);
+                    ReplayPlayer::getInstance().GetReplay()->fps = tasmacro["fps"];
+                    for (size_t i = 0; i < tasmacro["macro"].size(); i++)
+                    {
+                        Action ac;
+                        auto action = tasmacro["macro"][i];
+                        ac.frame = action["frame"];
+                        if (action["player_1"]["click"] > 0)
+                        {
+                            ac.press = action["player_1"]["click"] == 1;
+                            ac.px = action["player_1"]["x_position"];
+                            ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
+                        }
+                        if (action["player_2"]["click"] > 0)
+                        {
+                            ac.press = action["player_2"]["click"] == 1;
+                            ac.px = action["player_2"]["x_position"];
+                            ac.player2 = true;
+                            ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
+                        }
+                    }
+                    gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(ReplayPlayer::getInstance().GetActionsSize()) + " actions."))->show();
+                }
+            }
+            if (ImButton("From zBot"))
+            {
+                auto selection = pfd::open_file("Select a macro", "",
+                                                {"zBot file", "*.zbot, *.zbf"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    std::filesystem::path path = filename;
+                    ReplayPlayer::getInstance().ClearActions();
+                    std::ifstream stream(filename, std::fstream::binary);
+                    stream.seekg(0, std::fstream::end);
+                    size_t size = stream.tellg();
+                    size -= sizeof(float) * 2;
+                    stream.seekg(0);
+                    float delta, speed;
+                    stream.read((char *)&delta, sizeof(float));
+                    stream.read((char *)&speed, sizeof(float));
+                    ReplayPlayer::getInstance().GetReplay()->fps = 1 / delta / speed;
+                    for (int i = 0; i < size / ((path.extension() == ".zbot" ? sizeof(float) : sizeof(uint32_t)) + sizeof(bool) + sizeof(bool)); i++)
+                    {
+                        Action action;
+                        action.px = -1;
+                        if (path.extension() == ".zbot")
+                            stream.read((char *)&action.px, sizeof(float));
+                        else
+                            stream.read((char *)&action.frame, sizeof(uint32_t));
+                        uint8_t cacca1;
+                        stream.read((char *)&cacca1, sizeof(uint8_t));
+                        action.press = cacca1 == 0x31;
+                        uint8_t cacca;
+                        stream.read((char *)&cacca, sizeof(uint8_t));
+                        action.player2 = cacca != 0x31;
+                        action.yAccel = -1;
+                        ReplayPlayer::getInstance().GetReplay()->AddAction(action);
+                    }
+                    gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(ReplayPlayer::getInstance().GetActionsSize()) + " actions."))->show();
+                }
+            }
+            if (ImButton("From xBot"))
+            {
+                auto selection = pfd::open_file("Select a macro", "",
+                                                {"xBot file", "*.xbot"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    ReplayPlayer::getInstance().ClearActions();
+                    std::ifstream stream(filename);
+                    bool isFrame = false;
+                    while (!stream.eof())
+                    {
+                        std::string line;
+                        getline(stream, line);
+                        if (line.substr(0, 3) == "fps")
+                            ReplayPlayer::getInstance().GetReplay()->fps = std::stof(line.substr(5, 3));
+                        else if (line == "frames")
+                        {
+                            isFrame = true;
+                            continue;
+                        }
+                        else if (line != "pro_plus")
+                        {
+                            Action ac;
+                            ac.yAccel = -1;
+                            size_t clickType = std::stoi(line.substr(0, 1));
+                            if (isFrame)
+                            {
+                                ac.frame = std::stoi(line.substr(2, line.length() - 2));
+                                ac.px = -1;
+                            }
+                            else
+                            {
+                                int a = std::stoi(line.substr(2, line.length() - 2));
+                                *(int *)&ac.px = a;
+                                ac.frame = -1;
+                            }
+
+                            ac.press = clickType & 1;
+                            ac.player2 = clickType >> 1;
+                            ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
+                        }
+                    }
+                    gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(ReplayPlayer::getInstance().GetActionsSize()) + " actions."))->show();
+                }
+            }
+            if (ImButton("From ECHO"))
+            {
+                auto selection = pfd::open_file("Select a macro", "",
+                                                {"ECHO File", "*.echo"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    ReplayPlayer::getInstance().ClearActions();
+                    std::ifstream stream(filename);
+                    json tasmacro = json::parse(stream);
+                    ReplayPlayer::getInstance().GetReplay()->fps = tasmacro["FPS"];
+                    for (size_t i = 0; i < tasmacro["Echo Replay"].size(); i++)
+                    {
+                        Action ac;
+                        auto action = tasmacro["Echo Replay"][i];
+                        ac.frame = action["Frame"];
+                        if (ac.frame <= 0)
+                            ac.frame = -1;
+                        ac.px = action["X Position"];
+                        if (ac.px <= 0)
+                            ac.px = -1;
+                        ac.press = action["Hold"];
+                        ac.player2 = action["Player 2"];
+                        ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
+                    }
+                    gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(ReplayPlayer::getInstance().GetActionsSize()) + " actions."))->show();
+                }
+            }
+            if (ImButton("From MHREPLAY"))
+            {
+                auto selection = pfd::open_file("Select a macro", "",
+                                                {"MHR File", "*.mhr.json"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    ReplayPlayer::getInstance().ClearActions();
+                    std::ifstream stream(filename);
+                    json tasmacro = json::parse(stream);
+                    ReplayPlayer::getInstance().GetReplay()->fps = tasmacro["meta"]["fps"];
+                    for (size_t i = 0; i < tasmacro["events"].size(); i++)
+                    {
+                        Action ac;
+                        auto action = tasmacro["events"][i];
+                        ac.frame = action["frame"];
+                        if (ac.frame <= 0)
+                            ac.frame = -1;
+                        ac.px = action["x"];
+                        if (ac.px <= 0)
+                            ac.px = -1;
+                        ac.py = action["y"];
+                        ac.yAccel = action["a"];
+                        if (ac.yAccel <= 0)
+                            ac.yAccel = -1;
+                        ac.press = action["down"];
+                        if (action.contains("p2"))
+                            ac.player2 = action["p2"];
+                        ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
+                    }
+                    gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(ReplayPlayer::getInstance().GetActionsSize()) + " actions."))->show();
+                }
+            }
+            if (ImButton("Close"))
+                ImGui::CloseCurrentPopup();
+        }
         ImGui::PopStyleColor();
 
         ImGui::End();

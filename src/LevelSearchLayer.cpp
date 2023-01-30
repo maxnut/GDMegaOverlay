@@ -27,7 +27,6 @@ bool __fastcall LevelSearchLayer::hook(gd::LevelSearchLayer *self)
 		writing->setScale(0.6);
 		writing->setAnchorPoint({0.5, 0.5});
 		CCSprite *button = CCSprite::createWithSpriteFrameName("GJ_longBtn03_001.png");
-		button->setFlipX(true);
 		auto nextButton = gd::CCMenuItemSpriteExtra::create(button, self, menu_selector(FetchDemonlist::demonlistCallback));
 		nextButton->setPosition({-90.5, 100});
 
@@ -47,7 +46,6 @@ bool __fastcall LevelSearchLayer::hook(gd::LevelSearchLayer *self)
 		writing->setScale(0.45f);
 		writing->setAnchorPoint({0.5, 0.5});
 		CCSprite *button = CCSprite::createWithSpriteFrameName("GJ_longBtn03_001.png");
-		button->setFlipX(true);
 		auto nextButton = gd::CCMenuItemSpriteExtra::create(button, self, menu_selector(FetchDemonlist::challengeListCallback));
 		nextButton->setPosition({90.5, 100});
 
@@ -69,16 +67,19 @@ bool __fastcall LevelSearchLayer::hook(gd::LevelSearchLayer *self)
 }
 
 
-void __fastcall LevelSearchLayer::httpHook(gd::GameLevelManager *self, void*, std::string gdurl, std::string gdquery, std::string idk, int type)
+void __fastcall LevelSearchLayer::httpHook(gd::GameLevelManager *self, void*, gd::string gdurl, gd::string gdquery, gd::string idk, int type)
 {
-	if (gdurl == "http://www.boomlings.com/database/getGJLevels21.php")
+	std::string url = gdurl.c_str();
+	std::string query = gdquery.c_str();
+	std::string idk2 = idk.c_str();
+	if (url == "http://www.boomlings.com/database/getGJLevels21.php")
 	{
-		auto thing = atoi(gdquery.substr(gdquery.find("page=") + 5).c_str());
-		if (gdquery.find("type=3141") != std::string::npos)
+		auto thing = atoi(query.substr(query.find("page=") + 5).c_str());
+		if (query.find("type=3141") != std::string::npos)
 		{
 			gdurl = std::string("http://absolllute.com/api/mega_hack/demonlist/page") + std::to_string(thing) + ".txt";
 		}
-		else if (gdquery.find("type=3142") != std::string::npos)
+		else if (query.find("type=3142") != std::string::npos)
 		{
 			gdurl = std::string("http://absolllute.com/api/mega_hack/challengelist/page") + std::to_string(thing) + ".txt";
 		}

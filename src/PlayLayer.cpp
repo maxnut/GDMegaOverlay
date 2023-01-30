@@ -329,7 +329,6 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 	UpdateLabels(self);
 
-
 	auto gm = gd::GameManager::sharedState();
 
 	iconCol = gm->colorForIdx(gm->getPlayerColor());
@@ -926,6 +925,20 @@ void PlayLayer::UpdatePositions(int index)
 	statuses[index]->setAnchorPoint(statuses[index]->getPositionX() > 284.5f ? CCPointMake(1.0f, statuses[index]->getAnchorPoint().y) : CCPointMake(0.0f, statuses[index]->getAnchorPoint().y));
 }
 
+void PlayLayer::SyncMusic()
+{
+	if(!playlayer) return;
+	float f = playlayer->timeForXPos(playlayer->m_pPlayer1->getPositionX());
+	unsigned int p;
+	unsigned int *pos = &p;
+	float offset = playlayer->m_pLevelSettings->m_songStartOffset * 1000;
+	gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
+	if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !playlayer->m_hasCompletedLevel)
+	{
+		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
+	}
+}
+
 bool lastFrameDead = false;
 
 void Update(gd::PlayLayer *self, float dt)
@@ -935,15 +948,7 @@ void Update(gd::PlayLayer *self, float dt)
 
 	if (hacks.autoSyncMusic)
 	{
-		float f = self->timeForXPos(self->m_pPlayer1->getPositionX());
-		unsigned int p;
-		unsigned int *pos = &p;
-		float offset = self->m_pLevelSettings->m_songStartOffset * 1000;
-		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
-		if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !self->m_hasCompletedLevel && !self->m_isFlipped)
-		{
-			gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
-		}
+		PlayLayer::SyncMusic();
 	}
 
 	if (drawer && !hacks.trajectory)
@@ -1033,10 +1038,10 @@ void Update(gd::PlayLayer *self, float dt)
 	prevP = self->m_pPlayer1->getPositionX();
 
 	bool cheat = PlayLayer::IsCheating();
-	if(cheat != (bool)Hacks::level["mods"][24]["toggle"] && hacks.autoSafeMode)
+	if (cheat != (bool)Hacks::level["mods"][24]["toggle"] && hacks.autoSafeMode)
 	{
 		Hacks::level["mods"][24]["toggle"] = cheat;
-    	Hacks::ToggleJSONHack(Hacks::level, 24, false);
+		Hacks::ToggleJSONHack(Hacks::level, 24, false);
 	}
 
 	if (noClipDeaths == 0)
@@ -1086,6 +1091,8 @@ void Update(gd::PlayLayer *self, float dt)
 			self->m_pPlayer2->m_vehicleSpriteWhitener->setColor(col);
 			self->m_pPlayer1->m_vehicleSpriteSecondary->setColor(col);
 			self->m_pPlayer2->m_vehicleSpriteSecondary->setColor(col);
+			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
+			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 		}
 
 		if (hacks.rainbowOutline)
@@ -1443,6 +1450,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
 		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
 		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
 	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
