@@ -370,7 +370,10 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 {
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
-		replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1);
+		if(self == playlayer->m_pPlayer2 && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1) 
+		{
+			replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1);
+		}
 	}
 	else if (playlayer && replayPlayer && replayPlayer->IsPlaying() && hacks.preventInput && !PlayLayer::isBot)
 		return true;
@@ -390,7 +393,7 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 {
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
-		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode || self == playlayer->m_pPlayer1)
+		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1)
 		{
 			replayPlayer->RecordAction(false, self, self == playlayer->m_pPlayer1);
 		}

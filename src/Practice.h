@@ -5,7 +5,7 @@ struct CheckpointData
 {
     double xAccel, yAccel, jumpAccel;
     float xPos, yPos, rotationX, rotationY, playerSpeed, vehichleSize, decelerationRate;
-    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, unk662, unk630, unk631;
+    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, unk630, unk631, isDropping;
     size_t touchRing;
     gd::Gamemode gamemode;
     static CheckpointData fromPlayer(gd::PlayerObject *p)
@@ -31,9 +31,10 @@ struct CheckpointData
         cd.isDashing = p->m_isDashing;
         cd.isSliding = p->m_isSliding;
         cd.isRising = p->m_isRising;
-        cd.unk662 = p->m_unk662;
+        cd.isLocked = p->m_isLocked;
         cd.unk630 = p->m_unk630;
         cd.unk631 = p->m_unk631;
+        cd.isDropping = p->m_isDropping;
         cd.touchRing = p->m_touchingRings->count();
         cd.gamemode = GetGamemode(p);
         return cd;

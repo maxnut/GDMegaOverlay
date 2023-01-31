@@ -42,21 +42,40 @@ CustomCheckpoint *CustomCheckpoint::createHook()
 int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
 {
     int out = 0;
+    p->m_xAccel = xAccel;
     p->m_yAccel = yAccel;
+    p->m_jumpAccel = jumpAccel;
     if (isHolding != p->m_isHolding)
     {
         out = p->m_isHolding ? 2 : 1; // 2 == press, 1 == release
     }
 
-    if(tp && isHolding2 == p->m_isHolding2) out = p->m_isHolding2 ? 2 : 1;
+    if (tp && isHolding2 == p->m_isHolding2)
+        out = p->m_isHolding2 ? 2 : 1;
     p->m_position.x = xPos;
     p->m_position.y = yPos;
+    p->setPositionX(xPos);
+    p->setPositionY(yPos);
     p->setRotationX(rotationX);
     p->setRotationY(rotationY);
+    p->m_playerSpeed = playerSpeed;
+    p->m_vehicleSize = vehichleSize;
+    p->m_decelerationRate = decelerationRate;
     p->m_hasJustHeld = hasJustHeld;
     p->m_hasJustHeld2 = hasJustHeld2;
     p->m_isHolding = isHolding;
     p->m_isHolding2 = isHolding2;
+    p->m_canRobotJump = canRobotJump;
+    p->m_isUpsideDown = isUpsideDown;
+    p->m_isOnGround = isOnGround;
+    p->m_isDashing = isDashing;
+    p->m_isSliding = isSliding;
+    p->m_isRising = isRising;
+    p->m_isLocked = isLocked;
+    p->m_unk630 = unk630;
+    p->m_unk631 = unk631;
+    p->m_isDropping = isDropping;
+    SetGamemode(p, gamemode);
     return out;
 }
 
