@@ -18,7 +18,7 @@ namespace EndLevelLayer
 
 }
 
-class ButtonsClass : public gd::FLAlertLayer, public cocos2d::CCTextFieldDelegate, public gd::FLAlertLayerProtocol
+class ButtonsClass final : public gd::FLAlertLayer, public cocos2d::CCTextFieldDelegate, public gd::FLAlertLayerProtocol
 {
 public:
 	void ResetInPractice(CCObject *pSender)
