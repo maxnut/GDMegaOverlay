@@ -3,7 +3,7 @@
 #include <iostream>
 #include <deque>
 
-class HitboxNode : public cocos2d::CCDrawNode
+class HitboxNode final : public cocos2d::CCDrawNode
 {
 public:
 	HitboxNode();
