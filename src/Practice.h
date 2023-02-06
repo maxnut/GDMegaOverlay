@@ -4,41 +4,11 @@
 struct CheckpointData
 {
     double xAccel, yAccel, jumpAccel;
-    float xPos, yPos, rotationX, rotationY, playerSpeed, vehichleSize, decelerationRate;
-    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, unk630, unk631, isDropping;
+    float xPos, yPos, rotation, unkRot, playerSpeed, vehichleSize, decelerationRate;
+    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, unk630, unk631, isDropping, mouseDown;
     size_t touchRing;
     gd::Gamemode gamemode;
-    static CheckpointData fromPlayer(gd::PlayerObject *p)
-    {
-        CheckpointData cd;
-        cd.xAccel = p->m_xAccel;
-        cd.yAccel = p->m_yAccel;
-        cd.jumpAccel = p->m_jumpAccel;
-        cd.xPos = p->m_position.x;
-        cd.yPos = p->m_position.y;
-        cd.rotationX = p->getRotationX();
-        cd.rotationY = p->getRotationY();
-        cd.playerSpeed = p->m_playerSpeed;
-        cd.vehichleSize = p->m_vehicleSize;
-        cd.decelerationRate = p->m_decelerationRate;
-        cd.hasJustHeld = p->m_hasJustHeld;
-        cd.hasJustHeld2 = p->m_hasJustHeld2;
-        cd.isHolding = p->m_isHolding;
-        cd.isHolding2 = p->m_isHolding2;
-        cd.canRobotJump = p->m_canRobotJump;
-        cd.isUpsideDown = p->m_isUpsideDown;
-        cd.isOnGround = p->m_isOnGround;
-        cd.isDashing = p->m_isDashing;
-        cd.isSliding = p->m_isSliding;
-        cd.isRising = p->m_isRising;
-        cd.isLocked = p->m_isLocked;
-        cd.unk630 = p->m_unk630;
-        cd.unk631 = p->m_unk631;
-        cd.isDropping = p->m_isDropping;
-        cd.touchRing = p->m_touchingRings->count();
-        cd.gamemode = GetGamemode(p);
-        return cd;
-    }
+    static CheckpointData fromPlayer(gd::PlayerObject *p);
 
     int Apply(gd::PlayerObject *p, bool tp);
 

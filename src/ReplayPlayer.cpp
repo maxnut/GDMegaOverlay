@@ -208,7 +208,6 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
     size_t limit = 1;
     while (actionIndex + limit < replay.getActions().size() && (replay.getActions()[actionIndex + limit].player2 || (replay.getActions()[actionIndex].frame == replay.getActions()[actionIndex + limit].frame || replay.getActions()[actionIndex].px >= 0 && replay.getActions()[actionIndex].px == replay.getActions()[actionIndex + limit].px)))
         limit++;
-    
 
     for (size_t i = 0; i < limit; i++)
     {
@@ -221,7 +220,7 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 playLayer->m_pPlayer1->m_yAccel = ac.yAccel;
                 playLayer->m_pPlayer1->m_position.y = ac.py;
             }
-            else if(!hacks.disableBotCorrection && ac.yAccel >= 0)
+            else if (!hacks.disableBotCorrection && ac.yAccel >= 0)
             {
                 playLayer->m_pPlayer2->m_position.x = ac.px;
                 playLayer->m_pPlayer2->m_yAccel = ac.yAccel;
@@ -233,14 +232,17 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
             double t;
             uint16_t rc, rr, rmc;
 
-            if(playLayer->m_pLevelSettings->m_twoPlayerMode && ac.player2) t = playLayer->m_time - oldTimeP2;
-            else t = playLayer->m_time - oldTime;
+            if (playLayer->m_pLevelSettings->m_twoPlayerMode && ac.player2)
+                t = playLayer->m_time - oldTimeP2;
+            else
+                t = playLayer->m_time - oldTime;
 
             if (hacks.clickbot && clicks.size() > 0 && releases.size() > 0)
             {
                 rc = rand() % clicks.size();
                 rr = rand() % releases.size();
-                if(Hacks::amountOfMediumClicks > 0) rmc = rand() % mediumclicks.size();
+                if (Hacks::amountOfMediumClicks > 0)
+                    rmc = rand() % mediumclicks.size();
                 p = hacks.minPitch + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
                 v = t >= hacks.playMediumClicksAt ? 0.5f * ((float)t * 6) * hacks.baseVolume : 0.6f * hacks.baseVolume;
                 if (v > 0.5f * hacks.baseVolume)
@@ -254,18 +256,22 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                     channel->setPitch(p);
                     channel->setVolume(v);
                 }
-                if(playLayer->m_pLevelSettings->m_twoPlayerMode) oldTimeP2 = playLayer->m_time;
-                else oldTime = playLayer->m_time;
+                if (playLayer->m_pLevelSettings->m_twoPlayerMode)
+                    oldTimeP2 = playLayer->m_time;
+                else
+                    oldTime = playLayer->m_time;
                 PlayLayer::isBot = true;
-                if(ac.player2)
+                if (ac.player2)
                 {
                     PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
-                    if(!playLayer->m_pLevelSettings->m_twoPlayerMode) PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
+                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
+                        PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
                 }
-                else 
+                else
                 {
                     PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
-                    if(!playLayer->m_pLevelSettings->m_twoPlayerMode) PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
+                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
+                        PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
                 }
                 PlayLayer::isBot = false;
             }
@@ -277,18 +283,22 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                     channel2->setPitch(p);
                     channel2->setVolume(v + 0.5f);
                 }
-                if(playLayer->m_pLevelSettings->m_twoPlayerMode) oldTimeP2 = playLayer->m_time;
-                else oldTime = playLayer->m_time;
+                if (playLayer->m_pLevelSettings->m_twoPlayerMode)
+                    oldTimeP2 = playLayer->m_time;
+                else
+                    oldTime = playLayer->m_time;
                 PlayLayer::isBot = true;
-                if(ac.player2)
+                if (ac.player2)
                 {
                     PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
-                    if(!playLayer->m_pLevelSettings->m_twoPlayerMode) PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
+                        PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
                 }
-                else 
+                else
                 {
                     PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
-                    if(!playLayer->m_pLevelSettings->m_twoPlayerMode) PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
+                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
+                        PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
                 }
                 PlayLayer::isBot = false;
             }
@@ -319,7 +329,8 @@ void ReplayPlayer::HandleActivatedObjects(bool a, bool b, gd::GameObject *object
 
 void ReplayPlayer::RecordAction(bool press, gd::PlayerObject *pl, bool player1)
 {
-    if(!IsRecording()) return;
+    if (!IsRecording())
+        return;
     Action a;
     a.player2 = !player1;
     a.frame = GetFrame();

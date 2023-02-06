@@ -2,6 +2,7 @@
 #include "Practice.h"
 #include "Hacks.h"
 #include "PlayLayer.h"
+#include "imgui.h"
 
 void CustomCheckpoint::GetCheckpoint()
 {
@@ -36,7 +37,44 @@ CustomCheckpoint *CustomCheckpoint::createHook()
     {
         CC_SAFE_DELETE(cc);
     }
+    if (PlayLayer::hadAction)
+    {
+        PlayLayer::respawnAction = cc->c.p1.isHolding + 1;
+        if(gd::GameManager::sharedState()->getPlayLayer()->m_pLevelSettings->m_twoPlayerMode) PlayLayer::respawnAction2 = cc->c.p2.isHolding + 1;
+    }
+    else PlayLayer::respawnAction = 0;
     return cc;
+}
+
+CheckpointData CheckpointData::fromPlayer(gd::PlayerObject *p)
+{
+    CheckpointData cd;
+    cd.xAccel = p->m_xAccel;
+    cd.yAccel = p->m_yAccel;
+    cd.jumpAccel = p->m_jumpAccel;
+    cd.xPos = p->m_position.x;
+    cd.yPos = p->m_position.y;
+    cd.rotation = p->getRotation();
+    cd.unkRot = p->m_fUnkRotationField;
+    cd.playerSpeed = p->m_playerSpeed;
+    cd.vehichleSize = p->m_vehicleSize;
+    cd.decelerationRate = p->m_decelerationRate;
+    cd.isHolding = p->m_isHolding;
+    cd.mouseDown = ImGui::GetIO().MouseDown[0];
+    cd.isHolding2 = p->m_isHolding2;
+    cd.canRobotJump = p->m_canRobotJump;
+    cd.isUpsideDown = p->m_isUpsideDown;
+    cd.isOnGround = p->m_isOnGround;
+    cd.isDashing = p->m_isDashing;
+    cd.isSliding = p->m_isSliding;
+    cd.isRising = p->m_isRising;
+    cd.isLocked = p->m_isLocked;
+    cd.unk630 = p->m_unk630;
+    cd.unk631 = p->m_unk631;
+    cd.isDropping = p->m_isDropping;
+    cd.touchRing = p->m_touchingRings->count();
+    cd.gamemode = GetGamemode(p);
+    return cd;
 }
 
 int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
@@ -45,19 +83,25 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     p->m_xAccel = xAccel;
     p->m_yAccel = yAccel;
     p->m_jumpAccel = jumpAccel;
-    if (isHolding != p->m_isHolding)
+    if (mouseDown != ImGui::GetIO().MouseDown[0])
     {
-        out = p->m_isHolding ? 2 : 1; // 2 == press, 1 == release
+        out = ImGui::GetIO().MouseDown[0] ? 2 : 1; // 2 == press, 1 == release
     }
 
     if (tp && isHolding2 == p->m_isHolding2)
         out = p->m_isHolding2 ? 2 : 1;
+
+    auto pl = gd::GameManager::sharedState()->getPlayLayer();
+
+    if(out == 0 && p == pl->m_pPlayer1 && PlayLayer::respawnAction > 0) out = PlayLayer::respawnAction;
+    if(out == 0 && p == pl->m_pPlayer2 && PlayLayer::respawnAction2 > 0) out = PlayLayer::respawnAction2;
+
     p->m_position.x = xPos;
     p->m_position.y = yPos;
     p->setPositionX(xPos);
     p->setPositionY(yPos);
-    p->setRotationX(rotationX);
-    p->setRotationY(rotationY);
+    p->setRotation(rotation);
+    p->m_fUnkRotationField = unkRot;
     p->m_playerSpeed = playerSpeed;
     p->m_vehicleSize = vehichleSize;
     p->m_decelerationRate = decelerationRate;
@@ -115,6 +159,8 @@ void Practice::ApplyCheckpoint()
             else
                 PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
         }
+
+        if(!playLayer->m_bIsDualMode) return;
 
         auto click2 = c.p2.Apply(playLayer->m_pPlayer2, playLayer->m_pLevelSettings->m_twoPlayerMode);
         if (click2 != 0)

@@ -19,6 +19,9 @@ extern struct Debug debug;
 
 ExitAlert a;
 
+bool PlayLayer::hadAction = false;
+int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0;
+
 HitboxNode *drawer;
 gd::PlayLayer *playlayer;
 
@@ -370,7 +373,8 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 {
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
-		if(self == playlayer->m_pPlayer2 && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1) 
+		//if(hadAction) return true;
+		if (self == playlayer->m_pPlayer2 && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1)
 		{
 			replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1);
 		}
@@ -385,6 +389,7 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 
 	add = true;
 	pressing = true;
+	hadAction = true;
 
 	return PlayLayer::pushButton(self, PlayerButton);
 }
@@ -407,6 +412,7 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 	}
 
 	pressing = false;
+	hadAction = true;
 
 	return PlayLayer::releaseButton(self, PlayerButton);
 }
@@ -930,7 +936,8 @@ void PlayLayer::UpdatePositions(int index)
 
 void PlayLayer::SyncMusic()
 {
-	if(!playlayer) return;
+	if (!playlayer)
+		return;
 	float f = playlayer->timeForXPos(playlayer->m_pPlayer1->getPositionX());
 	unsigned int p;
 	unsigned int *pos = &p;
@@ -948,6 +955,7 @@ void Update(gd::PlayLayer *self, float dt)
 {
 	percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
 	self->m_attemptLabel->setVisible(!hacks.hideattempts);
+	PlayLayer::hadAction = false;
 
 	if (hacks.autoSyncMusic)
 	{
@@ -1094,8 +1102,8 @@ void Update(gd::PlayLayer *self, float dt)
 			self->m_pPlayer2->m_vehicleSpriteWhitener->setColor(col);
 			self->m_pPlayer1->m_vehicleSpriteSecondary->setColor(col);
 			self->m_pPlayer2->m_vehicleSpriteSecondary->setColor(col);
-			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
-			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
+			reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(col);
+			reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 		}
 
 		if (hacks.rainbowOutline)
@@ -1133,6 +1141,7 @@ void Update(gd::PlayLayer *self, float dt)
 
 		strstr << " yacceldiff:" << self->m_pPlayer1->m_yAccel - prevYAccel << " xdiff:" << self->m_pPlayer1->m_position.x - prex << " scale:" << self->m_pPlayer1->getScale();
 		debug.debugString = strstr.str();
+		debug.debugNumber = self->m_pPlayer1->getRotation();
 	}
 	else
 		PlayLayer::update(self, dt);
@@ -1385,6 +1394,12 @@ void Change()
 
 void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 {
+	if (replayPlayer && replayPlayer->IsRecording())
+	{
+		replayPlayer->UpdateFrameOffset();
+		replayPlayer->GetReplay()->RemoveActionsAfter(replayPlayer->GetFrame());
+	}
+
 	hitboxDead = false;
 
 	// reset stuff
@@ -1453,8 +1468,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
 		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
 		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
 	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])

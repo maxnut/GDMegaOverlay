@@ -2082,6 +2082,53 @@ void Hacks::RenderMain()
 
         if (ImGui::BeginPopupModal("Converter"))
         {
+            if (ImButton("Export JSON"))
+            {
+                json tasmacro;
+                tasmacro["fps"] = ReplayPlayer::getInstance().GetReplay()->fps;
+                tasmacro["actions"] = json::array();
+                for (int i = 0; i < ReplayPlayer::getInstance().GetActionsSize(); i++)
+                {
+                    json action;
+                    auto ac = ReplayPlayer::getInstance().GetReplay()->getActions()[i];
+                    action["x"] = ac.px;
+                    action["y"] = ac.py;
+                    action["yAccel"] = ac.yAccel;
+                    action["press"] = ac.press;
+                    action["player2"] = ac.player2;
+                    action["frame"] = ac.frame;
+                    tasmacro["actions"].push_back(action);
+                }
+                std::ofstream file("GDMenu/replays/" + std::string(fileName) + ".mcb.json");
+                file << tasmacro;
+            }
+            if (ImButton("Import JSON"))
+            {
+                auto selection = pfd::open_file("Select a macro", "",
+                                                {"JSON File", "*.mcb.json"},
+                                                pfd::opt::none)
+                                     .result();
+                for (auto const &filename : selection)
+                {
+                    ReplayPlayer::getInstance().ClearActions();
+                    std::ifstream stream(filename);
+                    json tasmacro = json::parse(stream);
+                    ReplayPlayer::getInstance().GetReplay()->fps = tasmacro["fps"];
+                    for (size_t i = 0; i < tasmacro["actions"].size(); i++)
+                    {
+                        Action ac;
+                        auto action = tasmacro["actions"][i];
+                        ac.frame = action["frame"];
+                        ac.player2 = action["player2"];
+                        ac.press = action["press"];
+                        ac.px = action["x"];
+                        ac.py = action["y"];
+                        ac.yAccel = action["yAccel"];
+                        ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
+                    }
+                    gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(ReplayPlayer::getInstance().GetActionsSize()) + " actions."))->show();
+                }
+            }
             if (ImButton("From TASBOT"))
             {
                 auto selection = pfd::open_file("Select a macro", "",
@@ -2098,7 +2145,7 @@ void Hacks::RenderMain()
                     {
                         Action ac;
                         auto action = tasmacro["macro"][i];
-                        ac.frame = action["frame"];
+                        ac.frame = action["frame"] + 1;
                         if (action["player_1"]["click"] > 0)
                         {
                             ac.press = action["player_1"]["click"] == 1;
