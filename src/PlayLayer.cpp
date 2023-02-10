@@ -357,7 +357,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 		else
 			activity.SetState((std::to_string(self->m_level->normalPercent) + "%").c_str());
 		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
 		activity.SetType(discord::ActivityType::Playing);
 		activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*self->m_level).c_str());
@@ -373,7 +373,7 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 {
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
-		//if(hadAction) return true;
+		// if(hadAction) return true;
 		if (self == playlayer->m_pPlayer2 && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1)
 		{
 			replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1);
@@ -1666,7 +1666,7 @@ void PlayLayer::Quit()
 		discord::Activity activity{};
 		activity.SetState("Browsing Menus");
 		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
 		activity.SetType(discord::ActivityType::Playing);
 		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
@@ -1686,7 +1686,7 @@ bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd
 		discord::Activity activity{};
 		activity.SetState(("Editing " + lvl->levelName).c_str());
 		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
 		activity.SetType(discord::ActivityType::Playing);
 		activity.GetAssets().SetSmallImage("editor");
@@ -1758,7 +1758,7 @@ void __fastcall PlayLayer::newBestHook(gd::PlayLayer *self, void *, bool b1, int
 		else
 			activity.SetState((std::to_string(self->m_level->normalPercent) + "%").c_str());
 		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
 		activity.SetType(discord::ActivityType::Playing);
 		activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*self->m_level).c_str());

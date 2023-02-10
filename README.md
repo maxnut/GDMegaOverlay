@@ -1,6 +1,6 @@
 <div align="center">
   
-# GD Menu
+# GD Mega Overlay
 
 [![Discord](https://img.shields.io/badge/Discord-white?style=flat&logo=discord)](https://discord.gg/nbDjEg7SSU)
 </div>
@@ -23,7 +23,7 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 
 ## How to use
 
-Download the latest [release](https://github.com/maxnut/GDmenu/releases/latest) and extract all files inside the GD folder.
+Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder.
 
 ## Any suggestions or bug reports?
 
@@ -42,8 +42,8 @@ Run this in your terminal on the folder where you want all the code:
 
 1. Clone
 ```bash
-git clone https://github.com/maxnut/GDmenu --recursive
-cd GDmenu
+git clone https://github.com/maxnut/GDMegaOverlay --recursive
+cd GDMegaOverlay
 ```
 
 2. Configure
@@ -60,7 +60,7 @@ cmake --build build --config Release -j 4
 
 ### Setting up the dev enviroment with VSCode (optional)
 
-Open GDmenu folder with Visual Studio Code.
+Open GDMegaOverlay folder with Visual Studio Code.
 
 Now VSCode will prompt you to install some recommended extensions, accept or else you'll need to install them manually.
 The extensions are:

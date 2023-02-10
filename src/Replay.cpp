@@ -26,7 +26,6 @@ void Replay::Load(std::string name)
             AddAction(a);
         }
         file.read((char *)&fps, sizeof(float));
-        Hacks::writeOutput(fps);
         file.close();
         gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay loaded with " + std::to_string(GetActionsSize()) + " actions."))->show();
     }

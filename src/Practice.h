@@ -4,7 +4,7 @@
 struct CheckpointData
 {
     double xAccel, yAccel, jumpAccel;
-    float xPos, yPos, rotation, unkRot, playerSpeed, vehichleSize, decelerationRate;
+    float xPos, yPos, rotation, unkRot, playerSpeed, vehichleSize, decelerationRate, lastJumpTime;
     bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, unk630, unk631, isDropping, mouseDown;
     size_t touchRing;
     gd::Gamemode gamemode;
