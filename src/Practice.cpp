@@ -40,14 +40,17 @@ CustomCheckpoint *CustomCheckpoint::createHook()
     if (PlayLayer::hadAction)
     {
         PlayLayer::respawnAction = cc->c.p1.isHolding + 1;
-        if(gd::GameManager::sharedState()->getPlayLayer()->m_pLevelSettings->m_twoPlayerMode) PlayLayer::respawnAction2 = cc->c.p2.isHolding + 1;
+        if (gd::GameManager::sharedState()->getPlayLayer()->m_pLevelSettings->m_twoPlayerMode)
+            PlayLayer::respawnAction2 = cc->c.p2.isHolding + 1;
     }
-    else PlayLayer::respawnAction = 0;
+    else
+        PlayLayer::respawnAction = 0;
     return cc;
 }
 
 CheckpointData CheckpointData::fromPlayer(gd::PlayerObject *p)
 {
+    gd::PlayLayer *pl = gd::GameManager::sharedState()->getPlayLayer();
     CheckpointData cd;
     cd.xAccel = p->m_xAccel;
     cd.yAccel = p->m_yAccel;
@@ -60,6 +63,7 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject *p)
     cd.vehichleSize = p->m_vehicleSize;
     cd.decelerationRate = p->m_decelerationRate;
     cd.isHolding = p->m_isHolding;
+    cd.lastJumpTime = p->m_lastJumpTime;
     cd.mouseDown = ImGui::GetIO().MouseDown[0];
     cd.isHolding2 = p->m_isHolding2;
     cd.canRobotJump = p->m_canRobotJump;
@@ -93,14 +97,19 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
 
     auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
-    if(out == 0 && p == pl->m_pPlayer1 && PlayLayer::respawnAction > 0) out = PlayLayer::respawnAction;
-    if(out == 0 && p == pl->m_pPlayer2 && PlayLayer::respawnAction2 > 0) out = PlayLayer::respawnAction2;
+    if (out == 0 && p == pl->m_pPlayer1 && PlayLayer::respawnAction > 0)
+        out = PlayLayer::respawnAction;
+    if (out == 0 && p == pl->m_pPlayer2 && PlayLayer::respawnAction2 > 0)
+        out = PlayLayer::respawnAction2;
+
+    SetGamemode(p, gamemode);
 
     p->m_position.x = xPos;
     p->m_position.y = yPos;
     p->setPositionX(xPos);
     p->setPositionY(yPos);
     p->setRotation(rotation);
+
     p->m_fUnkRotationField = unkRot;
     p->m_playerSpeed = playerSpeed;
     p->m_vehicleSize = vehichleSize;
@@ -111,6 +120,7 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     p->m_isHolding2 = isHolding2;
     p->m_canRobotJump = canRobotJump;
     p->m_isUpsideDown = isUpsideDown;
+    p->m_lastJumpTime = lastJumpTime;
     p->m_isOnGround = isOnGround;
     p->m_isDashing = isDashing;
     p->m_isSliding = isSliding;
@@ -119,7 +129,12 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     p->m_unk630 = unk630;
     p->m_unk631 = unk631;
     p->m_isDropping = isDropping;
-    SetGamemode(p, gamemode);
+
+    if (p->m_isBall && !p->m_isOnGround)
+    {
+        p->runNormalRotation();
+    }
+
     return out;
 }
 
@@ -160,7 +175,8 @@ void Practice::ApplyCheckpoint()
                 PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
         }
 
-        if(!playLayer->m_bIsDualMode) return;
+        if (!playLayer->m_bIsDualMode)
+            return;
 
         auto click2 = c.p2.Apply(playLayer->m_pPlayer2, playLayer->m_pLevelSettings->m_twoPlayerMode);
         if (click2 != 0)

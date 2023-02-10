@@ -51,7 +51,7 @@ bool __fastcall MenuLayer::hook(CCLayer *self)
 		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
 		activity.SetState("Browsing Menus");
 		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.SetType(discord::ActivityType::Playing);
 		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
 	}
@@ -86,5 +86,5 @@ void __fastcall MenuLayer::onBackHook(CCLayer *self, void *, cocos2d::CCObject *
 
 const char *__fastcall MenuLayer::loadingStringHook(CCLayer *self, void *)
 {
-	return "GD Mod Menu - Made by maxnut";
+	return "GD Mega Overlay - Made by maxnut";
 }

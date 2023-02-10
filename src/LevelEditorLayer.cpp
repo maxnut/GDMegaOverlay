@@ -70,7 +70,7 @@ void __fastcall LevelEditorLayer::exitHook(CCLayer *self, void *, CCObject* send
 		discord::Activity activity{};
 		activity.SetState("Browsing Menus");
 		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
+		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
 		activity.SetType(discord::ActivityType::Playing);
 		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
