@@ -61,6 +61,7 @@ struct Checkpoint
     size_t activatedObjectsP2Size;
     CheckpointData p1, p2;
     uint32_t frameOffset;
+    float timeOffset;
 };
 
 class CustomCheckpoint : public gd::CheckpointObject

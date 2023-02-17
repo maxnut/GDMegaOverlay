@@ -78,7 +78,7 @@ struct HacksStr
     bool holdAdvance, trajectory = false;
     float musicSpeed = 1;
 
-    bool tpsBypassBool = false, drawDivideBool = false, lockCursor = false, coinTracker = false, speedhackBool = false, autoSafeMode = false, disableBotCorrection = false, experimentalFeatures = false;
+    bool tpsBypassBool = false, drawDivideBool = false, lockCursor = false, coinTracker = false, speedhackBool = false, autoSafeMode = false, disableBotCorrection = false, experimentalFeatures = false, tieMusicToSpeed;
 };
 
 enum position {TR, TL, BR, BL};
@@ -103,7 +103,7 @@ struct Windows
     {
         int x, y;
     };
-    Vec2I positions[12];
+    Vec2I positions[13];
 };
 
 struct Debug

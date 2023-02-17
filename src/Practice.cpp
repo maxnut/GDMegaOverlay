@@ -19,6 +19,7 @@ Checkpoint Practice::CreateCheckpoint()
         c.p1 = CheckpointData::fromPlayer(pl->m_pPlayer1);
         c.p2 = CheckpointData::fromPlayer(pl->m_pPlayer2);
         c.frameOffset = rp.GetFrame();
+        c.timeOffset = pl->m_totalTime;
         c.activatedObjectsSize = activatedObjects.size();
         c.activatedObjectsP2Size = activatedObjectsP2.size();
     }
@@ -83,10 +84,12 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject *p)
 
 int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
 {
+    auto pl = gd::GameManager::sharedState()->getPlayLayer();
     int out = 0;
     p->m_xAccel = xAccel;
     p->m_yAccel = yAccel;
     p->m_jumpAccel = jumpAccel;
+    
     if (mouseDown != ImGui::GetIO().MouseDown[0])
     {
         out = ImGui::GetIO().MouseDown[0] ? 2 : 1; // 2 == press, 1 == release
@@ -94,8 +97,6 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
 
     if (tp && isHolding2 == p->m_isHolding2)
         out = p->m_isHolding2 ? 2 : 1;
-
-    auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
     if (out == 0 && p == pl->m_pPlayer1 && PlayLayer::respawnAction > 0)
         out = PlayLayer::respawnAction;
@@ -161,12 +162,12 @@ void Practice::ApplyCheckpoint()
         auto click1 = c.p1.Apply(playLayer->m_pPlayer1, playLayer->m_pLevelSettings->m_twoPlayerMode);
         if (click1 != 0)
         {
-            if (click1 == 2 && c.p1.touchRing <= 0)
+            if (click1 == 2 && c.p1.touchRing <= 0 && !PlayLayer::wasPaused)
             {
                 PlayLayer::pushButton(playLayer->m_pPlayer1, 0);
                 ReplayPlayer::getInstance().RecordAction(true, playLayer->m_pPlayer1, true);
             }
-            else if (click1 == 1)
+            else if (click1 == 1 && !PlayLayer::wasPaused)
             {
                 PlayLayer::releaseButton(playLayer->m_pPlayer1, 0);
                 ReplayPlayer::getInstance().RecordAction(false, playLayer->m_pPlayer1, true);
@@ -181,12 +182,12 @@ void Practice::ApplyCheckpoint()
         auto click2 = c.p2.Apply(playLayer->m_pPlayer2, playLayer->m_pLevelSettings->m_twoPlayerMode);
         if (click2 != 0)
         {
-            if (click2 == 2 && c.p2.touchRing <= 0)
+            if (click2 == 2 && c.p2.touchRing <= 0 && !PlayLayer::wasPaused)
             {
                 PlayLayer::pushButton(playLayer->m_pPlayer2, 0);
                 ReplayPlayer::getInstance().RecordAction(true, playLayer->m_pPlayer2, false);
             }
-            else if (click2 == 1)
+            else if (click2 == 1 && !PlayLayer::wasPaused)
             {
                 PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
                 ReplayPlayer::getInstance().RecordAction(false, playLayer->m_pPlayer2, false);

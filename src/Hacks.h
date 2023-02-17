@@ -173,7 +173,8 @@ namespace Hacks
             return "auto";
         }
 
-        if(level.ratingsSum != 0) level.difficulty = level.ratingsSum / 10;
+        if (level.ratingsSum != 0)
+            level.difficulty = level.ratingsSum / 10;
 
         if (level.demon)
         {
@@ -409,6 +410,36 @@ namespace Hacks
         }
         std::filesystem::remove(Hacks::widen(path));
         std::filesystem::rename(GetSongFolder() + "/out.mp3", Hacks::widen(path)); })
+            .detach();
+    }
+
+    static void NongDownload(char *url, char *id)
+    {
+        std::thread([&, url, id]()
+                    {
+        {
+            std::stringstream stream;
+
+            stream << "GDMenu/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
+
+            auto process = subprocess::Popen(stream.str());
+            if (process.close())
+            {
+                return;
+            }
+        }
+
+        {
+            std::stringstream stream;
+            stream << "ffmpeg -y -i audiofile.m4a -c:v copy -c:a libmp3lame -q:a 4 " << '"' << GetSongFolder() << "/" << id << ".mp3" << '"';
+            auto process = subprocess::Popen(stream.str());
+            if (process.close())
+            {
+                return;
+            }
+        }
+
+        std::filesystem::remove(Hacks::widen("audiofile.m4a")); })
             .detach();
     }
 }

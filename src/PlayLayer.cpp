@@ -19,7 +19,7 @@ extern struct Debug debug;
 
 ExitAlert a;
 
-bool PlayLayer::hadAction = false;
+bool PlayLayer::hadAction = false, PlayLayer::wasPaused = false;
 int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0;
 
 HitboxNode *drawer;
@@ -1141,7 +1141,6 @@ void Update(gd::PlayLayer *self, float dt)
 
 		strstr << " yacceldiff:" << self->m_pPlayer1->m_yAccel - prevYAccel << " xdiff:" << self->m_pPlayer1->m_position.x - prex << " scale:" << self->m_pPlayer1->getScale();
 		debug.debugString = strstr.str();
-		debug.debugNumber = self->m_pPlayer1->getRotation();
 	}
 	else
 		PlayLayer::update(self, dt);
@@ -1247,6 +1246,7 @@ cocos2d::CCEvent *_event = nullptr;
 
 void __fastcall PlayLayer::uiOnPauseHook(gd::UILayer *self, void *, CCObject *obj)
 {
+	wasPaused = true;
 	if (hacks.voidClick && _touch)
 		self->ccTouchEnded(_touch, _event);
 	PlayLayer::uiOnPause(self, obj);
@@ -1454,7 +1454,12 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 		startPercent = (self->m_playerStartPosition.x / self->m_levelLength) * 100.0f;
 	}
 
+	if (self->m_checkpoints->count() > 0)
+		self->m_totalTime = replayPlayer->GetPractice().GetLast().timeOffset;
+
 	PlayLayer::resetLevel(self);
+
+	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
 
 	if (playlayer)
 	{
@@ -1482,6 +1487,13 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	{
 		replayPlayer->Reset(self);
 		replayPlayer->recorder.update_song_offset(self);
+	}
+
+	if (wasPaused)
+	{
+		releaseButtonHook(self->m_pPlayer1, 0, 0);
+		releaseButtonHook(self->m_pPlayer2, 0, 0);
+		wasPaused = false;
 	}
 }
 

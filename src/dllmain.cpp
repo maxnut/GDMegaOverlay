@@ -40,7 +40,7 @@ float Hacks::screenFps = 60.0f, Hacks::tps = 60.0f;
 float screenSize = 0, pitch, oldScreenSize = 0;
 
 int shortcutIndex, shortcutIndexKey, pitchName;
-char fileName[30], searchbar[30];
+char fileName[30], searchbar[30], url[50], id[30];
 std::vector<std::string> Hacks::musicPaths;
 std::filesystem::path Hacks::path;
 std::vector<const char *> musicPathsVet;
@@ -1066,11 +1066,24 @@ void Hacks::RenderMain()
             if (hacks.speed <= 0)
                 hacks.speed = 1;
             Hacks::Speedhack(hacks.speed);
+
+            if(hacks.tieMusicToSpeed) SpeedhackAudio::set(hacks.speed);
         }
         ImGui::SameLine();
         if (ImCheckbox("Speedhack", &hacks.speedhackBool))
+        {
             Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
-        ImInputFloat("Music Speed", &hacks.musicSpeed);
+            if(hacks.tieMusicToSpeed) SpeedhackAudio::set(hacks.speedhackBool ? hacks.speed : 1.0f);
+        }
+        if (hacks.tieMusicToSpeed)
+        {
+            ImGui::BeginDisabled();
+            ImInputFloat("Music Speed", &hacks.musicSpeed);
+            ImGui::EndDisabled();
+        }
+        else
+            ImInputFloat("Music Speed", &hacks.musicSpeed);
+
         if (ImGui::IsItemDeactivatedAfterEdit())
         {
             SpeedhackAudio::set(hacks.musicSpeed);
@@ -1081,6 +1094,12 @@ void Hacks::RenderMain()
         {
             Hacks::Priority(hacks.priority);
         }
+
+        if(ImCheckbox("Tie Music to Gamespeed", &hacks.tieMusicToSpeed))
+        {
+            SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
+        }
+
         ImGui::PopItemWidth();
 
         ImGui::End();
@@ -1889,6 +1908,39 @@ void Hacks::RenderMain()
 
         if (ImButton("Render"))
             Hacks::ChangePitch(pitch);
+
+        ImGui::End();
+
+        ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
+        ImGui::Begin("Nong Downloader", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
+        ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
+        if (resetWindows)
+            ImGui::SetWindowPos({windowPositions.positions[12].x * screenSize, windowPositions.positions[12].y * screenSize});
+        else if (repositionWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
+        }
+        if (hacks.windowSnap > 1)
+        {
+            auto pos = ImGui::GetWindowPos();
+            ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+        }
+
+        if (saveWindows)
+        {
+            auto pos = ImGui::GetWindowPos();
+            windowPositions.positions[12] = {(int)pos.x, (int)pos.y};
+        }
+
+        ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
+
+        ImInputText("Song Url", url, 50);
+        ImInputText("Song Id", id, 30);
+        ImGui::PopItemWidth();
+
+        if (ImButton("Download"))
+            Hacks::NongDownload(url, id);
 
         ImGui::End();
 

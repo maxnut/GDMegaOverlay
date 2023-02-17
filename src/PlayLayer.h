@@ -5,7 +5,7 @@
 namespace PlayLayer
 {
 
-	extern bool isBot, hadAction;
+	extern bool isBot, hadAction, wasPaused;
 	extern int respawnAction, respawnAction2;
 
 	inline bool(__thiscall* init)(gd::PlayLayer* self, gd::GJGameLevel* level);

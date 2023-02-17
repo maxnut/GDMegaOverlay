@@ -131,7 +131,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
         playLayer->releaseButton(0, true);
         practice.activatedObjects.clear();
         practice.activatedObjectsP2.clear();
-        if (playLayer->m_checkpoints->count() > 0)
+        if (playLayer->m_checkpoints->count() <= 0)
             playLayer->m_totalTime = 0;
     }
     else
