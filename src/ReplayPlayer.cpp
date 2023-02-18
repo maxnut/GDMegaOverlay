@@ -190,7 +190,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
 
 void ReplayPlayer::Load(std::string name)
 {
-    replay.Load(name);
+    replay.Load("GDMenu/replays/" + name + ".replay");
 }
 
 void ReplayPlayer::Update(gd::PlayLayer *playLayer)
@@ -266,15 +266,11 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 PlayLayer::isBot = true;
                 if (ac.player2)
                 {
-                    PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
-                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
-                        PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
+                    playLayer->pushButton(1, false);
                 }
                 else
                 {
-                    PlayLayer::pushButtonHook(playLayer->m_pPlayer1, 0, 0);
-                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
-                        PlayLayer::pushButtonHook(playLayer->m_pPlayer2, 0, 0);
+                    playLayer->pushButton(1, true);
                 }
                 PlayLayer::isBot = false;
             }
@@ -293,15 +289,11 @@ void ReplayPlayer::Update(gd::PlayLayer *playLayer)
                 PlayLayer::isBot = true;
                 if (ac.player2)
                 {
-                    PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
-                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
-                        PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
+                    playLayer->releaseButton(1, false);
                 }
                 else
                 {
-                    PlayLayer::releaseButtonHook(playLayer->m_pPlayer1, 0, 0);
-                    if (!playLayer->m_pLevelSettings->m_twoPlayerMode)
-                        PlayLayer::releaseButtonHook(playLayer->m_pPlayer2, 0, 0);
+                    playLayer->releaseButton(1, true);
                 }
                 PlayLayer::isBot = false;
             }

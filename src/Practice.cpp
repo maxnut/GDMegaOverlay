@@ -19,7 +19,6 @@ Checkpoint Practice::CreateCheckpoint()
         c.p1 = CheckpointData::fromPlayer(pl->m_pPlayer1);
         c.p2 = CheckpointData::fromPlayer(pl->m_pPlayer2);
         c.frameOffset = rp.GetFrame();
-        c.timeOffset = pl->m_totalTime;
         c.activatedObjectsSize = activatedObjects.size();
         c.activatedObjectsP2Size = activatedObjectsP2.size();
     }

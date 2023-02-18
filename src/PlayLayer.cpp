@@ -1454,9 +1454,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 		startPercent = (self->m_playerStartPosition.x / self->m_levelLength) * 100.0f;
 	}
 
-	if (self->m_checkpoints->count() > 0)
-		self->m_totalTime = replayPlayer->GetPractice().GetLast().timeOffset;
-
 	PlayLayer::resetLevel(self);
 
 	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);

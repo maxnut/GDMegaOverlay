@@ -1,10 +1,10 @@
 #include "Replay.h"
 #include "Hacks.h"
 
-void Replay::Load(std::string name)
+void Replay::Load(std::string path)
 {
         ClearActions();
-        std::ifstream file("GDMenu/replays/" + name + ".replay", std::ios::in | std::ios::binary);
+        std::ifstream file(path, std::ios::in | std::ios::binary);
         if (!file.is_open())
         {
             gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Could not find replay"))->show();

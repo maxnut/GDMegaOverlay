@@ -1067,13 +1067,15 @@ void Hacks::RenderMain()
                 hacks.speed = 1;
             Hacks::Speedhack(hacks.speed);
 
-            if(hacks.tieMusicToSpeed) SpeedhackAudio::set(hacks.speed);
+            if (hacks.tieMusicToSpeed)
+                SpeedhackAudio::set(hacks.speed);
         }
         ImGui::SameLine();
         if (ImCheckbox("Speedhack", &hacks.speedhackBool))
         {
             Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
-            if(hacks.tieMusicToSpeed) SpeedhackAudio::set(hacks.speedhackBool ? hacks.speed : 1.0f);
+            if (hacks.tieMusicToSpeed)
+                SpeedhackAudio::set(hacks.speedhackBool ? hacks.speed : 1.0f);
         }
         if (hacks.tieMusicToSpeed)
         {
@@ -1095,7 +1097,7 @@ void Hacks::RenderMain()
             Hacks::Priority(hacks.priority);
         }
 
-        if(ImCheckbox("Tie Music to Gamespeed", &hacks.tieMusicToSpeed))
+        if (ImCheckbox("Tie Music to Gamespeed", &hacks.tieMusicToSpeed))
         {
             SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
         }
@@ -2124,6 +2126,18 @@ void Hacks::RenderMain()
             ReplayPlayer::getInstance().Save(fileName);
         if (ImButton("Load"))
             ReplayPlayer::getInstance().Load(fileName);
+
+        ImGui::SameLine();
+
+        if (ImButton("Select File"))
+        {
+            auto selection = pfd::open_file("Select a macro", "GDMenu/replays",
+                                            {"REPLAY file", "*.replay"},
+                                            pfd::opt::none)
+                                 .result();
+            std::filesystem::path p = selection[0];
+            ReplayPlayer::getInstance().GetReplay()->Load(p.string());
+        }
 
         ImGui::Spacing();
 
