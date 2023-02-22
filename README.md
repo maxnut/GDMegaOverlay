@@ -85,6 +85,8 @@ You should find the result in build/Release
 
 [adafcaefc/ProxyDllLoader](https://github.com/adafcaefc/ProxyDllLoader) for the mod loader
 
-https://discord.gg/AXhTdHUd2R for the json files and the endscreen code
+[TpdEA](https://discord.gg/AXhTdHUd2R) for the json files and the endscreen code
 
-Absolute for the json files, the gd::string and the demonlist/challenge list files
+[Absolute](https://github.com/absoIute) for the json files, the gd::string and the demonlist/challenge list files
+
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) for youtube audio downloading
