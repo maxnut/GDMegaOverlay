@@ -348,21 +348,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	if (hacks.smartStartPos && sp.size() > 0)
 		Change();
 
-	if (Hacks::ds.core && hacks.discordRPC)
-	{
-		discord::Activity activity{};
-		activity.SetDetails(("Playing " + self->m_level->levelName).c_str());
-		if (self->m_level->userName != "")
-			activity.SetState(("by " + self->m_level->userName + " (" + std::to_string(self->m_level->normalPercent) + "%)").c_str());
-		else
-			activity.SetState((std::to_string(self->m_level->normalPercent) + "%").c_str());
-		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
-		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
-		activity.SetType(discord::ActivityType::Playing);
-		activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*self->m_level).c_str());
-		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
-	}
+	Hacks::UpdateRichPresence(0, 0, "none");
 
 	return result;
 }
@@ -439,6 +425,7 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 			bestRun = "";
 			bestRun = runStr;
 			oldRun = runStr;
+			Hacks::UpdateRichPresence(0, 0, (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
 		}
 		else if (runStr == oldRun && hacks.accumulateRuns)
 		{
@@ -468,6 +455,7 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 		bestRun = "";
 		bestRun = runStr;
 		oldRun = runStr;
+		Hacks::UpdateRichPresence(0, 0, (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
 	}
 	else if (runStr == oldRun && hacks.accumulateRuns)
 	{
@@ -919,7 +907,7 @@ void PlayLayer::UpdatePositions(int index)
 	{
 	case 1:
 		sc *= 2.2f; // xd
-		statuses[index]->setPosition(x, height + 10);
+		statuses[index]->setPosition(x, height);
 		break;
 	case 13:
 		sc *= 1.1f;
@@ -1135,15 +1123,17 @@ void Update(gd::PlayLayer *self, float dt)
 		float prevYAccel = self->m_pPlayer1->m_yAccel;
 		float prex = self->m_pPlayer1->m_position.x;
 		std::stringstream strstr;
-		strstr << " yaccel:" << self->m_pPlayer1->m_yAccel << " xaccel:" << self->m_pPlayer1->m_xAccel << " playerspeed:" << self->m_pPlayer1->m_playerSpeed;
+		//strstr << " yaccel:" << self->m_pPlayer1->m_yAccel << " xaccel:" << self->m_pPlayer1->m_xAccel << " playerspeed:" << self->m_pPlayer1->m_playerSpeed;
 
 		PlayLayer::update(self, dt);
 
-		strstr << " yacceldiff:" << self->m_pPlayer1->m_yAccel - prevYAccel << " xdiff:" << self->m_pPlayer1->m_position.x - prex << " scale:" << self->m_pPlayer1->getScale();
+		//strstr << " yacceldiff:" << self->m_pPlayer1->m_yAccel - prevYAccel << " xdiff:" << self->m_pPlayer1->m_position.x - prex << " scale:" << self->m_pPlayer1->getScale();
 		debug.debugString = strstr.str();
 	}
 	else
 		PlayLayer::update(self, dt);
+
+	
 
 	if (self->m_pPlayer1->m_waveTrail && hacks.solidWavePulse)
 		self->m_pPlayer1->m_waveTrail->m_pulseSize = hacks.waveSize;
@@ -1400,9 +1390,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 		replayPlayer->GetReplay()->RemoveActionsAfter(replayPlayer->GetFrame());
 	}
 
-	hitboxDead = false;
-
 	// reset stuff
+	hitboxDead = false;
 	totalClicks = 0;
 	actualDeaths = 0;
 	EndLevelLayer::deaths = 0;
@@ -1417,17 +1406,17 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	dead = false;
 	frames = 0;
 	self->m_attemptJumpCount = 0;
+	simulating = false;
+	diedWhileSimulating = false;
 	Hacks::ToggleJSONHack(Hacks::player, 0, false);
 	clicksArr.clear();
+	
 	if (drawer)
 	{
 		drawer->clearQueue();
 		drawer->m_isMini1 = self->m_pLevelSettings->m_startMini;
 		drawer->m_isMini2 = self->m_pLevelSettings->m_startMini;
 	}
-
-	simulating = false;
-	diedWhileSimulating = false;
 
 	for (size_t i = 0; i < STATUSSIZE; i++)
 		UpdatePositions(i);
@@ -1670,16 +1659,7 @@ void PlayLayer::Quit()
 	startPosText = nullptr;
 	Hacks::MenuMusic();
 	drawer->clearQueue();
-	if (Hacks::ds.core && hacks.discordRPC)
-	{
-		discord::Activity activity{};
-		activity.SetState("Browsing Menus");
-		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
-		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
-		activity.SetType(discord::ActivityType::Playing);
-		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
-	}
+	Hacks::UpdateRichPresence(2);
 }
 
 bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd::GJGameLevel *lvl)
@@ -1690,17 +1670,7 @@ bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd
 		drawer->clearQueue();
 	bool res = PlayLayer::editorInit(self, lvl);
 	self->getObjectLayer()->addChild(HitboxNode::getInstance(), 32);
-	if (Hacks::ds.core && hacks.discordRPC)
-	{
-		discord::Activity activity{};
-		activity.SetState(("Editing " + lvl->levelName).c_str());
-		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
-		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
-		activity.SetType(discord::ActivityType::Playing);
-		activity.GetAssets().SetSmallImage("editor");
-		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
-	}
+	Hacks::UpdateRichPresence(1, lvl);
 	return res;
 }
 
@@ -1758,21 +1728,7 @@ void __fastcall PlayLayer::newBestHook(gd::PlayLayer *self, void *, bool b1, int
 {
 	PlayLayer::newBest(self, b1, i1, i2, b2, b3, b4);
 
-	if (Hacks::ds.core && hacks.discordRPC)
-	{
-		discord::Activity activity{};
-		activity.SetDetails(("Playing " + self->m_level->levelName).c_str());
-		if (self->m_level->userName != "")
-			activity.SetState(("by " + self->m_level->userName + " (" + std::to_string(self->m_level->normalPercent) + "%)").c_str());
-		else
-			activity.SetState((std::to_string(self->m_level->normalPercent) + "%").c_str());
-		activity.GetAssets().SetLargeImage("cool");
-		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
-		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
-		activity.SetType(discord::ActivityType::Playing);
-		activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*self->m_level).c_str());
-		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
-	}
+	Hacks::UpdateRichPresence(0, 0, (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
 }
 
 void __fastcall PlayLayer::checkCollisionsHook(gd::PlayLayer *self, void *, gd::PlayerObject *player)

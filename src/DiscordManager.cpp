@@ -14,11 +14,5 @@ void DiscordManager::InitDiscord()
 
     if(!hacks.discordRPC) return;
 
-    discord::Activity activity{};
-    activity.SetState("Loading...");
-    activity.GetTimestamps().SetStart(timeStart);
-    activity.GetAssets().SetLargeImage("cool");
-    activity.GetAssets().SetLargeText("Using GDMenu by maxnut");
-    activity.SetType(discord::ActivityType::Playing);
-    core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+    Hacks::UpdateRichPresence(2);
 }

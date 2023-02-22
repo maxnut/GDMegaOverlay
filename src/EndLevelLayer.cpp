@@ -188,8 +188,6 @@ bool __fastcall EndLevelLayer::customSetupHook(CCLayer *self, void *)
         auto checkpointsNow = playLayer->m_checkpoints->count();
         bool ReconfLabels = true;
 
-        Hacks::writeOutput(PlayLayer::GetStartPercent());
-
         auto txtPrac = getCCSwitchIntFloat(getPerStrConeAcurr("Practice: ").c_str(), "Practice: %i%%", PlayLayer::GetStartPercent(), false);
         auto txtStarP = getCCSwitchIntFloat(getPerStrConeAcurr("StartPos: ").c_str(), "StartPos: %i%%", PlayLayer::GetStartPercent(), false);
 

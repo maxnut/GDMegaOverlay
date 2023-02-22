@@ -131,7 +131,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
         playLayer->releaseButton(0, true);
         practice.activatedObjects.clear();
         practice.activatedObjectsP2.clear();
-        if (playLayer->m_checkpoints->count() <= 0)
+        if (playLayer->m_checkpoints->count() <= 0 && playLayer->m_startPos == nullptr)
             playLayer->m_totalTime = 0;
     }
     else
@@ -143,7 +143,6 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
             practice.activatedObjects.clear();
             practice.activatedObjectsP2.clear();
             frameOffset = 0;
-            playLayer->m_totalTime = 0;
         }
         else
         {
@@ -156,6 +155,7 @@ void ReplayPlayer::Reset(gd::PlayLayer *playLayer)
             delete_from(practice.activatedObjectsP2, checkpoint.activatedObjectsP2Size);
             if (IsRecording())
             {
+                if (playLayer->m_startPos == nullptr) playLayer->m_totalTime = 0;
                 for (const auto &object : practice.activatedObjects)
                 {
                     object->m_bHasBeenActivated = true;

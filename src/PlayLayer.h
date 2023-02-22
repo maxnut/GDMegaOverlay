@@ -89,6 +89,8 @@ namespace PlayLayer
 	inline void(__thiscall* addPoint)(gd::HardStreak *self, CCPoint point);
 	void __fastcall addPointHook(gd::HardStreak *self, void*, CCPoint point);
 
+	
+
 
 	void SetHitboxSize(float size);
 

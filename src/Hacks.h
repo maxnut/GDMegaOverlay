@@ -442,4 +442,103 @@ namespace Hacks
         std::filesystem::remove(Hacks::widen("audiofile.m4a")); })
             .detach();
     }
+
+    static void UpdateRichPresence(int state, gd::GJGameLevel *lvl = 0, std::string bestrun = "")
+    {
+        if (Hacks::ds.core && hacks.discordRPC)
+        {
+            std::string supportString;
+            auto pl = gd::GameManager::sharedState()->getPlayLayer();
+            auto el = gd::GameManager::sharedState()->getEditorLayer();
+            discord::Activity activity{};
+            switch (state)
+            {
+            case 0:
+                supportString = hacks.levelPlayDetail;
+
+                while (supportString.find("{name}") != std::string::npos)
+                    supportString.replace(supportString.find("{name}"), 6, pl->m_level->levelName);
+
+                while (supportString.find("{author}") != std::string::npos)
+                    supportString.replace(supportString.find("{author}"), 8, pl->m_level->levelID < 100 && pl->m_level->levelID > 0 ? "RobTop" : pl->m_level->userName == "" ? "Unknown"
+                                                                                                                                                                             : pl->m_level->userName);
+
+                while (supportString.find("{best}") != std::string::npos)
+                    supportString.replace(supportString.find("{best}"), 6, std::to_string(pl->m_level->normalPercent));
+
+                while (supportString.find("{stars}") != std::string::npos)
+                    supportString.replace(supportString.find("{stars}"), 7, std::to_string(pl->m_level->stars));
+
+                while (supportString.find("{id}") != std::string::npos)
+                    supportString.replace(supportString.find("{id}"), 4, std::to_string(pl->m_level->levelID));
+
+                while (supportString.find("{run}") != std::string::npos)
+                    supportString.replace(supportString.find("{run}"), 5, bestrun);
+
+                activity.SetDetails(supportString.c_str());
+
+                supportString = hacks.levelPlayState;
+
+                while (supportString.find("{name}") != std::string::npos)
+                    supportString.replace(supportString.find("{name}"), 6, pl->m_level->levelName);
+
+                while (supportString.find("{author}") != std::string::npos)
+                    supportString.replace(supportString.find("{author}"), 8, pl->m_level->levelID < 100 && pl->m_level->levelID > 0 ? "RobTop" : pl->m_level->userName == "" ? "Unknown"
+                                                                                                                                                                             : pl->m_level->userName);
+
+                while (supportString.find("{best}") != std::string::npos)
+                    supportString.replace(supportString.find("{best}"), 6, std::to_string(pl->m_level->normalPercent));
+
+                while (supportString.find("{stars}") != std::string::npos)
+                    supportString.replace(supportString.find("{stars}"), 7, std::to_string(pl->m_level->stars));
+
+                debug.debugNumber = pl->m_level->levelID;
+
+                while (supportString.find("{id}") != std::string::npos)
+                    supportString.replace(supportString.find("{id}"), 4, std::to_string(pl->m_level->levelID));
+
+                while (supportString.find("{run}") != std::string::npos)
+                    supportString.replace(supportString.find("{run}"), 5, bestrun);
+
+                activity.SetState(supportString.c_str());
+
+                activity.GetAssets().SetSmallImage(Hacks::getDifficultyName(*pl->m_level).c_str());
+
+                break;
+            case 1:
+                supportString = hacks.editorDetail;
+                while (supportString.find("{name}") != std::string::npos)
+                    supportString.replace(supportString.find("{name}"), 6, lvl->levelName);
+
+                while (supportString.find("{objects}") != std::string::npos)
+                    supportString.replace(supportString.find("{objects}"), 9, std::to_string(lvl->objectCount));
+
+                activity.SetDetails(supportString.c_str());
+
+                supportString = hacks.editorState;
+
+                while (supportString.find("{name}") != std::string::npos)
+                    supportString.replace(supportString.find("{name}"), 6, lvl->levelName);
+
+                while (supportString.find("{objects}") != std::string::npos)
+                    supportString.replace(supportString.find("{objects}"), 9, std::to_string(lvl->objectCount));
+
+                activity.SetState(supportString.c_str());
+
+                activity.GetAssets().SetSmallImage("editor");
+                break;
+
+            case 2:
+                activity.SetState(hacks.menuState);
+                activity.SetDetails(hacks.menuDetail);
+                break;
+            }
+
+            activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+            activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
+            activity.GetAssets().SetLargeImage("cool");
+            activity.SetType(discord::ActivityType::Playing);
+            Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+        }
+    }
 }
