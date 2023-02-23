@@ -2207,7 +2207,7 @@ void Hacks::RenderMain()
                     tasmacro["actions"].push_back(action);
                 }
                 std::ofstream file("GDMenu/replays/" + std::string(fileName) + ".mcb.json");
-                file << tasmacro;
+                file << tasmacro.dump(4);
             }
             if (ImButton("Import JSON"))
             {
