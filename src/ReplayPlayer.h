@@ -47,7 +47,7 @@ class ReplayPlayer
     void UpdateFrameOffset();
     void StartPlaying(gd::PlayLayer* playLayer);
     void Reset(gd::PlayLayer* playLayer);
-    void Update(gd::PlayLayer* playLayer);
+    float Update(gd::PlayLayer* playLayer);
 
     Recorder recorder;
 };

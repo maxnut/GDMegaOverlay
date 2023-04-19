@@ -4,8 +4,8 @@
 struct CheckpointData
 {
     double xAccel, yAccel, jumpAccel;
-    float xPos, yPos, rotation, unkRot, playerSpeed, vehichleSize, decelerationRate, lastJumpTime;
-    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, unk630, unk631, isDropping, mouseDown;
+    float xPos, yPos, rotation, rotRate = 0, unkRot, playerSpeed, vehichleSize, decelerationRate, lastJumpTime;
+    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, isDropping, mouseDown, isOnSlope, wasOnSlope;
     size_t touchRing;
     gd::Gamemode gamemode;
     static CheckpointData fromPlayer(gd::PlayerObject *p);
@@ -60,7 +60,9 @@ struct Checkpoint
     size_t activatedObjectsSize;
     size_t activatedObjectsP2Size;
     CheckpointData p1, p2;
-    uint32_t frameOffset;
+    std::vector<float> ringRotations;
+    uint32_t frameOffset = 0;
+    float dt;
 };
 
 class CustomCheckpoint : public gd::CheckpointObject

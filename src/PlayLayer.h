@@ -1,12 +1,12 @@
 #pragma once
 #include "pch.h"
-#include "HitboxNode.hpp"
 
 namespace PlayLayer
 {
 
 	extern bool isBot, hadAction, wasPaused;
 	extern int respawnAction, respawnAction2;
+	extern float player1RotRate, player2RotRate;
 
 	inline bool(__thiscall* init)(gd::PlayLayer* self, gd::GJGameLevel* level);
 	bool __fastcall initHook(gd::PlayLayer* self, void*, gd::GJGameLevel* level);
@@ -38,6 +38,9 @@ namespace PlayLayer
 	inline void(__thiscall* onQuit)(gd::PlayLayer* self);
 	void __fastcall onQuitHook(gd::PlayLayer* self, void*);
 
+	inline void(__thiscall* playGravityEffect)(gd::PlayLayer* self, bool idk);
+	void __fastcall playGravityEffectHook(gd::PlayLayer* self, void*, bool idk);
+
 	inline void(__thiscall* triggerObject)(gd::EffectGameObject* self, gd::GJBaseGameLayer* idk);
 	void __fastcall triggerObjectHook(gd::EffectGameObject* self, void*, gd::GJBaseGameLayer* idk);
 
@@ -58,6 +61,9 @@ namespace PlayLayer
 
 	inline void(__thiscall* togglePlayerScale)(gd::PlayerObject* self, bool toggle);
 	void __fastcall togglePlayerScaleHook(gd::PlayerObject* self, void*, bool toggle);
+
+	inline void(__thiscall* toggleDartMode)(gd::PlayerObject* self, bool toggle);
+	void __fastcall toggleDartModeHook(gd::PlayerObject* self, void*, bool toggle);
 
 	inline void(__thiscall* uiTouchBegan)(gd::UILayer* self, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
 	void __fastcall uiTouchBeganHook(gd::UILayer* self, void*, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
@@ -80,11 +86,17 @@ namespace PlayLayer
 	inline void(__thiscall* bump)(gd::GJBaseGameLayer* self, gd::PlayerObject* player, gd::GameObject* object);
 	void __fastcall bumpHook(gd::GJBaseGameLayer* self, void*, gd::PlayerObject* player, gd::GameObject* object);
 
-	inline void(__thiscall* checkCollisions)(gd::PlayLayer *self, gd::PlayerObject* player);
-	void __fastcall checkCollisionsHook(gd::PlayLayer *self, void*, gd::PlayerObject* player);
+	inline void(__thiscall* flipGravity)(gd::PlayLayer *self, gd::PlayerObject* player, bool idk, bool idk2);
+	void __fastcall flipGravityHook(gd::PlayLayer *self, void*, gd::PlayerObject* player, bool idk, bool idk2);
 
 	inline gd::GameObject*(__thiscall* hasBeenActivatedByPlayer)(gd::GameObject *self, gd::GameObject *other);
 	gd::GameObject* __fastcall hasBeenActivatedByPlayerHook(gd::GameObject *self, void*, gd::GameObject *other);
+
+	inline gd::GameObject*(__thiscall* powerOffObject)(gd::GameObject *self);
+	gd::GameObject* __fastcall powerOffObjectHook(gd::GameObject *self);
+
+	inline gd::GameObject*(__thiscall* playShineEffect)(gd::GameObject *self);
+	gd::GameObject* __fastcall playShineEffectHook(gd::GameObject *self);
 
 	inline void(__thiscall* addPoint)(gd::HardStreak *self, CCPoint point);
 	void __fastcall addPointHook(gd::HardStreak *self, void*, CCPoint point);

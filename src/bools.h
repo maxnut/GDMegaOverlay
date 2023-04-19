@@ -82,6 +82,11 @@ struct HacksStr
     char levelPlayDetail[60] = "{name} - {author} ({best}%)", levelPlayState[60] = "{stars}* ({id})";
     char editorDetail[60] = "Editing {name}", editorState[60] = "{objects} objects";
     char menuDetail[60] = "Browsing Menus", menuState[60] = "";
+    bool enableWaveTrailColor;
+
+    float waveTrailColor[3];
+
+    bool accuracySound, autoUpdateRespawn;
 };
 
 enum position {TR, TL, BR, BL};

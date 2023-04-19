@@ -1,17 +1,19 @@
 #include "PlayLayer.h"
 #include "EndLevelLayer.h"
-#include "ReplayPlayer.h"
+#include "ExitAlert.h"
 #include "Hacks.h"
+#include "HitboxNode.hpp"
+#include "ReplayPlayer.h"
+#include "Shortcuts.h"
+#include "TrajectorySimulation.h"
 #include "bools.h"
-#include <imgui.h>
-#include <vector>
 #include <chrono>
-#include <ctime>
 #include <cmath>
+#include <ctime>
+#include <imgui.h>
 #include <iomanip>
 #include <sstream>
-#include "ExitAlert.h"
-#include "Shortcuts.h"
+#include <vector>
 
 extern struct HacksStr hacks;
 extern struct Labels labels;
@@ -20,50 +22,56 @@ extern struct Debug debug;
 ExitAlert a;
 
 bool PlayLayer::hadAction = false, PlayLayer::wasPaused = false;
-int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0;
+int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0, Hacks::steps = 0;
+float PlayLayer::player1RotRate = 0, PlayLayer::player2RotRate = 0;
 
-HitboxNode *drawer;
-gd::PlayLayer *playlayer;
+bool Hacks::isCheating = false, Hacks::holdingAdvance = false;
 
-float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = -1, prevP = 0, pressTimer = 0, releaseTimer = 0, opacity = 0, p = 1;
+HitboxNode* drawer;
+gd::PlayLayer* playlayer;
+
+float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = -1, prevP = 0, pressTimer = 0, releaseTimer = 0,
+			   opacity = 0, p = 1;
 
 std::string bestRun = "Best Run: none", text;
 
 std::vector<float> clicksArr;
-std::vector<gd::StartPosObject *> sp;
-std::vector<gd::GameObject *> gravityPortals, dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
+std::vector<gd::StartPosObject*> sp;
+std::vector<gd::GameObject*> gravityPortals, dualPortals, gamemodePortals, miniPortals, speedChanges, mirrorPortals;
 std::vector<bool> willFlip;
 
-bool add = false, pressing, dead = false, hitboxDead = false, clickType = true, pressed = false, reset = true, holdingAdvance = false;
-
-bool simulating = false, diedWhileSimulating = false;
+bool add = false, pressing, dead = false, hitboxDead = false, clickType = true, pressed = false, reset = true;
 
 ccColor3B iconCol, secIconCol;
 
-int totalClicks, startPosIndex, noClipDeaths, actualDeaths, frames, steps = 0, bestRunRepeat;
+int totalClicks, startPosIndex, noClipDeaths, actualDeaths, frames, bestRunRepeat;
 unsigned int songLength;
 int hackAmts[5];
 
-CCNode *statuses[STATUSSIZE];
+CCNode* statuses[STATUSSIZE];
 CCLabelBMFont *startPosText, *macroText;
-CCScheduler *scheduler;
+CCScheduler* scheduler;
 CCSize size, pixelSize;
-CCSprite *noclipRed;
+CCSprite* noclipRed;
 
-std::vector<gd::GameObject *> coinPos;
+std::vector<gd::GameObject*> coinPos;
 
-ReplayPlayer *replayPlayer;
+ReplayPlayer* replayPlayer;
 
 std::chrono::time_point<std::chrono::high_resolution_clock> previous_frame, last_update;
 float avg = 0.f;
 int frame_count = 0;
 
-void UpdateLabels(gd::PlayLayer *self);
+int smoothOut = 0;
+
+FMOD::Sound* accuracySound;
+
+void UpdateLabels(gd::PlayLayer* self);
 void Change();
 
-void SetupLabel(gd::PlayLayer *self, int index)
+void SetupLabel(gd::PlayLayer* self, int index)
 {
-	auto st = static_cast<CCLabelBMFont *>(statuses[index]);
+	auto st = static_cast<CCLabelBMFont*>(statuses[index]);
 	st = CCLabelBMFont::create("", "bigFont.fnt");
 	st->setZOrder(1000);
 	st->setScale(0.5f);
@@ -72,17 +80,18 @@ void SetupLabel(gd::PlayLayer *self, int index)
 	statuses[index] = st;
 }
 
-void SmartStartPosSetup(gd::PlayLayer *self)
+void SmartStartPosSetup(gd::PlayLayer* self)
 {
-	willFlip.resize(gravityPortals.size());
-	for (gd::StartPosObject *startPos : sp)
+	willFlip.resize(sp.size());
+	size_t index = 0;
+	for (gd::StartPosObject* startPos : sp)
 	{
 		for (size_t i = 0; i < gravityPortals.size(); i++)
 		{
 			if (gravityPortals[i]->getPositionX() - 10 > startPos->getPositionX())
 				break;
 			if (gravityPortals[i]->getPositionX() - 10 < startPos->getPositionX())
-				willFlip[i] = gravityPortals[i]->m_nObjectID == 11;
+				willFlip[index] = gravityPortals[i]->m_nObjectID == 11;
 		}
 
 		startPos->m_levelSettings->m_startDual = self->m_pLevelSettings->m_startDual;
@@ -93,7 +102,6 @@ void SmartStartPosSetup(gd::PlayLayer *self)
 			if (dualPortals[i]->getPositionX() - 10 < startPos->getPositionX())
 				startPos->m_levelSettings->m_startDual = dualPortals[i]->m_nObjectID == 286;
 		}
-
 		startPos->m_levelSettings->m_startGamemode = self->m_pLevelSettings->m_startGamemode;
 		for (size_t i = 0; i < gamemodePortals.size(); i++)
 		{
@@ -164,10 +172,11 @@ void SmartStartPosSetup(gd::PlayLayer *self)
 				}
 			}
 		}
+		index++;
 	}
 }
 
-bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel *level)
+bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel* level)
 {
 	drawer = HitboxNode::getInstance();
 
@@ -179,10 +188,12 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 	auto director = CCDirector::sharedDirector();
 	size = director->getWinSize();
-	pixelSize = CCEGLView::sharedOpenGLView()->getFrameSize();
-	pixelSize.width /= 2;
-	pixelSize.height /= 2;
+	gd::FMODAudioEngine::sharedEngine()->m_pSystem->createSound("Resources/counter003.ogg", FMOD_LOOP_OFF, 0,
+																&accuracySound);
 
+	TrajectorySimulation::getInstance()->createSimulation();
+
+	smoothOut = 0;
 	sp.clear();
 	gamemodePortals.clear();
 	mirrorPortals.clear();
@@ -192,41 +203,46 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 	gravityPortals.clear();
 	willFlip.clear();
 	hitboxDead = false;
-	CCObject *obje;
+	CCObject* obje;
 
 	Hacks::cheatCheck.clear();
 
 	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+											   Hacks::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+											   Hacks::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+											   Hacks::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+											   Hacks::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(), Hacks::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+											   Hacks::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	CCARRAY_FOREACH(self->m_pObjects, obje)
 	{
-		auto g = reinterpret_cast<gd::GameObject *>(obje);
+		auto g = reinterpret_cast<gd::GameObject*>(obje);
 
 		if (g->m_nObjectID == 31)
-			sp.push_back(reinterpret_cast<gd::StartPosObject *>(obje));
+			sp.push_back(reinterpret_cast<gd::StartPosObject*>(obje));
 
 		if (g->m_nObjectID == 1329 || g->m_nObjectID == 142)
 		{
@@ -350,17 +366,21 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer *self, void *, gd::GJGameLevel
 
 	Hacks::UpdateRichPresence(0, 0, "none");
 
+	if (replayPlayer)
+		Hacks::isCheating = PlayLayer::IsCheating();
+
 	return result;
 }
 
 bool PlayLayer::isBot = false;
 
-bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int PlayerButton)
+bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject* self, void*, int PlayerButton)
 {
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
 		// if(hadAction) return true;
-		if (self == playlayer->m_pPlayer2 && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1)
+		if (self == playlayer->m_pPlayer2 && playlayer->m_pLevelSettings->m_twoPlayerMode ||
+			self == playlayer->m_pPlayer1)
 		{
 			replayPlayer->RecordAction(true, self, self == playlayer->m_pPlayer1);
 		}
@@ -380,11 +400,13 @@ bool __fastcall PlayLayer::pushButtonHook(gd::PlayerObject *self, void *, int Pl
 	return PlayLayer::pushButton(self, PlayerButton);
 }
 
-bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int PlayerButton)
+bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject* self, void*, int PlayerButton)
 {
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
-		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode && playlayer->m_pLevelSettings->m_twoPlayerMode || self == playlayer->m_pPlayer1)
+		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode &&
+				playlayer->m_pLevelSettings->m_twoPlayerMode ||
+			self == playlayer->m_pPlayer1)
 		{
 			replayPlayer->RecordAction(false, self, self == playlayer->m_pPlayer1);
 		}
@@ -405,18 +427,20 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject *self, void *, int
 
 std::string oldRun = "";
 
-void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::PlayerObject *player, gd::GameObject *obj)
+void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::PlayerObject* player, gd::GameObject* obj)
 {
-	if (simulating)
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooksWithPlayer(player))
 	{
-		diedWhileSimulating = true;
+		TrajectorySimulation::getInstance()->m_pDieInSimulation = true;
 		return;
 	}
 	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"] && !self->m_isDead)
 	{
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
-		std::string runStr = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
+		std::string runStr = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" +
+														  std::to_string((int)endPercent)
+													: "Best Run: " + std::to_string((int)endPercent) + "%";
 		if ((int)startPercent != (int)endPercent && run > maxRun)
 		{
 			bestRunRepeat = 0;
@@ -425,7 +449,8 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 			bestRun = "";
 			bestRun = runStr;
 			oldRun = runStr;
-			Hacks::UpdateRichPresence(0, 0, (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
+			Hacks::UpdateRichPresence(0, 0,
+									  (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
 		}
 		else if (runStr == oldRun && hacks.accumulateRuns)
 		{
@@ -442,11 +467,13 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer *self, void *, gd::Play
 	PlayLayer::destroyPlayer(self, player, obj);
 }
 
-gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *self)
+gd::GameSoundManager* __fastcall PlayLayer::levelCompleteHook(gd::PlayLayer* self)
 {
 	float run = 100.0f - startPercent;
 	endPercent = 100.0f;
-	std::string runStr = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent) : "Best Run: " + std::to_string((int)endPercent) + "%";
+	std::string runStr = (int)startPercent != 0
+							 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent)
+							 : "Best Run: " + std::to_string((int)endPercent) + "%";
 	if (run > maxRun)
 	{
 		bestRunRepeat = 0;
@@ -480,13 +507,8 @@ gd::GameSoundManager *__fastcall PlayLayer::levelCompleteHook(gd::PlayLayer *sel
 	return PlayLayer::levelComplete(self);
 }
 
-void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrangers)
+void __fastcall PlayLayer::hkDeath(void* self, void*, void* go, void* powerrangers)
 {
-	if (simulating)
-	{
-		diedWhileSimulating = true;
-		return;
-	}
 	if (delta > 0.1f)
 	{
 		dead = true;
@@ -498,6 +520,8 @@ void __fastcall PlayLayer::hkDeath(void *self, void *, void *go, void *powerrang
 
 bool PlayLayer::IsCheating()
 {
+	if (!playlayer)
+		return false;
 	size_t total = 0;
 	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
 	{
@@ -534,13 +558,15 @@ bool PlayLayer::IsCheating()
 		total++;
 	}
 
-	if (hacks.fps > 360.0f || hacks.screenFPS > 360.0f || hacks.tpsBypass > 360.0f || hacks.autoclicker || hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode || hacks.enableHitboxMultiplier || hacks.showHitboxes && !hacks.onlyOnDeath)
+	if (hacks.fps > 360.0f || hacks.screenFPS > 360.0f || hacks.tpsBypass > 360.0f || hacks.autoclicker ||
+		hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode ||
+		hacks.enableHitboxMultiplier || hacks.showHitboxes && !hacks.onlyOnDeath)
 		return true;
 
 	return false;
 }
 
-void UpdateLabels(gd::PlayLayer *self)
+void UpdateLabels(gd::PlayLayer* self)
 {
 
 	if (labels.hideLabels)
@@ -555,7 +581,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	const ccColor3B green = {0, 255, 0};
 	const ccColor3B yellow = {255, 165, 0};
 
-	auto fontPtr = static_cast<CCLabelBMFont *>(statuses[0]);
+	auto fontPtr = static_cast<CCLabelBMFont*>(statuses[0]);
 
 	float r, g, b;
 	if (labels.rainbowLabels)
@@ -566,7 +592,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	{
 		fontPtr->setString(".");
 		fontPtr->setOpacity(labels.opacity[0]);
-		if (PlayLayer::IsCheating())
+		if (Hacks::isCheating)
 			fontPtr->setColor(red);
 		else if (Hacks::level["mods"][24]["toggle"])
 			fontPtr->setColor(yellow);
@@ -576,7 +602,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[1]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[1]);
 
 	if (labels.statuses[1])
 	{
@@ -595,7 +621,8 @@ void UpdateLabels(gd::PlayLayer *self)
 
 			std::string text;
 
-			fontPtr->setString(CCString::createWithFormat(labels.styles[0], ImGui::GetIO().Framerate, fps)->getCString());
+			fontPtr->setString(
+				CCString::createWithFormat(labels.styles[0], ImGui::GetIO().Framerate, fps)->getCString());
 		}
 
 		previous_frame = now;
@@ -608,7 +635,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[2]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[2]);
 
 	if (labels.statuses[2])
 	{
@@ -624,8 +651,7 @@ void UpdateLabels(gd::PlayLayer *self)
 
 		fontPtr->setString(CCString::createWithFormat(labels.styles[1], clicksArr.size(), totalClicks)->getCString());
 		const ccColor3B pressed = {hacks.clickColor[0] * 255, hacks.clickColor[1] * 255, hacks.clickColor[2] * 255};
-		fontPtr->setColor(pressing ? pressed : labels.rainbowLabels ? rainbow
-																	: white);
+		fontPtr->setColor(pressing ? pressed : labels.rainbowLabels ? rainbow : white);
 	}
 	else
 	{
@@ -633,13 +659,12 @@ void UpdateLabels(gd::PlayLayer *self)
 		clicksArr.clear();
 	}
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[3]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[3]);
 
 	if (labels.statuses[3])
 	{
 		fontPtr->setString(text.c_str());
-		fontPtr->setColor(dead ? red : labels.rainbowLabels ? rainbow
-															: white);
+		fontPtr->setColor(dead ? red : labels.rainbowLabels ? rainbow : white);
 
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
@@ -653,7 +678,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[4]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[4]);
 
 	if (labels.statuses[4])
 	{
@@ -667,7 +692,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[5]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[5]);
 
 	if (labels.statuses[5])
 	{
@@ -686,7 +711,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[6]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[6]);
 
 	if (labels.statuses[6])
 	{
@@ -700,7 +725,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[7]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[7]);
 
 	if (labels.statuses[7])
 	{
@@ -714,9 +739,10 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[8]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[8]);
 
-	if (labels.statuses[8] && !hacks.onlyInRuns || labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns)
+	if (labels.statuses[8] && !hacks.onlyInRuns ||
+		labels.statuses[8] && (self->m_isPracticeMode || self->m_isTestMode) && hacks.onlyInRuns)
 	{
 		fontPtr->setString(("From " + std::to_string((int)startPercent) + "%").c_str());
 
@@ -728,7 +754,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[9]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[9]);
 
 	if (labels.statuses[9])
 	{
@@ -742,7 +768,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[10]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[10]);
 
 	if (labels.statuses[10])
 	{
@@ -756,7 +782,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[11]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[11]);
 
 	if (labels.statuses[11])
 	{
@@ -770,7 +796,7 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[12]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[12]);
 
 	if (labels.statuses[12])
 	{
@@ -785,12 +811,12 @@ void UpdateLabels(gd::PlayLayer *self)
 	else
 		fontPtr->setString("");
 
-	fontPtr = static_cast<CCLabelBMFont *>(statuses[13]);
+	fontPtr = static_cast<CCLabelBMFont*>(statuses[13]);
 
 	if (labels.statuses[13])
 	{
-		if (!self->m_hasCompletedLevel)
-			fontPtr->setString(("Frame " + std::to_string(frames)).c_str());
+		if (!self->m_hasCompletedLevel && replayPlayer)
+			fontPtr->setString(("Frame " + std::to_string(replayPlayer->GetFrame())).c_str());
 
 		if (labels.rainbowLabels)
 			fontPtr->setColor(rainbow);
@@ -805,7 +831,9 @@ void UpdateLabels(gd::PlayLayer *self)
 		if (replayPlayer->IsRecording())
 			macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize())).c_str());
 		else if (replayPlayer->IsPlaying())
-			macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" + std::to_string(replayPlayer->GetActionsSize())).c_str());
+			macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" +
+								  std::to_string(replayPlayer->GetActionsSize()))
+									 .c_str());
 		else
 			macroText->setString("");
 	}
@@ -820,7 +848,9 @@ void UpdateLabels(gd::PlayLayer *self)
 		startPosText->setString("");
 }
 
-const char *actualFonts[] = {"bigFont.fnt", "chatFont.fnt", "gjFont01.fnt", "gjFont02.fnt", "gjFont03.fnt", "gjFont04.fnt", "gjFont05.fnt", "gjFont06.fnt", "gjFont07.fnt", "gjFont08.fnt", "gjFont09.fnt", "gjFont10.fnt", "gjFont11.fnt", "goldFont.fnt"};
+const char* actualFonts[] = {"bigFont.fnt",	 "chatFont.fnt", "gjFont01.fnt", "gjFont02.fnt", "gjFont03.fnt",
+							 "gjFont04.fnt", "gjFont05.fnt", "gjFont06.fnt", "gjFont07.fnt", "gjFont08.fnt",
+							 "gjFont09.fnt", "gjFont10.fnt", "gjFont11.fnt", "goldFont.fnt"};
 
 void PlayLayer::UpdatePositions(int index)
 {
@@ -830,13 +860,14 @@ void PlayLayer::UpdatePositions(int index)
 	auto director = CCDirector::sharedDirector();
 	auto size = director->getWinSize();
 
-	auto ptr = static_cast<CCLabelBMFont *>(statuses[index]);
+	auto ptr = static_cast<CCLabelBMFont*>(statuses[index]);
 
 	float tr = 0, tl = 0, br = 0, bl = 0, thisLabel;
 
 	for (size_t i = 0; i < STATUSSIZE; i++)
 	{
-		if (!labels.statuses[i] || i == 8 && hacks.onlyInRuns && !(playlayer->m_isTestMode || playlayer->m_isPracticeMode))
+		if (!labels.statuses[i] ||
+			i == 8 && hacks.onlyInRuns && !(playlayer->m_isTestMode || playlayer->m_isPracticeMode))
 			continue;
 
 		switch (labels.positions[i])
@@ -919,27 +950,30 @@ void PlayLayer::UpdatePositions(int index)
 		labels.opacity[index] = 255;
 	else if (labels.opacity[index] > 255)
 		labels.opacity[index] = 255;
-	statuses[index]->setAnchorPoint(statuses[index]->getPositionX() > 284.5f ? CCPointMake(1.0f, statuses[index]->getAnchorPoint().y) : CCPointMake(0.0f, statuses[index]->getAnchorPoint().y));
+	statuses[index]->setAnchorPoint(statuses[index]->getPositionX() > 284.5f
+										? CCPointMake(1.0f, statuses[index]->getAnchorPoint().y)
+										: CCPointMake(0.0f, statuses[index]->getAnchorPoint().y));
 }
 
 void PlayLayer::SyncMusic()
 {
-	if (!playlayer)
+	if (!playlayer || replayPlayer->recorder.m_recording)
 		return;
 	float f = playlayer->timeForXPos(playlayer->m_pPlayer1->getPositionX());
 	unsigned int p;
-	unsigned int *pos = &p;
+	unsigned int* pos = &p;
 	float offset = playlayer->m_pLevelSettings->m_songStartOffset * 1000;
 	gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
 	if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !playlayer->m_hasCompletedLevel)
 	{
-		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
+		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(
+			static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
 	}
 }
 
 bool lastFrameDead = false;
 
-void Update(gd::PlayLayer *self, float dt)
+void Update(gd::PlayLayer* self, float dt)
 {
 	percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
 	self->m_attemptLabel->setVisible(!hacks.hideattempts);
@@ -1009,11 +1043,15 @@ void Update(gd::PlayLayer *self, float dt)
 		{
 			actualDeaths++;
 			EndLevelLayer::deaths++;
+			if (hacks.accuracySound && labels.statuses[3])
+				gd::FMODAudioEngine::sharedEngine()->m_pSystem->playSound(
+					accuracySound, 0, false, &gd::FMODAudioEngine::sharedEngine()->m_pCurrentSoundChannel);
 		}
 
 		lastFrameDead = dead;
 
-		if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] || dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
+		if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] ||
+			dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
 		{
 			noClipDeaths++;
 			if (opacity < hacks.noclipRedLimit)
@@ -1036,10 +1074,9 @@ void Update(gd::PlayLayer *self, float dt)
 	}
 	prevP = self->m_pPlayer1->getPositionX();
 
-	bool cheat = PlayLayer::IsCheating();
-	if (cheat != (bool)Hacks::level["mods"][24]["toggle"] && hacks.autoSafeMode)
+	if (Hacks::isCheating != (bool)Hacks::level["mods"][24]["toggle"] && hacks.autoSafeMode)
 	{
-		Hacks::level["mods"][24]["toggle"] = cheat;
+		Hacks::level["mods"][24]["toggle"] = Hacks::isCheating;
 		Hacks::ToggleJSONHack(Hacks::level, 24, false);
 	}
 
@@ -1054,6 +1091,14 @@ void Update(gd::PlayLayer *self, float dt)
 		float acc = p * 100.f;
 		text = CCString::createWithFormat(labels.styles[2], acc)->getCString();
 		EndLevelLayer::accuracy = p * 100.f;
+	}
+
+	if (hacks.enableWaveTrailColor)
+	{
+		const ccColor3B col = {hacks.waveTrailColor[0] * 255.f, hacks.waveTrailColor[1] * 255.f,
+							   hacks.waveTrailColor[2] * 255.f};
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 	}
 
 	if (hacks.rainbowIcons)
@@ -1090,8 +1135,8 @@ void Update(gd::PlayLayer *self, float dt)
 			self->m_pPlayer2->m_vehicleSpriteWhitener->setColor(col);
 			self->m_pPlayer1->m_vehicleSpriteSecondary->setColor(col);
 			self->m_pPlayer2->m_vehicleSpriteSecondary->setColor(col);
-			reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(col);
-			reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(col);
+			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
+			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 		}
 
 		if (hacks.rainbowOutline)
@@ -1105,35 +1150,66 @@ void Update(gd::PlayLayer *self, float dt)
 
 	UpdateLabels(self);
 
+	if ((self->m_pPlayer1->m_isOnGround || !self->m_pPlayer1->m_isBall) && self->m_pPlayer1->getActionByTag(80085))
+	{
+		self->m_pPlayer1->getActionByTag(80085)->setSpeedMod(0);
+		self->m_pPlayer1->stopActionByTag(80085);
+	}
+
+	if ((self->m_pPlayer2->m_isOnGround || !self->m_pPlayer2->m_isBall) && self->m_pPlayer2->getActionByTag(80085))
+	{
+		self->m_pPlayer2->getActionByTag(80085)->setSpeedMod(0);
+		self->m_pPlayer2->stopActionByTag(80085);
+	}
+
 	if (hacks.lockCursor && !Hacks::show && !self->m_hasCompletedLevel && !self->m_isDead)
 		SetCursorPos(pixelSize.width, pixelSize.height);
 
 	dead = false;
 
 	if (replayPlayer)
+	{
 		replayPlayer->Update(self);
+	}
 
 	if (replayPlayer->recorder.m_recording)
 		replayPlayer->recorder.handle_recording(self, dt);
 
 	float xp = self->m_pPlayer1->getPositionX();
 
-	if (debug.enabled)
+	static float prevRot1;
+	static float prevRot2;
+
+	if(prevRot1 != self->m_pPlayer1->getRotation()) 
 	{
-		float prevYAccel = self->m_pPlayer1->m_yAccel;
-		float prex = self->m_pPlayer1->m_position.x;
-		std::stringstream strstr;
-		//strstr << " yaccel:" << self->m_pPlayer1->m_yAccel << " xaccel:" << self->m_pPlayer1->m_xAccel << " playerspeed:" << self->m_pPlayer1->m_playerSpeed;
-
-		PlayLayer::update(self, dt);
-
-		//strstr << " yacceldiff:" << self->m_pPlayer1->m_yAccel - prevYAccel << " xdiff:" << self->m_pPlayer1->m_position.x - prex << " scale:" << self->m_pPlayer1->getScale();
-		debug.debugString = strstr.str();
+		PlayLayer::player1RotRate = self->m_pPlayer1->getRotation() - prevRot1;
+		prevRot1 = self->m_pPlayer1->getRotation();
 	}
-	else
-		PlayLayer::update(self, dt);
 
-	
+	if(prevRot2 != self->m_pPlayer2->getRotation()) 
+	{
+		PlayLayer::player2RotRate = self->m_pPlayer2->getRotation() - prevRot2;
+		prevRot1 = self->m_pPlayer2->getRotation();
+	}
+
+	if (!smoothOut)
+		PlayLayer::update(self, dt);
+	else
+	{
+		float time = cocos2d::CCDirector::sharedDirector()->getAnimationInterval();
+		if (smoothOut != 0 && delta - time < 1)
+		{
+			smoothOut--;
+		}
+		PlayLayer::update(self, time);
+	}
+
+	std::stringstream raif;
+	raif << "r1 " << prevRot1 << " r2 " << prevRot2 << " rot1 " << self->m_pPlayer1->getRotation() << " rot2 " << self->m_pPlayer2->getRotation() << " rate1 " << PlayLayer::player1RotRate << " rate2 " << PlayLayer::player2RotRate;
+	debug.debugString = raif.str();
+
+	if (hacks.trajectory)
+		TrajectorySimulation::getInstance()->processMainSimulation(dt);
 
 	if (self->m_pPlayer1->m_waveTrail && hacks.solidWavePulse)
 		self->m_pPlayer1->m_waveTrail->m_pulseSize = hacks.waveSize;
@@ -1144,7 +1220,7 @@ void Update(gd::PlayLayer *self, float dt)
 	{
 		auto p = self->getChildren()->objectAtIndex(0);
 		if (frames > 10)
-			static_cast<CCSprite *>(p)->setColor({50, 50, 255});
+			static_cast<CCSprite*>(p)->setColor({50, 50, 255});
 
 		for (int s = self->sectionForPos(xp) - 5; s < self->sectionForPos(xp) + 6; ++s)
 		{
@@ -1152,13 +1228,16 @@ void Update(gd::PlayLayer *self, float dt)
 				continue;
 			if (s >= self->m_sectionObjects->count())
 				break;
-			auto section = static_cast<CCArray *>(self->m_sectionObjects->objectAtIndex(s));
+			auto section = static_cast<CCArray*>(self->m_sectionObjects->objectAtIndex(s));
 			for (size_t i = 0; i < section->count(); ++i)
 			{
-				auto o = static_cast<gd::GameObject *>(section->objectAtIndex(i));
+				auto o = static_cast<gd::GameObject*>(section->objectAtIndex(i));
 
 				if (o->getType() == gd::GameObjectType::kGameObjectTypeDecoration && o->isVisible() &&
-					(o->m_nObjectID != 44 && o->m_nObjectID != 749 && o->m_nObjectID != 12 && o->m_nObjectID != 38 && o->m_nObjectID != 47 && o->m_nObjectID != 111 && o->m_nObjectID != 8 && o->m_nObjectID != 13 && o->m_nObjectID != 660 && o->m_nObjectID != 745 && o->m_nObjectID != 101 && o->m_nObjectID != 99 && o->m_nObjectID != 1331))
+					(o->m_nObjectID != 44 && o->m_nObjectID != 749 && o->m_nObjectID != 12 && o->m_nObjectID != 38 &&
+					 o->m_nObjectID != 47 && o->m_nObjectID != 111 && o->m_nObjectID != 8 && o->m_nObjectID != 13 &&
+					 o->m_nObjectID != 660 && o->m_nObjectID != 745 && o->m_nObjectID != 101 && o->m_nObjectID != 99 &&
+					 o->m_nObjectID != 1331))
 				{
 					o->setVisible(false);
 				}
@@ -1166,7 +1245,8 @@ void Update(gd::PlayLayer *self, float dt)
 		}
 	}
 
-	if (drawer && hacks.showHitboxes && !hacks.onlyOnDeath || drawer && hacks.showHitboxes && hacks.onlyOnDeath && hitboxDead && playlayer->m_isDead)
+	if (drawer && hacks.showHitboxes && !hacks.onlyOnDeath ||
+		drawer && hacks.showHitboxes && hacks.onlyOnDeath && hitboxDead && playlayer->m_isDead)
 	{
 		drawer->setVisible(true);
 
@@ -1175,9 +1255,15 @@ void Update(gd::PlayLayer *self, float dt)
 			for (size_t i = 0; i < coinPos.size(); i++)
 			{
 				if (coinPos[i] && self->m_pPlayer1->getPositionX() <= coinPos[i]->getPositionX())
-					drawer->drawSegment(self->m_pPlayer1->getPosition(), coinPos[i]->getPosition(), 0.5f, ccc4f(0, 1, 0, 1));
+					drawer->drawSegment(self->m_pPlayer1->getPosition(), coinPos[i]->getPosition(), 0.5f,
+										ccc4f(0, 1, 0, 1));
 			}
 		}
+
+		if (replayPlayer && replayPlayer->GetActionsSize() > 0)
+			drawer->drawCircleHitbox({replayPlayer->GetReplay()->getActions()[replayPlayer->GetActionIndex()].px,
+									  replayPlayer->GetReplay()->getActions()[replayPlayer->GetActionIndex()].py},
+									 5.0f, {255, 255, 0, 0});
 
 		if (self->m_pPlayer1)
 		{
@@ -1198,10 +1284,10 @@ void Update(gd::PlayLayer *self, float dt)
 				continue;
 			if (s >= self->m_sectionObjects->count())
 				break;
-			auto section = static_cast<CCArray *>(self->m_sectionObjects->objectAtIndex(s));
+			auto section = static_cast<CCArray*>(self->m_sectionObjects->objectAtIndex(s));
 			for (size_t i = 0; i < section->count(); ++i)
 			{
-				auto obj = static_cast<gd::GameObject *>(section->objectAtIndex(i));
+				auto obj = static_cast<gd::GameObject*>(section->objectAtIndex(i));
 
 				if (hacks.hitboxOnly)
 					obj->setOpacity(0);
@@ -1221,7 +1307,7 @@ float PlayLayer::GetStartPercent()
 	return startPercent;
 }
 
-void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer *self, void *, bool idk)
+void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer* self, void*, bool idk)
 {
 	if (replayPlayer && replayPlayer->IsRecording())
 	{
@@ -1231,10 +1317,10 @@ void __fastcall PlayLayer::pauseGameHook(gd::PlayLayer *self, void *, bool idk)
 	PlayLayer::pauseGame(self, idk);
 }
 
-cocos2d::CCTouch *_touch = nullptr;
-cocos2d::CCEvent *_event = nullptr;
+cocos2d::CCTouch* _touch = nullptr;
+cocos2d::CCEvent* _event = nullptr;
 
-void __fastcall PlayLayer::uiOnPauseHook(gd::UILayer *self, void *, CCObject *obj)
+void __fastcall PlayLayer::uiOnPauseHook(gd::UILayer* self, void*, CCObject* obj)
 {
 	wasPaused = true;
 	if (hacks.voidClick && _touch)
@@ -1242,106 +1328,74 @@ void __fastcall PlayLayer::uiOnPauseHook(gd::UILayer *self, void *, CCObject *ob
 	PlayLayer::uiOnPause(self, obj);
 }
 
-void __fastcall PlayLayer::uiTouchBeganHook(gd::UILayer *self, void *, cocos2d::CCTouch *touch, cocos2d::CCEvent *evnt)
+void __fastcall PlayLayer::uiTouchBeganHook(gd::UILayer* self, void*, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt)
 {
 	_touch = touch;
 	_event = evnt;
 	PlayLayer::uiTouchBegan(self, touch, evnt);
 }
 
-gd::GameObject *__fastcall PlayLayer::hasBeenActivatedByPlayerHook(gd::GameObject *self, void *, gd::GameObject *other)
+gd::GameObject* __fastcall PlayLayer::powerOffObjectHook(gd::GameObject* self)
 {
-	if (simulating && self->getType() != gd::GameObjectType::kGameObjectTypeSlope && self->getType() != gd::GameObjectType::kGameObjectTypeSolid)
-		return other;
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
+		return self;
+	return PlayLayer::powerOffObject(self);
+}
+
+gd::GameObject* __fastcall PlayLayer::playShineEffectHook(gd::GameObject* self)
+{
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
+		return self;
+	return PlayLayer::playShineEffect(self);
+}
+
+gd::GameObject* __fastcall PlayLayer::hasBeenActivatedByPlayerHook(gd::GameObject* self, void*, gd::GameObject* other)
+{
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
+	{
+		if (self->getType() != gd::GameObjectType::kGameObjectTypeSlope &&
+			self->getType() != gd::GameObjectType::kGameObjectTypeSolid &&
+			self->getType() != gd::GameObjectType::kGameObjectTypeGravityPad &&
+			self->getType() != gd::kGameObjectTypePinkJumpPad && self->getType() != gd::kGameObjectTypeRedJumpPad &&
+			self->getType() != gd::kGameObjectTypeYellowJumpPad && self->getType() != gd::kGameObjectTypeDashRing &&
+			self->getType() != gd::kGameObjectTypeDropRing && self->getType() != gd::kGameObjectTypeGravityDashRing &&
+			self->getType() != gd::kGameObjectTypeGravityRing && self->getType() != gd::kGameObjectTypeGreenRing &&
+			self->getType() != gd::kGameObjectTypePinkJumpRing && self->getType() != gd::kGameObjectTypeRedJumpRing &&
+			self->getType() != gd::kGameObjectTypeYellowJumpRing && self->getType() != gd::kGameObjectTypeSpecial &&
+			self->getType() != gd::kGameObjectTypeCollisionObject && self->getType() != gd::kGameObjectTypeHazard &&
+			self->getType() != gd::kGameObjectTypeInverseGravityPortal &&
+			self->getType() != gd::kGameObjectTypeNormalGravityPortal &&
+			self->getType() != gd::kGameObjectTypeTeleportPortal &&
+			self->getType() != gd::kGameObjectTypeMiniSizePortal &&
+			self->getType() != gd::kGameObjectTypeRegularSizePortal)
+		{
+			return other;
+		}
+	}
 
 	return PlayLayer::hasBeenActivatedByPlayer(self, other);
 }
 
-void __fastcall PlayLayer::addPointHook(gd::HardStreak *self, void *, CCPoint point)
+void __fastcall PlayLayer::addPointHook(gd::HardStreak* self, void*, CCPoint point)
 {
-	if (simulating)
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
 		return;
 	PlayLayer::addPoint(self, point);
 }
 
-void ProcessUpdate(gd::PlayLayer *self, float dt)
+void __fastcall PlayLayer::updateHook(gd::PlayLayer* self, void*, float dt)
 {
-	if (hacks.trajectory)
-	{
-		drawer->setVisible(true);
-		drawer->clear();
-		CheckpointData cd = CheckpointData::fromPlayer(self->m_pPlayer1);
-		auto pos = self->m_pPlayer1->getPosition();
-
-		simulating = true;
-		diedWhileSimulating = false;
-
-		PlayLayer::releaseButton(self->m_pPlayer1, 0);
-
-		for (int i = 0; i < 240; i++)
-		{
-			PlayLayer::checkCollisionsHook(self, 0, self->m_pPlayer1);
-			auto prevPos = self->m_pPlayer1->getPosition();
-			self->m_pPlayer1->update(0.25f);
-			if (i == 239 || diedWhileSimulating)
-				drawer->drawForPlayer1(self->m_pPlayer1);
-			else
-				drawer->drawSegment(prevPos, self->m_pPlayer1->getPosition(), 0.65f, ccc4f(0, 1, 0, 1));
-			if (diedWhileSimulating)
-				break;
-		}
-
-		cd.Apply(self->m_pPlayer1, false);
-		self->m_pPlayer1->setPosition(pos);
-		diedWhileSimulating = false;
-
-		PlayLayer::pushButton(self->m_pPlayer1, 0);
-
-		for (int i = 0; i < 240; i++)
-		{
-			PlayLayer::checkCollisionsHook(self, 0, self->m_pPlayer1);
-			auto prevPos = self->m_pPlayer1->getPosition();
-			self->m_pPlayer1->update(0.25f);
-			if (i == 239 || diedWhileSimulating)
-				drawer->drawForPlayer1(self->m_pPlayer1);
-			else
-				drawer->drawSegment(prevPos, self->m_pPlayer1->getPosition(), 0.65f, ccc4f(0, 1, 0, 1));
-			if (diedWhileSimulating)
-				break;
-		}
-
-		simulating = false;
-
-		self->m_pPlayer1->setPosition(pos);
-		cd.Apply(self->m_pPlayer1, false);
-		Update(self, dt);
-	}
-	else
-		Update(self, dt);
-}
-
-void __fastcall PlayLayer::updateHook(gd::PlayLayer *self, void *, float dt)
-{
-	if (hacks.frameStep)
-	{
-		if ((steps > 0 || holdingAdvance) && drawer)
-		{
-			ProcessUpdate(self, dt);
-			steps--;
-		}
-	}
-	else
-		ProcessUpdate(self, dt);
-
+	Update(self, dt);
 	return;
 }
 
-void __fastcall PlayLayer::triggerObjectHook(gd::EffectGameObject *self, void *, gd::GJBaseGameLayer *idk)
+void __fastcall PlayLayer::triggerObjectHook(gd::EffectGameObject* self, void*, gd::GJBaseGameLayer* idk)
 {
-	if (simulating)
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
 		return;
 	auto id = self->m_nObjectID;
-	if (hacks.layoutMode && (id == 899 || id == 1006 || id == 1007 || id == 105 || id == 29 || id == 56 || id == 915 || id == 30 || id == 58))
+	if (hacks.layoutMode && (id == 899 || id == 1006 || id == 1007 || id == 105 || id == 29 || id == 56 || id == 915 ||
+							 id == 30 || id == 58))
 		return;
 	PlayLayer::triggerObject(self, idk);
 }
@@ -1359,15 +1413,16 @@ void Change()
 
 	startPosText->runAction(CCSequence::create(&actions));
 
-	if (playlayer->unk330)
-		playlayer->unk330->release();
-	playlayer->unk330 = nullptr;
+	if (playlayer->m_startPosCheckpoint)
+		playlayer->m_startPosCheckpoint->release();
+	playlayer->m_startPosCheckpoint = nullptr;
 
 	if (startPosIndex >= 0)
 	{
 		playlayer->m_isTestMode = true;
 		playlayer->m_startPos = sp[startPosIndex];
-		playlayer->m_playerStartPosition = CCPointMake(sp[startPosIndex]->getPositionX(), sp[startPosIndex]->getPositionY());
+		playlayer->m_playerStartPosition =
+			CCPointMake(sp[startPosIndex]->getPositionX(), sp[startPosIndex]->getPositionY());
 	}
 	else
 	{
@@ -1382,14 +1437,8 @@ void Change()
 		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 }
 
-void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
+void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 {
-	if (replayPlayer && replayPlayer->IsRecording())
-	{
-		replayPlayer->UpdateFrameOffset();
-		replayPlayer->GetReplay()->RemoveActionsAfter(replayPlayer->GetFrame());
-	}
-
 	// reset stuff
 	hitboxDead = false;
 	totalClicks = 0;
@@ -1398,7 +1447,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	lastFrameDead = false;
 	noClipDeaths = 0;
 	delta = 0;
-	steps = 0;
+	Hacks::steps = 0;
 	pressTimer = 0;
 	opacity = 0;
 	releaseTimer = hacks.releaseTime;
@@ -1406,11 +1455,20 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	dead = false;
 	frames = 0;
 	self->m_attemptJumpCount = 0;
-	simulating = false;
-	diedWhileSimulating = false;
+	PlayLayer::player1RotRate = 0;
+	PlayLayer::player2RotRate = 0;
+	TrajectorySimulation::getInstance()->m_pDieInSimulation = false;
+	TrajectorySimulation::getInstance()->m_pIsSimulation = false;
 	Hacks::ToggleJSONHack(Hacks::player, 0, false);
 	clicksArr.clear();
-	
+
+	if (hacks.autoUpdateRespawn)
+		Hacks::WriteRef(gd::base + 0x20A677,
+						hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
+
+	if (self->m_isPracticeMode || self->m_isTestMode)
+		smoothOut = 2;
+
 	if (drawer)
 	{
 		drawer->clearQueue();
@@ -1435,7 +1493,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 	if (self->m_checkpoints->count() > 0)
 	{
 		auto porcodio = self->m_checkpoints->lastObject();
-		gd::CheckpointObject *go = reinterpret_cast<gd::CheckpointObject *>(porcodio);
+		gd::CheckpointObject* go = reinterpret_cast<gd::CheckpointObject*>(porcodio);
 		startPercent = (go->m_player1->m_position.x / self->m_levelLength) * 100.0f;
 	}
 	else
@@ -1447,21 +1505,21 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 
 	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
 
-	if (playlayer)
-	{
-		self->m_pPlayer1->setColor(iconCol);
-		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
-		self->m_pPlayer2->setColor(secIconCol);
-		self->m_pPlayer2->m_iconSprite->setColor(iconCol);
-		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
-		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
-		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
-	}
+	// if (playlayer)
+	// {
+	// 	self->m_pPlayer1->setColor(iconCol);
+	// 	self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
+	// 	self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
+	// 	self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
+	// 	self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
+	// 	self->m_pPlayer2->setColor(secIconCol);
+	// 	self->m_pPlayer2->m_iconSprite->setColor(iconCol);
+	// 	self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
+	// 	self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
+	// 	self->m_pPlayer2->m_robotSprite->setColor(iconCol);
+	// 	reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
+	// 	reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
+	// }
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
 	{
@@ -1481,9 +1539,12 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer *self, void *)
 		releaseButtonHook(self->m_pPlayer2, 0, 0);
 		wasPaused = false;
 	}
+
+	if (replayPlayer)
+		Hacks::isCheating = PlayLayer::IsCheating();
 }
 
-void __fastcall PlayLayer::togglePracticeModeHook(gd::PlayLayer *self, void *edx, bool on)
+void __fastcall PlayLayer::togglePracticeModeHook(gd::PlayLayer* self, void* edx, bool on)
 {
 	if (percent >= 100.0f && hacks.lastCheckpoint)
 	{
@@ -1496,7 +1557,7 @@ void __fastcall PlayLayer::togglePracticeModeHook(gd::PlayLayer *self, void *edx
 	}
 }
 
-void __fastcall PlayLayer::onQuitHook(gd::PlayLayer *self, void *)
+void __fastcall PlayLayer::onQuitHook(gd::PlayLayer* self, void*)
 {
 	if (hacks.confirmQuit && !self->m_hasCompletedLevel)
 		gd::FLAlertLayer::create(&a, "Confirm", "No", "Yes", "Do you really want to quit?")->show();
@@ -1506,15 +1567,14 @@ void __fastcall PlayLayer::onQuitHook(gd::PlayLayer *self, void *)
 	}
 }
 
-void *__fastcall PlayLayer::getObjectRectHook(cocos2d::CCNode *obj, void *, gd::GameObject *self, float w, float h)
+void* __fastcall PlayLayer::getObjectRectHook(cocos2d::CCNode* obj, void*, gd::GameObject* self, float w, float h)
 {
 	if (hacks.enableHitboxMultiplier && !EndLevelLayer::nameChildFind(obj, "PlayerObject"))
 	{
-		switch ((reinterpret_cast<gd::GameObject *>(obj))->getType())
+		switch ((reinterpret_cast<gd::GameObject*>(obj))->getType())
 		{
 		case gd::GameObjectType::kGameObjectTypeSolid:
-		case gd::GameObjectType::kGameObjectTypeSlope:
-		{
+		case gd::GameObjectType::kGameObjectTypeSlope: {
 			w *= hacks.hitboxSolids;
 			h *= hacks.hitboxSolids;
 			break;
@@ -1552,23 +1612,21 @@ void *__fastcall PlayLayer::getObjectRectHook(cocos2d::CCNode *obj, void *, gd::
 		case gd::GameObjectType::kGameObjectTypeSecretCoin:
 		case gd::GameObjectType::kGameObjectTypeUserCoin:
 		case gd::GameObjectType::kGameObjectTypeCustomRing:
-		case gd::GameObjectType::kGameObjectTypeCollectible:
-		{
+		case gd::GameObjectType::kGameObjectTypeCollectible: {
 			w *= hacks.hitboxSpecial;
 			h *= hacks.hitboxSpecial;
 			break;
 		}
-		case gd::GameObjectType::kGameObjectTypeHazard:
-		{
-			if ((reinterpret_cast<gd::GameObject *>(obj))->getObjectRadius() <= 0)
+		case gd::GameObjectType::kGameObjectTypeHazard: {
+			if ((reinterpret_cast<gd::GameObject*>(obj))->getObjectRadius() <= 0)
 			{
 				w *= hacks.hitboxMultiplier;
 				h *= hacks.hitboxMultiplier;
 			}
-			else if (!(reinterpret_cast<gd::GameObject *>(obj))->m_unk368)
+			else if (!(reinterpret_cast<gd::GameObject*>(obj))->m_unk368)
 			{
-				(reinterpret_cast<gd::GameObject *>(obj))->m_objectRadius *= hacks.hitboxMultiplier;
-				(reinterpret_cast<gd::GameObject *>(obj))->m_unk368 = true;
+				(reinterpret_cast<gd::GameObject*>(obj))->m_objectRadius *= hacks.hitboxMultiplier;
+				(reinterpret_cast<gd::GameObject*>(obj))->m_unk368 = true;
 			}
 			break;
 		}
@@ -1579,15 +1637,14 @@ void *__fastcall PlayLayer::getObjectRectHook(cocos2d::CCNode *obj, void *, gd::
 	return PlayLayer::getObjectRect(obj, self, w, h);
 }
 
-void *__fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode *obj, void *, float w, float h)
+void* __fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode* obj, void*, float w, float h)
 {
 	if (hacks.enableHitboxMultiplier && !EndLevelLayer::nameChildFind(obj, "PlayerObject"))
 	{
-		switch ((reinterpret_cast<gd::GameObject *>(obj))->getType())
+		switch ((reinterpret_cast<gd::GameObject*>(obj))->getType())
 		{
 		case gd::GameObjectType::kGameObjectTypeSolid:
-		case gd::GameObjectType::kGameObjectTypeSlope:
-		{
+		case gd::GameObjectType::kGameObjectTypeSlope: {
 			w *= hacks.hitboxSolids;
 			h *= hacks.hitboxSolids;
 			break;
@@ -1625,23 +1682,21 @@ void *__fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode *obj, void *, flo
 		case gd::GameObjectType::kGameObjectTypeSecretCoin:
 		case gd::GameObjectType::kGameObjectTypeUserCoin:
 		case gd::GameObjectType::kGameObjectTypeCustomRing:
-		case gd::GameObjectType::kGameObjectTypeCollectible:
-		{
+		case gd::GameObjectType::kGameObjectTypeCollectible: {
 			w *= hacks.hitboxSpecial;
 			h *= hacks.hitboxSpecial;
 			break;
 		}
-		case gd::GameObjectType::kGameObjectTypeHazard:
-		{
-			if ((reinterpret_cast<gd::GameObject *>(obj))->getObjectRadius() <= 0)
+		case gd::GameObjectType::kGameObjectTypeHazard: {
+			if ((reinterpret_cast<gd::GameObject*>(obj))->getObjectRadius() <= 0)
 			{
 				w *= hacks.hitboxMultiplier;
 				h *= hacks.hitboxMultiplier;
 			}
-			else if (!(reinterpret_cast<gd::GameObject *>(obj))->m_unk368)
+			else if (!(reinterpret_cast<gd::GameObject*>(obj))->m_unk368)
 			{
-				(reinterpret_cast<gd::GameObject *>(obj))->m_objectRadius *= hacks.hitboxMultiplier;
-				(reinterpret_cast<gd::GameObject *>(obj))->m_unk368 = true;
+				(reinterpret_cast<gd::GameObject*>(obj))->m_objectRadius *= hacks.hitboxMultiplier;
+				(reinterpret_cast<gd::GameObject*>(obj))->m_unk368 = true;
 			}
 			break;
 		}
@@ -1654,6 +1709,7 @@ void *__fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode *obj, void *, flo
 
 void PlayLayer::Quit()
 {
+	TrajectorySimulation::getInstance()->onQuitPlayLayer();
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
 	startPosText = nullptr;
@@ -1662,7 +1718,7 @@ void PlayLayer::Quit()
 	Hacks::UpdateRichPresence(2);
 }
 
-bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd::GJGameLevel *lvl)
+bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer* self, void*, gd::GJGameLevel* lvl)
 {
 	playlayer = nullptr;
 	startPosText = nullptr;
@@ -1674,16 +1730,14 @@ bool __fastcall PlayLayer::editorInitHook(gd::LevelEditorLayer *self, void *, gd
 	return res;
 }
 
-void __fastcall PlayLayer::lightningFlashHook(gd::PlayLayer *self, void *edx, CCPoint p, _ccColor3B c)
+void __fastcall PlayLayer::lightningFlashHook(gd::PlayLayer* self, void* edx, CCPoint p, _ccColor3B c)
 {
 	if (!hacks.layoutMode)
 		PlayLayer::lightningFlash(self, p, c);
 }
 
-void __fastcall PlayLayer::togglePlayerScaleHook(gd::PlayerObject *self, void *, bool toggle)
+void __fastcall PlayLayer::togglePlayerScaleHook(gd::PlayerObject* self, void*, bool toggle)
 {
-	if (simulating)
-		return;
 	if (drawer && playlayer)
 	{
 		self == playlayer->m_pPlayer1 ? drawer->m_isMini1 = toggle : drawer->m_isMini2 = toggle;
@@ -1691,9 +1745,24 @@ void __fastcall PlayLayer::togglePlayerScaleHook(gd::PlayerObject *self, void *,
 	PlayLayer::togglePlayerScale(self, toggle);
 }
 
-void __fastcall PlayLayer::ringJumpHook(gd::PlayerObject *self, void *, gd::GameObject *ring)
+void __fastcall PlayLayer::toggleDartModeHook(gd::PlayerObject* self, void*, bool toggle)
 {
-	if (simulating)
+	if (playlayer && hacks.trajectory && TrajectorySimulation::getInstance()->m_pPlayer1ForSimulation &&
+		TrajectorySimulation::getInstance()->m_pPlayer2ForSimulation)
+	{
+		TrajectorySimulation::getInstance()->m_pIsSimulation = true;
+		PlayLayer::toggleDartMode(self == playlayer->m_pPlayer1
+									  ? TrajectorySimulation::getInstance()->m_pPlayer1ForSimulation
+									  : TrajectorySimulation::getInstance()->m_pPlayer2ForSimulation,
+								  toggle);
+		TrajectorySimulation::getInstance()->m_pIsSimulation = false;
+	}
+	PlayLayer::toggleDartMode(self, toggle);
+}
+
+void __fastcall PlayLayer::ringJumpHook(gd::PlayerObject* self, void*, gd::GameObject* ring)
+{
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooksWithPlayer(self))
 		return;
 	bool a = ring->m_bHasBeenActivated;
 	bool b = ring->m_bHasBeenActivatedP2;
@@ -1702,10 +1771,13 @@ void __fastcall PlayLayer::ringJumpHook(gd::PlayerObject *self, void *, gd::Game
 		replayPlayer->HandleActivatedObjects(a, b, ring);
 }
 
-void __fastcall PlayLayer::activateObjectHook(gd::GameObject *self, void *, gd::PlayerObject *player)
+void __fastcall PlayLayer::activateObjectHook(gd::GameObject* self, void*, gd::PlayerObject* player)
 {
-	if (simulating)
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooksWithPlayer(player))
+	{
+		// TrajectorySimulation::getInstance()->activateObjectsOnPlayerSimulations(self, player);
 		return;
+	}
 	bool a = self->m_bHasBeenActivated;
 	bool b = self->m_bHasBeenActivatedP2;
 	PlayLayer::activateObject(self, player);
@@ -1713,9 +1785,9 @@ void __fastcall PlayLayer::activateObjectHook(gd::GameObject *self, void *, gd::
 		replayPlayer->HandleActivatedObjects(a, b, self);
 }
 
-void __fastcall PlayLayer::bumpHook(gd::GJBaseGameLayer *self, void *, gd::PlayerObject *player, gd::GameObject *object)
+void __fastcall PlayLayer::bumpHook(gd::GJBaseGameLayer* self, void*, gd::PlayerObject* player, gd::GameObject* object)
 {
-	if (simulating)
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
 		return;
 	bool a = object->m_bHasBeenActivated;
 	bool b = object->m_bHasBeenActivatedP2;
@@ -1724,19 +1796,30 @@ void __fastcall PlayLayer::bumpHook(gd::GJBaseGameLayer *self, void *, gd::Playe
 		replayPlayer->HandleActivatedObjects(a, b, object);
 }
 
-void __fastcall PlayLayer::newBestHook(gd::PlayLayer *self, void *, bool b1, int i1, int i2, bool b2, bool b3, bool b4)
+void __fastcall PlayLayer::flipGravityHook(gd::PlayLayer* self, void*, gd::PlayerObject* player, bool idk, bool idk2)
+{
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
+		return;
+
+	PlayLayer::flipGravity(self, player, idk, idk2);
+}
+
+void __fastcall PlayLayer::newBestHook(gd::PlayLayer* self, void*, bool b1, int i1, int i2, bool b2, bool b3, bool b4)
 {
 	PlayLayer::newBest(self, b1, i1, i2, b2, b3, b4);
 
 	Hacks::UpdateRichPresence(0, 0, (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
 }
 
-void __fastcall PlayLayer::checkCollisionsHook(gd::PlayLayer *self, void *, gd::PlayerObject *player)
+void __fastcall PlayLayer::playGravityEffectHook(gd::PlayLayer* self, void*, bool idk)
 {
-	PlayLayer::checkCollisions(self, player);
+	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooks())
+		return;
+
+	PlayLayer::playGravityEffect(self, idk);
 }
 
-void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, bool down)
+void __fastcall PlayLayer::dispatchKeyboardMSGHook(void* self, void*, int key, bool down)
 {
 	dispatchKeyboardMSG(self, key, down);
 	static int debugNum = 0;
@@ -1786,12 +1869,12 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void *self, void *, int key, 
 		if (down)
 		{
 			if (!hacks.holdAdvance)
-				steps = hacks.stepCount;
+				Hacks::steps = hacks.stepCount;
 			else
-				holdingAdvance = true;
+				Hacks::holdingAdvance = true;
 		}
 		else
-			holdingAdvance = false;
+			Hacks::holdingAdvance = false;
 	}
 
 	if (!hacks.startPosSwitcher || sp.size() <= 0)
