@@ -863,6 +863,10 @@ void Init()
 	{
 		std::filesystem::create_directory("GDMenu/renders");
 	}
+	if (!std::filesystem::is_directory("GDMenu/replays") || !std::filesystem::exists("GDMenu/replays"))
+	{
+		std::filesystem::create_directory("GDMenu/replays");
+	}
 	if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
 	{
 		std::filesystem::create_directory("GDMenu/clicks");
