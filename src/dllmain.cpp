@@ -224,6 +224,16 @@ const char* const KeyNames[] = {"Unknown",
 								"LAlt",
 								"RAlt"};
 
+std::vector<std::string> get_dll_names() {
+	std::vector<std::string> dll_names;
+	for (const auto& entry : std::filesystem::directory_iterator("GDMenu/dll")) {
+		if (entry.path().extension() == ".dll") {
+			dll_names.push_back(entry.path().filename().string());
+		}
+	}
+	return dll_names;
+}
+
 bool Hotkey(const char* label, int* k, const ImVec2& size_arg = ImVec2(0, 0))
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -2396,6 +2406,33 @@ void Hacks::RenderMain()
 
 		ImGui::PopItemWidth();
 
+		ImGui::End();
+		
+		ImGui::SetNextWindowSizeConstraints({ windowSize, 1 }, { windowSize, 10000 });
+		ImGui::Begin("Extensions", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize);
+		std::vector<std::string> dll_names = get_dll_names();
+		ImGui::Text("Extensions Loaded: %d", dll_names.size());
+		ImGui::SameLine(arrowButtonPosition* screenSize* hacks.menuSize);
+		if (ImGui::ArrowButton("dlls_list", 1))
+			ImGui::OpenPopup("DLL List");
+		if (ImGui::BeginPopupModal("DLL List", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		{
+			for (const auto& name : dll_names)
+			{
+				ImGui::Text(name.c_str());
+			}
+			if (ImButton("Close", false))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			if (!Hacks::fake)
+				ImGui::EndPopup();
+		}
+		ImButton("Extensions Folder");
+		if (ImGui::IsItemClicked())
+		{
+			ShellExecute(NULL, "open", "GDMenu\\dll", NULL, NULL, SW_SHOWNORMAL);
+		}
 		ImGui::End();
 
 		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
