@@ -1532,6 +1532,17 @@ void Hacks::RenderMain()
 			ImInputInt("Hitbox Opacity", &hacks.borderOpacity, 0);
 			ImInputInt("Fill Opacity", &hacks.hitboxOpacity, 0);
 			ImInputFloat("Hitbox Thickness", &hacks.hitboxThickness);
+			ImColorEdit3("Solid Color", hacks.solidHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Slope Color", hacks.slopeHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Hazard Color", hacks.hazardHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Portal Color", hacks.portalHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Pad Color", hacks.padHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Ring Color", hacks.ringHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Collectible Color", hacks.collectibleHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Modifier Color", hacks.modifierHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Player Color", hacks.playerHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Rotated Player Color", hacks.rotatedHitboxColor, ImGuiColorEditFlags_NoInputs);
+			ImColorEdit3("Center Player Color", hacks.centerHitboxColor, ImGuiColorEditFlags_NoInputs);
 			if (ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
@@ -1802,6 +1813,11 @@ void Hacks::RenderMain()
 		{
 			TextSettings(1, true);
 			ImInputText("Style##fpsc", labels.styles[0], 15);
+			ImGui::SameLine();
+			if(ImButton("Reset##fpsc"))
+			{
+				strcpy(labels.styles[0], "%.0f/%.0f");
+			}
 			ImInputFloat("Update Interval", &labels.fpsUpdate);
 			if (ImButton("Close", false))
 			{
@@ -1820,7 +1836,12 @@ void Hacks::RenderMain()
 		if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
 		{
 			TextSettings(2, true);
-			ImInputText("Style##fpsc", labels.styles[1], 15);
+			ImInputText("Style##cpsc", labels.styles[1], 15);
+			ImGui::SameLine();
+			if(ImButton("Reset##cpsc"))
+			{
+				strcpy(labels.styles[1], "%i/%i");
+			}
 			ImColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
 			if (ImButton("Close", false))
 			{
@@ -1841,6 +1862,11 @@ void Hacks::RenderMain()
 		{
 			TextSettings(3, true);
 			ImInputText("Style##noclipacc", labels.styles[2], 15);
+			ImGui::SameLine();
+			if(ImButton("Reset##noclipacc"))
+			{
+				strcpy(labels.styles[2], "Accuracy: %.2f");
+			}
 			ImInputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
 			ImCheckbox("Play Sound on death", &hacks.accuracySound);
 			ImCheckbox("Enable Screen Effect", &hacks.noclipRed);
@@ -1867,6 +1893,11 @@ void Hacks::RenderMain()
 		if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
 		{
 			ImInputText("Style##noclipdeaths", labels.styles[3], 15);
+			ImGui::SameLine();
+			if(ImButton("Reset##noclipdeaths"))
+			{
+				strcpy(labels.styles[3], "Deaths: %i");
+			}
 			TextSettings(4, true);
 			if (ImButton("Close", false))
 			{

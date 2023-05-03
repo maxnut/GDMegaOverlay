@@ -241,10 +241,10 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 				Hacks::writeOutput(std::to_string(actionIndex) + "x is " +
 								   std::to_string(playLayer->m_pPlayer1->m_position.x) + " should be " +
 								   std::to_string(ac.px));
-				// Hacks::writeOutput(std::to_string(actionIndex) + "y is " +
-				// std::to_string(playLayer->m_pPlayer1->m_position.y) + " should be " + std::to_string(ac.py));
-				// Hacks::writeOutput(std::to_string(actionIndex) + "yvel is " +
-				// std::to_string(playLayer->m_pPlayer1->m_yAccel) + " should be " + std::to_string(ac.yAccel));
+				Hacks::writeOutput(std::to_string(actionIndex) + "y is " +
+				std::to_string(playLayer->m_pPlayer1->m_position.y) + " should be " + std::to_string(ac.py));
+				Hacks::writeOutput(std::to_string(actionIndex) + "yvel is " +
+				std::to_string(playLayer->m_pPlayer1->m_yAccel) + " should be " + std::to_string(ac.yAccel));
 			}
 			if (!ac.player2 && !hacks.disableBotCorrection)
 			{

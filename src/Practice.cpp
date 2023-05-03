@@ -173,9 +173,8 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 
 	if (gamemode == gd::kGamemodeBall && !p->m_isOnGround)
 	{
-		auto ac = p->createRotateAction(360 * (p->m_isUpsideDown ? 1 : -1), 1);
-		ac->setTag(80085);
-		p->runAction(ac);
+		p->runBallRotation2();
+		auto ac = static_cast<cocos2d::CCFiniteTimeAction*>(p->getActionByTag(1));
 	}
 
 	return out;

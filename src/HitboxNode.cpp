@@ -1,6 +1,6 @@
 #include "HitboxNode.hpp"
-#include "bools.h"
 #include "Hacks.h"
+#include "bools.h"
 
 extern struct HacksStr hacks;
 
@@ -8,7 +8,7 @@ HitboxNode::HitboxNode()
 {
 }
 
-HitboxNode *HitboxNode::create()
+HitboxNode* HitboxNode::create()
 {
 	auto ret = new HitboxNode();
 	if (ret && ret->init())
@@ -20,24 +20,25 @@ HitboxNode *HitboxNode::create()
 	return nullptr;
 }
 
-HitboxNode *HitboxNode::getInstance()
+HitboxNode* HitboxNode::getInstance()
 {
-	static HitboxNode *instance;
+	static HitboxNode* instance;
 	if (!instance)
 		instance = create();
 	return instance;
 }
 
-void HitboxNode::drawPolygonHitbox(std::vector<cocos2d::CCPoint> const &points, cocos2d::ccColor4B col)
+void HitboxNode::drawPolygonHitbox(std::vector<cocos2d::CCPoint> const& points, cocos2d::ccColor4B col)
 {
 	col.a = hacks.borderOpacity;
 	auto color1 = ccc4FFromccc4B(col);
 	auto colorA = (ccc4(col.r, col.g, col.b, hacks.hitboxOpacity));
 
-	this->drawPolygon(const_cast<cocos2d::CCPoint *>(points.data()), points.size(), ccc4FFromccc4B(colorA), hacks.hitboxThickness, color1);
+	this->drawPolygon(const_cast<cocos2d::CCPoint*>(points.data()), points.size(), ccc4FFromccc4B(colorA),
+					  hacks.hitboxThickness, color1);
 }
 
-void HitboxNode::drawRectangleHitbox(cocos2d::CCRect const &rect, cocos2d::ccColor4B col)
+void HitboxNode::drawRectangleHitbox(cocos2d::CCRect const& rect, cocos2d::ccColor4B col)
 {
 	constexpr size_t N = 4;
 	std::vector<cocos2d::CCPoint> points(N);
@@ -55,7 +56,7 @@ void HitboxNode::clearQueue()
 	boo1.clear();
 	boo2.clear();
 }
-void HitboxNode::addToPlayer1Queue(cocos2d::CCRect const &rect)
+void HitboxNode::addToPlayer1Queue(cocos2d::CCRect const& rect)
 {
 
 	if (hacks.hitboxTrail)
@@ -72,7 +73,7 @@ void HitboxNode::addToPlayer1Queue(cocos2d::CCRect const &rect)
 	boo1.push_back(rect);
 }
 
-void HitboxNode::addToPlayer2Queue(CCRect const &rect)
+void HitboxNode::addToPlayer2Queue(CCRect const& rect)
 {
 	if (hacks.hitboxTrail)
 	{
@@ -88,37 +89,63 @@ void HitboxNode::addToPlayer2Queue(CCRect const &rect)
 	boo2.push_back(rect);
 }
 
-void HitboxNode::drawForPlayer1(gd::PlayerObject *obj)
+void HitboxNode::drawForPlayer1(gd::PlayerObject* obj)
 {
+	const ccColor4B playersolid = {(GLubyte)(hacks.playerHitboxColor[0] * 255.f), (GLubyte)(hacks.playerHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.playerHitboxColor[2] * 255.f)};
+	const ccColor4B playerrotated = {(GLubyte)(hacks.rotatedHitboxColor[0] * 255.f), (GLubyte)(hacks.rotatedHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.rotatedHitboxColor[2] * 255.f)};
+	const ccColor4B playercenter = {(GLubyte)(hacks.centerHitboxColor[0] * 255.f), (GLubyte)(hacks.centerHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.centerHitboxColor[2] * 255.f)};
 	if (boo1.size() <= 0)
-		this->drawRectangleHitbox(obj->getObjectRect(), ccc4(255, 63, 63, 255));
+		this->drawRectangleHitbox(obj->getObjectRect(), playersolid);
 	else
 	{
 		for (size_t i = 0; i < boo1.size(); i++)
 		{
-			this->drawRectangleHitbox(boo1[i], ccc4(255, 63, 63, 255));
+			this->drawRectangleHitbox(boo1[i], playersolid);
+		}
+		for (size_t i = 0; i < boo1.size(); i++)
+		{
+			this->drawRectangleHitbox(!m_isMini1 ? obj->getObjectRect(boo1[i], 0.25, 0.25)
+												 : obj->getObjectRect(boo1[i], 0.4, 0.4),
+									  playercenter);
 		}
 	}
-	this->drawPolygonHitbox(this->quadrilateralForObject(obj), ccc4(127, 0, 0, 255));
-	this->drawRectangleHitbox(!m_isMini1 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4), ccc4(0, 255, 0, 255));
+	this->drawPolygonHitbox(this->quadrilateralForObject(obj), playerrotated);
+	this->drawRectangleHitbox(!m_isMini1 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4),
+							  playercenter);
 }
 
-void HitboxNode::drawForPlayer2(gd::PlayerObject *obj)
+void HitboxNode::drawForPlayer2(gd::PlayerObject* obj)
 {
+	const ccColor4B playersolid = {(GLubyte)(hacks.playerHitboxColor[0] * 255.f), (GLubyte)(hacks.playerHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.playerHitboxColor[2] * 255.f)};
+	const ccColor4B playerrotated = {(GLubyte)(hacks.rotatedHitboxColor[0] * 255.f), (GLubyte)(hacks.rotatedHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.rotatedHitboxColor[2] * 255.f)};
+	const ccColor4B playercenter = {(GLubyte)(hacks.centerHitboxColor[0] * 255.f), (GLubyte)(hacks.centerHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.centerHitboxColor[2] * 255.f)};
 	if (boo2.size() <= 0)
-		this->drawRectangleHitbox(obj->getObjectRect(), ccc4(255, 63, 63, 255));
+		this->drawRectangleHitbox(obj->getObjectRect(), playersolid);
 	else
 	{
 		for (size_t i = 0; i < boo2.size(); i++)
 		{
-			this->drawRectangleHitbox(boo2[i], ccc4(255, 63, 63, 255));
+			this->drawRectangleHitbox(boo2[i], playersolid);
+		}
+		for (size_t i = 0; i < boo2.size(); i++)
+		{
+			this->drawRectangleHitbox(!m_isMini1 ? obj->getObjectRect(boo2[i], 0.25, 0.25)
+												 : obj->getObjectRect(boo2[i], 0.4, 0.4),
+									  playercenter);
 		}
 	}
-	this->drawPolygonHitbox(this->quadrilateralForObject(obj), ccc4(127, 0, 0, 255));
-	this->drawRectangleHitbox(!m_isMini2 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4), ccc4(0, 255, 0, 255));
+	this->drawPolygonHitbox(this->quadrilateralForObject(obj), playerrotated);
+	this->drawRectangleHitbox(!m_isMini1 ? obj->getObjectRect(0.25, 0.25) : obj->getObjectRect(0.4, 0.4),
+							  playercenter);
 }
 
-std::vector<CCPoint> HitboxNode::triangleForObject(gd::GameObject *obj)
+std::vector<CCPoint> HitboxNode::triangleForObject(gd::GameObject* obj)
 {
 	constexpr size_t N = 3;
 	std::vector<cocos2d::CCPoint> points(N);
@@ -150,7 +177,7 @@ std::vector<CCPoint> HitboxNode::triangleForObject(gd::GameObject *obj)
 	}
 	return points;
 }
-std::vector<CCPoint> HitboxNode::quadrilateralForObject(gd::GameObject *obj)
+std::vector<CCPoint> HitboxNode::quadrilateralForObject(gd::GameObject* obj)
 {
 	constexpr size_t N = 4;
 	std::vector<CCPoint> points(N);
@@ -173,7 +200,7 @@ std::vector<CCPoint> HitboxNode::quadrilateralForObject(gd::GameObject *obj)
 	return points;
 }
 
-void HitboxNode::drawCircleHitbox(cocos2d::CCPoint const &center, float radius, cocos2d::ccColor4B col)
+void HitboxNode::drawCircleHitbox(cocos2d::CCPoint const& center, float radius, cocos2d::ccColor4B col)
 {
 	constexpr size_t N = 64;
 	constexpr double PI = 3.1415926535;
@@ -187,9 +214,10 @@ void HitboxNode::drawCircleHitbox(cocos2d::CCPoint const &center, float radius, 
 
 extern struct HacksStr hacks;
 
-void HitboxNode::drawForObject(gd::GameObject *obj)
+void HitboxNode::drawForObject(gd::GameObject* obj)
 {
-	if (obj->m_nObjectID != 749 && obj->getType() == gd::GameObjectType::kGameObjectTypeDecoration && !hacks.showDecorations)
+	if (obj->m_nObjectID != 749 && obj->getType() == gd::GameObjectType::kGameObjectTypeDecoration &&
+		!hacks.showDecorations)
 		return;
 	if (!obj->m_bActive)
 		return;
@@ -198,7 +226,8 @@ void HitboxNode::drawForObject(gd::GameObject *obj)
 	switch (obj->getType())
 	{
 	case gd::GameObjectType::kGameObjectTypeSolid:
-		color = ccc4(0, 0, 255, 255);
+		color = {(GLubyte)(hacks.solidHitboxColor[0] * 255.f), (GLubyte)(hacks.solidHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.solidHitboxColor[2] * 255.f)};
 		break;
 	case gd::GameObjectType::kGameObjectTypeDecoration:
 		if (hacks.showDecorations)
@@ -213,8 +242,24 @@ void HitboxNode::drawForObject(gd::GameObject *obj)
 				return;
 		}
 		break;
-	case gd::GameObjectType::kGameObjectTypeTeleportPortal:
-		color = ccc4(0, 127, 255, 255);
+	case gd::GameObjectType::kGameObjectTypeInverseGravityPortal:
+	case gd::GameObjectType::kGameObjectTypeInverseMirrorPortal:
+	case gd::GameObjectType::kGameObjectTypeDualPortal:
+	case gd::GameObjectType::kGameObjectTypeNormalGravityPortal:
+	case gd::GameObjectType::kGameObjectTypeNormalMirrorPortal:
+	case gd::GameObjectType::kGameObjectTypeSoloPortal:
+	case gd::GameObjectType::kGameObjectTypeRegularSizePortal:
+	case gd::GameObjectType::kGameObjectTypeMiniSizePortal:
+	case gd::GameObjectType::kGameObjectTypeCubePortal:
+	case gd::GameObjectType::kGameObjectTypeShipPortal:
+	case gd::GameObjectType::kGameObjectTypeBallPortal:
+	case gd::GameObjectType::kGameObjectTypeUfoPortal:
+	case gd::GameObjectType::kGameObjectTypeWavePortal:
+	case gd::GameObjectType::kGameObjectTypeRobotPortal:
+	case gd::GameObjectType::kGameObjectTypeSpiderPortal:
+	case gd::GameObjectType::kGameObjectTypeTeleportPortal:color = {(GLubyte)(hacks.portalHitboxColor[0] * 255.f), (GLubyte)(hacks.portalHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.portalHitboxColor[2] * 255.f)};
+		
 		break;
 	case gd::GameObjectType::kGameObjectTypeModifier:
 		switch (obj->m_nObjectID)
@@ -224,7 +269,8 @@ void HitboxNode::drawForObject(gd::GameObject *obj)
 		case 202:
 		case 203:
 		case 1334:
-			color = ccc4(255, 255, 255, 255);
+			color = {(GLubyte)(hacks.modifierHitboxColor[0] * 255.f), (GLubyte)(hacks.modifierHitboxColor[1] * 255.f),
+					 (GLubyte)(hacks.modifierHitboxColor[2] * 255.f)};
 			break;
 		default:
 			if (!hacks.showDecorations)
@@ -232,78 +278,42 @@ void HitboxNode::drawForObject(gd::GameObject *obj)
 		}
 		break;
 	case gd::GameObjectType::kGameObjectTypeSlope:
-		color = ccc4(0, 0, 255, 255);
+		color = {(GLubyte)(hacks.slopeHitboxColor[0] * 255.f), (GLubyte)(hacks.slopeHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.slopeHitboxColor[2] * 255.f)};
 		this->drawPolygonHitbox(this->triangleForObject(obj), color);
 		return;
 	case gd::GameObjectType::kGameObjectTypeHazard:
-		color = ccc4(255, 0, 0, 255);
+		color = {(GLubyte)(hacks.hazardHitboxColor[0] * 255.f), (GLubyte)(hacks.hazardHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.hazardHitboxColor[2] * 255.f)};
 		break;
 
-	case gd::GameObjectType::kGameObjectTypeInverseGravityPortal:
 	case gd::GameObjectType::kGameObjectTypeYellowJumpPad:
-	case gd::GameObjectType::kGameObjectTypeYellowJumpRing:
-		color = ccc4(255, 255, 0, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeInverseMirrorPortal:
-	case gd::GameObjectType::kGameObjectTypeDualPortal:
-		color = ccc4(255, 127, 0, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeNormalGravityPortal:
-	case gd::GameObjectType::kGameObjectTypeNormalMirrorPortal:
-	case gd::GameObjectType::kGameObjectTypeSoloPortal:
-		color = ccc4(0, 127, 255, 255);
-		break;
 	case gd::GameObjectType::kGameObjectTypePinkJumpPad:
-	case gd::GameObjectType::kGameObjectTypePinkJumpRing:
-		color = ccc4(255, 0, 255, 255);
-		break;
 	case gd::GameObjectType::kGameObjectTypeGravityPad:
-	case gd::GameObjectType::kGameObjectTypeGravityRing:
-		color = ccc4(0, 255, 255, 255);
-		break;
 	case gd::GameObjectType::kGameObjectTypeRedJumpPad:
-	case gd::GameObjectType::kGameObjectTypeRedJumpRing:
-		color = ccc4(255, 0, 127, 255);
+	case gd::GameObjectType::kGameObjectTypeYellowJumpRing:
+		color = {(GLubyte)(hacks.padHitboxColor[0] * 255.f), (GLubyte)(hacks.padHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.padHitboxColor[2] * 255.f)};
 		break;
+
+	case gd::GameObjectType::kGameObjectTypePinkJumpRing:
+	case gd::GameObjectType::kGameObjectTypeGravityRing:
+	case gd::GameObjectType::kGameObjectTypeRedJumpRing:
 	case gd::GameObjectType::kGameObjectTypeGreenRing:
 	case gd::GameObjectType::kGameObjectTypeDashRing:
-	case gd::GameObjectType::kGameObjectTypeRegularSizePortal:
-		color = ccc4(0, 255, 0, 255);
-		break;
 	case gd::GameObjectType::kGameObjectTypeGravityDashRing:
-	case gd::GameObjectType::kGameObjectTypeMiniSizePortal:
-		color = ccc4(127, 0, 255, 255);
+		color = {(GLubyte)(hacks.ringHitboxColor[0] * 255.f), (GLubyte)(hacks.ringHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.ringHitboxColor[2] * 255.f)};
 		break;
 	case gd::GameObjectType::kGameObjectTypeSecretCoin:
 	case gd::GameObjectType::kGameObjectTypeUserCoin:
 	case gd::GameObjectType::kGameObjectTypeCustomRing:
 	case gd::GameObjectType::kGameObjectTypeCollectible:
-		color = ccc4(223, 223, 223, 255);
+		color = {(GLubyte)(hacks.collectibleHitboxColor[0] * 255.f), (GLubyte)(hacks.collectibleHitboxColor[1] * 255.f),
+				 (GLubyte)(hacks.collectibleHitboxColor[2] * 255.f)};
 		break;
 	case gd::GameObjectType::kGameObjectTypeDropRing:
 		color = ccc4(31, 31, 31, 255);
-		break;
-
-	case gd::GameObjectType::kGameObjectTypeCubePortal:
-		color = ccc4(0, 255, 0, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeShipPortal:
-		color = ccc4(255, 127, 255, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeBallPortal:
-		color = ccc4(255, 127, 0, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeUfoPortal:
-		color = ccc4(255, 255, 0, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeWavePortal:
-		color = ccc4(0, 127, 255, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeRobotPortal:
-		color = ccc4(223, 223, 223, 255);
-		break;
-	case gd::GameObjectType::kGameObjectTypeSpiderPortal:
-		color = ccc4(127, 0, 255, 255);
 		break;
 	default:
 		if (!hacks.showDecorations)

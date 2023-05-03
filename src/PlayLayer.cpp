@@ -62,8 +62,6 @@ std::chrono::time_point<std::chrono::high_resolution_clock> previous_frame, last
 float avg = 0.f;
 int frame_count = 0;
 
-int smoothOut = 0;
-
 FMOD::Sound* accuracySound;
 
 void UpdateLabels(gd::PlayLayer* self);
@@ -193,7 +191,6 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 
 	TrajectorySimulation::getInstance()->createSimulation();
 
-	smoothOut = 0;
 	sp.clear();
 	gamemodePortals.clear();
 	mirrorPortals.clear();
@@ -1150,18 +1147,6 @@ void Update(gd::PlayLayer* self, float dt)
 
 	UpdateLabels(self);
 
-	if ((self->m_pPlayer1->m_isOnGround || !self->m_pPlayer1->m_isBall) && self->m_pPlayer1->getActionByTag(80085))
-	{
-		self->m_pPlayer1->getActionByTag(80085)->setSpeedMod(0);
-		self->m_pPlayer1->stopActionByTag(80085);
-	}
-
-	if ((self->m_pPlayer2->m_isOnGround || !self->m_pPlayer2->m_isBall) && self->m_pPlayer2->getActionByTag(80085))
-	{
-		self->m_pPlayer2->getActionByTag(80085)->setSpeedMod(0);
-		self->m_pPlayer2->stopActionByTag(80085);
-	}
-
 	if (hacks.lockCursor && !Hacks::show && !self->m_hasCompletedLevel && !self->m_isDead)
 		SetCursorPos(pixelSize.width, pixelSize.height);
 
@@ -1180,32 +1165,23 @@ void Update(gd::PlayLayer* self, float dt)
 	static float prevRot1;
 	static float prevRot2;
 
-	if(prevRot1 != self->m_pPlayer1->getRotation()) 
+	if (prevRot1 != self->m_pPlayer1->getRotation())
 	{
 		PlayLayer::player1RotRate = self->m_pPlayer1->getRotation() - prevRot1;
 		prevRot1 = self->m_pPlayer1->getRotation();
 	}
 
-	if(prevRot2 != self->m_pPlayer2->getRotation()) 
+	if (prevRot2 != self->m_pPlayer2->getRotation())
 	{
 		PlayLayer::player2RotRate = self->m_pPlayer2->getRotation() - prevRot2;
 		prevRot1 = self->m_pPlayer2->getRotation();
 	}
 
-	if (!smoothOut)
-		PlayLayer::update(self, dt);
-	else
-	{
-		float time = cocos2d::CCDirector::sharedDirector()->getAnimationInterval();
-		if (smoothOut != 0 && delta - time < 1)
-		{
-			smoothOut--;
-		}
-		PlayLayer::update(self, time);
-	}
+	PlayLayer::update(self, dt);
 
 	std::stringstream raif;
-	raif << "r1 " << prevRot1 << " r2 " << prevRot2 << " rot1 " << self->m_pPlayer1->getRotation() << " rot2 " << self->m_pPlayer2->getRotation() << " rate1 " << PlayLayer::player1RotRate << " rate2 " << PlayLayer::player2RotRate;
+	raif << "yspeed " << self->m_pPlayer1->m_yAccel << " rate1 " << PlayLayer::player1RotRate << " rate2 "
+		 << PlayLayer::player2RotRate;
 	debug.debugString = raif.str();
 
 	if (hacks.trajectory)
@@ -1466,9 +1442,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 		Hacks::WriteRef(gd::base + 0x20A677,
 						hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
 
-	if (self->m_isPracticeMode || self->m_isTestMode)
-		smoothOut = 2;
-
 	if (drawer)
 	{
 		drawer->clearQueue();
@@ -1505,21 +1478,21 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 
 	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
 
-	// if (playlayer)
-	// {
-	// 	self->m_pPlayer1->setColor(iconCol);
-	// 	self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
-	// 	self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
-	// 	self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
-	// 	self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
-	// 	self->m_pPlayer2->setColor(secIconCol);
-	// 	self->m_pPlayer2->m_iconSprite->setColor(iconCol);
-	// 	self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
-	// 	self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
-	// 	self->m_pPlayer2->m_robotSprite->setColor(iconCol);
-	// 	reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-	// 	reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
-	// }
+	if (playlayer)
+	{
+		self->m_pPlayer1->setColor(iconCol);
+		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
+		self->m_pPlayer2->setColor(secIconCol);
+		self->m_pPlayer2->m_iconSprite->setColor(iconCol);
+		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
+		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
+		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
+	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
 	{
