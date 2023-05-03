@@ -27,7 +27,7 @@ void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt)
 	if (play_layer && (rs.IsRecording() || rs.IsPlaying() || hacks.tpsBypassBool || hacks.frameStep) &&
 		!play_layer->m_bIsPaused)
 	{
-		const auto fps = Hacks::tps;
+		const auto fps = ExternData::tps;
 		auto speedhack = self->getTimeScale();
 
 		const float target_dt = 1.f / fps / speedhack;
@@ -43,7 +43,7 @@ void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt)
 
 		if (hacks.frameStep)
 		{
-			if (!hacks.holdAdvance && Hacks::steps <= 0 || hacks.holdAdvance && !Hacks::holdingAdvance)
+			if (!hacks.holdAdvance && ExternData::steps <= 0 || hacks.holdAdvance && !ExternData::holdingAdvance)
 				return;
 
 			if (hacks.tpsBypassBool || rs.IsRecording() || rs.IsPlaying())
@@ -62,7 +62,7 @@ void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt)
 			}
 			else
 				CCScheduler_update(self, target_dt * speedhack);
-			Hacks::steps--;
+			ExternData::steps--;
 			return;
 		}
 
@@ -143,7 +143,7 @@ void __fastcall CCDirector_drawSceneHook(CCDirector* self, void*)
 	// scary floats
 	// getAnimationInterval is 1/fps bypass
 	// 1/((1/fps bypass) * target) = fps bypass/target
-	const float thing = GetActiveFpsLimit() / static_cast<float>(Hacks::screenFps);
+	const float thing = GetActiveFpsLimit() / static_cast<float>(ExternData::screenFps);
 
 	frameCounter++;
 

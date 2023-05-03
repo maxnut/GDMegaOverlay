@@ -10,9 +10,9 @@ FMOD::System* sys;
 std::vector<FMOD::Sound*> clicks, releases, mediumclicks;
 FMOD::Channel *channel = 0, *channel2 = 0;
 
-int Hacks::amountOfClicks = 0;
-int Hacks::amountOfMediumClicks = 0;
-int Hacks::amountOfReleases = 0;
+int amountOfClicks = 0;
+int amountOfMediumClicks = 0;
+int amountOfReleases = 0;
 
 bool oldClick = false;
 
@@ -56,7 +56,7 @@ ReplayPlayer::ReplayPlayer()
 		filestr = "GDMenu/clicks/clicks/" + std::to_string(i) + ".wav";
 		exist = std::filesystem::exists(filestr);
 	}
-	Hacks::amountOfClicks = clicks.size();
+	amountOfClicks = clicks.size();
 
 	exist = std::filesystem::exists("GDMenu/clicks/releases/1.wav");
 	i = 1;
@@ -71,7 +71,7 @@ ReplayPlayer::ReplayPlayer()
 		filestr = "GDMenu/clicks/releases/" + std::to_string(i) + ".wav";
 		exist = std::filesystem::exists(filestr);
 	}
-	Hacks::amountOfReleases = releases.size();
+	amountOfReleases = releases.size();
 
 	exist = std::filesystem::exists("GDMenu/clicks/mediumclicks/1.wav");
 	i = 1;
@@ -86,7 +86,7 @@ ReplayPlayer::ReplayPlayer()
 		filestr = "GDMenu/clicks/mediumclicks/" + std::to_string(i) + ".wav";
 		exist = std::filesystem::exists(filestr);
 	}
-	Hacks::amountOfMediumClicks = mediumclicks.size();
+	amountOfMediumClicks = mediumclicks.size();
 }
 
 void ReplayPlayer::ToggleRecording()
@@ -97,7 +97,7 @@ void ReplayPlayer::ToggleRecording()
 	replay.fps = hacks.fps;
 	Hacks::FPSBypass(replay.fps);
 	hacks.tpsBypass = replay.fps;
-	Hacks::tps = hacks.tpsBypass;
+	ExternData::tps = hacks.tpsBypass;
 	UpdateFrameOffset();
 
 	if (replay.GetActionsSize() > 0 && IsRecording())
@@ -112,9 +112,9 @@ void ReplayPlayer::TogglePlaying()
 	playing = !playing;
 	Hacks::FPSBypass(hacks.fps);
 	hacks.tpsBypass = hacks.fps;
-	Hacks::tps = hacks.tpsBypass;
-	Hacks::level["mods"][24]["toggle"] = true;
-	Hacks::ToggleJSONHack(Hacks::level, 24, false);
+	ExternData::tps = hacks.tpsBypass;
+	ExternData::level["mods"][24]["toggle"] = true;
+	Hacks::ToggleJSONHack(ExternData::level, 24, false);
 	UpdateFrameOffset();
 }
 
@@ -214,7 +214,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 		hacks.fps = replay.fps;
 		Hacks::FPSBypass(hacks.fps);
 		hacks.tpsBypass = hacks.fps;
-		Hacks::tps = hacks.tpsBypass;
+		ExternData::tps = hacks.tpsBypass;
 	}
 
 	if (!IsPlaying() || actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0 ||
@@ -273,7 +273,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			{
 				rc = rand() % clicks.size();
 				rr = rand() % releases.size();
-				if (Hacks::amountOfMediumClicks > 0)
+				if (amountOfMediumClicks > 0)
 					rmc = rand() % mediumclicks.size();
 				p = hacks.minPitch +
 					static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
@@ -283,9 +283,9 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			}
 			if (ac.press)
 			{
-				if (hacks.clickbot && t > hacks.minTimeDifference && Hacks::amountOfClicks > 0 && ac.press != oldClick)
+				if (hacks.clickbot && t > hacks.minTimeDifference && amountOfClicks > 0 && ac.press != oldClick)
 				{
-					sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && Hacks::amountOfMediumClicks > 0
+					sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && amountOfMediumClicks > 0
 									   ? mediumclicks[rmc]
 									   : clicks[rc],
 								   nullptr, false, &channel);
@@ -309,7 +309,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			}
 			else
 			{
-				if (hacks.clickbot && Hacks::amountOfReleases > 0 && ac.press != oldClick)
+				if (hacks.clickbot && amountOfReleases > 0 && ac.press != oldClick)
 				{
 					sys->playSound(releases[rr], nullptr, false, &channel);
 					channel2->setPitch(p);

@@ -22,10 +22,8 @@ extern struct Debug debug;
 ExitAlert a;
 
 bool PlayLayer::hadAction = false, PlayLayer::wasPaused = false;
-int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0, Hacks::steps = 0;
+int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0;
 float PlayLayer::player1RotRate = 0, PlayLayer::player2RotRate = 0;
-
-bool Hacks::isCheating = false, Hacks::holdingAdvance = false;
 
 HitboxNode* drawer;
 gd::PlayLayer* playlayer;
@@ -204,34 +202,34 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 
 	Hacks::cheatCheck.clear();
 
-	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::bypass["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   Hacks::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+											   ExternData::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
-	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::creator["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   Hacks::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+											   ExternData::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
-	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::global["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   Hacks::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+											   ExternData::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
-	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::level["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   Hacks::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+											   ExternData::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
-	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::player["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   Hacks::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+											   ExternData::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	CCARRAY_FOREACH(self->m_pObjects, obje)
@@ -364,7 +362,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 	Hacks::UpdateRichPresence(0, 0, "none");
 
 	if (replayPlayer)
-		Hacks::isCheating = PlayLayer::IsCheating();
+		ExternData::isCheating = PlayLayer::IsCheating();
 
 	return result;
 }
@@ -431,7 +429,7 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::Playe
 		TrajectorySimulation::getInstance()->m_pDieInSimulation = true;
 		return;
 	}
-	if (delta > 0.2f && !Hacks::player["mods"][0]["toggle"] && !Hacks::player["mods"][2]["toggle"] && !self->m_isDead)
+	if (delta > 0.2f && !ExternData::player["mods"][0]["toggle"] && !ExternData::player["mods"][2]["toggle"] && !self->m_isDead)
 	{
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
@@ -520,37 +518,37 @@ bool PlayLayer::IsCheating()
 	if (!playlayer)
 		return false;
 	size_t total = 0;
-	for (size_t i = 0; i < Hacks::bypass["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::bypass["mods"].size(); i++)
 	{
-		if (Hacks::bypass["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
+		if (ExternData::bypass["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
-	for (size_t i = 0; i < Hacks::creator["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::creator["mods"].size(); i++)
 	{
-		if (Hacks::creator["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
+		if (ExternData::creator["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
-	for (size_t i = 0; i < Hacks::global["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::global["mods"].size(); i++)
 	{
-		if (Hacks::global["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
+		if (ExternData::global["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
-	for (size_t i = 0; i < Hacks::level["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::level["mods"].size(); i++)
 	{
-		if (Hacks::level["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
+		if (ExternData::level["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
 
-	for (size_t i = 0; i < Hacks::player["mods"].size(); i++)
+	for (size_t i = 0; i < ExternData::player["mods"].size(); i++)
 	{
-		if (Hacks::player["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
+		if (ExternData::player["mods"][i]["toggle"].get<bool>() && Hacks::cheatCheck[total])
 			return true;
 		total++;
 	}
@@ -589,9 +587,9 @@ void UpdateLabels(gd::PlayLayer* self)
 	{
 		fontPtr->setString(".");
 		fontPtr->setOpacity(labels.opacity[0]);
-		if (Hacks::isCheating)
+		if (ExternData::isCheating)
 			fontPtr->setColor(red);
-		else if (Hacks::level["mods"][24]["toggle"])
+		else if (ExternData::level["mods"][24]["toggle"])
 			fontPtr->setColor(yellow);
 		else
 			fontPtr->setColor(green);
@@ -666,10 +664,10 @@ void UpdateLabels(gd::PlayLayer* self)
 		if (hacks.noClipAccuracyLimit > 0 && p * 100.0f < hacks.noClipAccuracyLimit)
 		{
 			p = 1;
-			bool t = Hacks::player["mods"][0]["toggle"];
-			Hacks::player["mods"][0]["toggle"] = false;
-			Hacks::ToggleJSONHack(Hacks::player, 0, false);
-			Hacks::player["mods"][0]["toggle"] = t;
+			bool t = ExternData::player["mods"][0]["toggle"];
+			ExternData::player["mods"][0]["toggle"] = false;
+			Hacks::ToggleJSONHack(ExternData::player, 0, false);
+			ExternData::player["mods"][0]["toggle"] = t;
 		}
 	}
 	else
@@ -783,7 +781,7 @@ void UpdateLabels(gd::PlayLayer* self)
 
 	if (labels.statuses[11])
 	{
-		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->levelID)).c_str());
+		fontPtr->setString(("ExternData::level ID: " + std::to_string(self->m_level->levelID)).c_str());
 
 		if (labels.rainbowLabels)
 			fontPtr->setColor(rainbow);
@@ -1047,8 +1045,8 @@ void Update(gd::PlayLayer* self, float dt)
 
 		lastFrameDead = dead;
 
-		if (dead && !self->m_hasCompletedLevel && Hacks::player["mods"][0]["toggle"] ||
-			dead && !self->m_hasCompletedLevel && Hacks::player["mods"][2]["toggle"])
+		if (dead && !self->m_hasCompletedLevel && ExternData::player["mods"][0]["toggle"] ||
+			dead && !self->m_hasCompletedLevel && ExternData::player["mods"][2]["toggle"])
 		{
 			noClipDeaths++;
 			if (opacity < hacks.noclipRedLimit)
@@ -1071,10 +1069,10 @@ void Update(gd::PlayLayer* self, float dt)
 	}
 	prevP = self->m_pPlayer1->getPositionX();
 
-	if (Hacks::isCheating != (bool)Hacks::level["mods"][24]["toggle"] && hacks.autoSafeMode)
+	if (ExternData::isCheating != (bool)ExternData::level["mods"][24]["toggle"] && hacks.autoSafeMode)
 	{
-		Hacks::level["mods"][24]["toggle"] = Hacks::isCheating;
-		Hacks::ToggleJSONHack(Hacks::level, 24, false);
+		ExternData::level["mods"][24]["toggle"] = ExternData::isCheating;
+		Hacks::ToggleJSONHack(ExternData::level, 24, false);
 	}
 
 	if (noClipDeaths == 0)
@@ -1147,7 +1145,7 @@ void Update(gd::PlayLayer* self, float dt)
 
 	UpdateLabels(self);
 
-	if (hacks.lockCursor && !Hacks::show && !self->m_hasCompletedLevel && !self->m_isDead)
+	if (hacks.lockCursor && !ExternData::show && !self->m_hasCompletedLevel && !self->m_isDead)
 		SetCursorPos(pixelSize.width, pixelSize.height);
 
 	dead = false;
@@ -1423,7 +1421,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	lastFrameDead = false;
 	noClipDeaths = 0;
 	delta = 0;
-	Hacks::steps = 0;
+	ExternData::steps = 0;
 	pressTimer = 0;
 	opacity = 0;
 	releaseTimer = hacks.releaseTime;
@@ -1435,7 +1433,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	PlayLayer::player2RotRate = 0;
 	TrajectorySimulation::getInstance()->m_pDieInSimulation = false;
 	TrajectorySimulation::getInstance()->m_pIsSimulation = false;
-	Hacks::ToggleJSONHack(Hacks::player, 0, false);
+	Hacks::ToggleJSONHack(ExternData::player, 0, false);
 	clicksArr.clear();
 
 	if (hacks.autoUpdateRespawn)
@@ -1514,7 +1512,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	}
 
 	if (replayPlayer)
-		Hacks::isCheating = PlayLayer::IsCheating();
+		ExternData::isCheating = PlayLayer::IsCheating();
 }
 
 void __fastcall PlayLayer::togglePracticeModeHook(gd::PlayLayer* self, void* edx, bool on)
@@ -1748,7 +1746,7 @@ void __fastcall PlayLayer::activateObjectHook(gd::GameObject* self, void*, gd::P
 {
 	if (hacks.trajectory && TrajectorySimulation::getInstance()->shouldInterrumpHooksWithPlayer(player))
 	{
-		// TrajectorySimulation::getInstance()->activateObjectsOnPlayerSimulations(self, player);
+		// TrajectorySimulation::getInstance()->activateObjectsOnPlayerSimulations(self, ExternData::player);
 		return;
 	}
 	bool a = self->m_bHasBeenActivated;
@@ -1815,20 +1813,20 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void* self, void*, int key, b
 		if (key == Shortcuts::shortcuts[i].key && down)
 		{
 			// this is an horrible way to do it but i cant think of any other solution
-			bool prev = Hacks::show;
+			bool prev = ExternData::show;
 
 			if (!prev)
 			{
 				ImGui::GetStyle().Alpha = 0;
-				Hacks::show = true;
-				Hacks::fake = true;
+				ExternData::show = true;
+				ExternData::fake = true;
 			}
-			Hacks::hackName = Shortcuts::shortcuts[i].name;
+			ExternData::hackName = Shortcuts::shortcuts[i].name;
 			if (!prev)
 			{
 				Hacks::RenderMain();
-				Hacks::show = false;
-				Hacks::fake = false;
+				ExternData::show = false;
+				ExternData::fake = false;
 				ImGui::GetStyle().Alpha = 1;
 			}
 		}
@@ -1842,12 +1840,12 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void* self, void*, int key, b
 		if (down)
 		{
 			if (!hacks.holdAdvance)
-				Hacks::steps = hacks.stepCount;
+				ExternData::steps = hacks.stepCount;
 			else
-				Hacks::holdingAdvance = true;
+				ExternData::holdingAdvance = true;
 		}
 		else
-			Hacks::holdingAdvance = false;
+			ExternData::holdingAdvance = false;
 	}
 
 	if (!hacks.startPosSwitcher || sp.size() <= 0)

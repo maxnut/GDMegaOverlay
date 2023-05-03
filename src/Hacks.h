@@ -11,10 +11,12 @@
 #include <vector>
 #pragma comment(lib, "shell32")
 #include "DiscordManager.h"
-#include "json.hpp"
-#include <shellapi.h>
+#include "ExternData.h"
 #include "PlayLayer.h"
+#include "json.hpp"
+#include <functional>
 #include <random>
+#include <shellapi.h>
 
 #define STATUSSIZE 14
 
@@ -33,21 +35,6 @@ static const std::vector<std::string> cheatVector = {
 	"0x60554",	"0x60753",	"0x207328", "0x206921", "0x20612C", "0x2062C2", "0x1F9971", "0x20456D", "0x20456D",
 	"0x204D08", "0x2061BC", "0x20A23C", "0x20A34F", "0x205347", "0x20456D", "0x20456D", "0x20CEA4", "0x254343",
 	"0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30"};
-
-extern std::vector<std::string> musicPaths;
-extern std::filesystem::path path;
-
-extern DiscordManager ds;
-
-extern json bypass, creator, global, level, player, variables;
-
-extern int amountOfClicks, amountOfReleases, amountOfMediumClicks, steps;
-
-extern float tps, screenFps;
-
-extern bool show, fake, isCheating, holdingAdvance;
-
-extern std::string hackName;
 
 void RenderMain();
 
@@ -225,7 +212,8 @@ static std::string getDifficultyName(gd::GJGameLevel& level)
 	}
 }
 
-static int randomInt(int min, int max) {
+static int randomInt(int min, int max)
+{
 	std::random_device device;
 	std::mt19937 generator(device());
 	std::uniform_int_distribution<int> distribution(min, max);
@@ -235,24 +223,24 @@ static int randomInt(int min, int max) {
 
 static std::vector<std::string> splitByDelim(const std::string& str, char delim)
 {
-    std::vector<std::string> tokens;
-    size_t pos = 0;
-    size_t len = str.length();
-    tokens.reserve(len / 2);  // allocate memory for expected number of tokens
+	std::vector<std::string> tokens;
+	size_t pos = 0;
+	size_t len = str.length();
+	tokens.reserve(len / 2); // allocate memory for expected number of tokens
 
-
-    while (pos < len) {
-        size_t end = str.find_first_of(delim, pos);
-        if (end == std::string::npos)
+	while (pos < len)
+	{
+		size_t end = str.find_first_of(delim, pos);
+		if (end == std::string::npos)
 		{
-            tokens.emplace_back(str.substr(pos));
-            break;
-        }
-        tokens.emplace_back(str.substr(pos, end - pos));
-        pos = end + 1;
-    }
+			tokens.emplace_back(str.substr(pos));
+			break;
+		}
+		tokens.emplace_back(str.substr(pos, end - pos));
+		pos = end + 1;
+	}
 
-    return tokens;
+	return tokens;
 };
 
 static void FPSBypass(float value)
@@ -334,43 +322,43 @@ static void SaveSettings()
 		f.write((char*)&labels, sizeof(HacksStr));
 	f.close();
 
-	if (bypass.contains("data"))
+	if (ExternData::bypass.contains("data"))
 	{
 		f.open("GDMenu/mod/bypass.json");
 		if (f)
-			f << bypass;
+			f << ExternData::bypass;
 		f.close();
 	}
 
-	if (creator.contains("data"))
+	if (ExternData::creator.contains("data"))
 	{
 		f.open("GDMenu/mod/creator.json");
 		if (f)
-			f << creator;
+			f << ExternData::creator;
 		f.close();
 	}
 
-	if (global.contains("data"))
+	if (ExternData::global.contains("data"))
 	{
 		f.open("GDMenu/mod/global.json");
 		if (f)
-			f << global;
+			f << ExternData::global;
 		f.close();
 	}
 
-	if (level.contains("data"))
+	if (ExternData::level.contains("data"))
 	{
 		f.open("GDMenu/mod/level.json");
 		if (f)
-			f << level;
+			f << ExternData::level;
 		f.close();
 	}
 
-	if (player.contains("data"))
+	if (ExternData::player.contains("data"))
 	{
 		f.open("GDMenu/mod/player.json");
 		if (f)
-			f << player;
+			f << ExternData::player;
 		f.close();
 	}
 }
@@ -426,12 +414,13 @@ static void MenuMusic()
 {
 	if (hacks.replaceMenuMusic)
 	{
-		path.clear();
+		ExternData::path.clear();
 		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 		if (hacks.randomMusic)
 		{
-			hacks.randomMusicIndex = rand() % musicPaths.size();
-			gd::GameSoundManager::sharedState()->playBackgroundMusic(true, musicPaths[hacks.randomMusicIndex]);
+			hacks.randomMusicIndex = rand() % ExternData::musicPaths.size();
+			gd::GameSoundManager::sharedState()->playBackgroundMusic(true,
+																	 ExternData::musicPaths[hacks.randomMusicIndex]);
 		}
 		else
 		{
@@ -494,7 +483,7 @@ static void NongDownload(char* url, char* id)
 
 static void UpdateRichPresence(int state, gd::GJGameLevel* lvl = 0, std::string bestrun = "")
 {
-	if (Hacks::ds.core && hacks.discordRPC)
+	if (ExternData::ds.core && hacks.discordRPC)
 	{
 		std::string supportString;
 		auto pl = gd::GameManager::sharedState()->getPlayLayer();
@@ -587,11 +576,11 @@ static void UpdateRichPresence(int state, gd::GJGameLevel* lvl = 0, std::string 
 			break;
 		}
 
-		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.GetTimestamps().SetStart(ExternData::ds.timeStart);
 		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.GetAssets().SetLargeImage("cool");
 		activity.SetType(discord::ActivityType::Playing);
-		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+		ExternData::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
 	}
 }
 } // namespace Hacks

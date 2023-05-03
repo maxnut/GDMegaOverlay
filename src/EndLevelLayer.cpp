@@ -65,7 +65,7 @@ bool __fastcall EndLevelLayer::customSetupHook(CCLayer *self, void *)
         }
     }
 
-    if (hacks.safeModeEndscreen && Hacks::level["mods"][24]["toggle"])
+    if (hacks.safeModeEndscreen && ExternData::level["mods"][24]["toggle"])
     {
         if (isFindTextArea)
         {
@@ -193,7 +193,7 @@ bool __fastcall EndLevelLayer::customSetupHook(CCLayer *self, void *)
 
         bool NcButtonConfirm = false;
 
-        if (Hacks::player["mods"][0]["toggle"] || Hacks::player["mods"][2]["toggle"])
+        if (ExternData::player["mods"][0]["toggle"] || ExternData::player["mods"][2]["toggle"])
         {
             if (playLayer->m_isTestMode)
             {

@@ -45,15 +45,15 @@ bool __fastcall MenuLayer::hook(CCLayer *self)
 		self->addChild(snow);
 	}
 
-	if (Hacks::ds.core && hacks.discordRPC)
+	if (ExternData::ds.core && hacks.discordRPC)
 	{
 		discord::Activity activity{};
-		activity.GetTimestamps().SetStart(Hacks::ds.timeStart);
+		activity.GetTimestamps().SetStart(ExternData::ds.timeStart);
 		activity.SetState("Browsing Menus");
 		activity.GetAssets().SetLargeImage("cool");
 		activity.GetAssets().SetLargeText(gd::GameManager::sharedState()->m_sPlayerName.c_str());
 		activity.SetType(discord::ActivityType::Playing);
-		Hacks::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
+		ExternData::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
 	}
 
 	return result;

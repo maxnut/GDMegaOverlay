@@ -18,658 +18,33 @@
 #include "portable-file-dialogs.h"
 #include <fstream>
 #include <shellapi.h>
+#include "API.h"
+#include "ConstData.h"
+#include "ExternData.h"
 
 using json = nlohmann::json;
 
-extern bool Hacks::show = false, Hacks::fake = false;
 bool loaded = false;
 bool isDecember = false;
 extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
 
-std::string Hacks::hackName;
-Windows windowPositions;
+float pitch;
 
-DiscordManager Hacks::ds;
-
-json Hacks::bypass, Hacks::creator, Hacks::global, Hacks::level, Hacks::player, Hacks::variables;
-
-float Hacks::screenFps = 60.0f, Hacks::tps = 60.0f;
-
-float screenSize = 0, pitch, oldScreenSize = 0;
-
-int shortcutIndex, shortcutIndexKey, pitchName, editing, tabIndex = 0, variableIndex = 0;
-char fileName[30], searchbar[30], url[100], id[30], macroName[100];
-std::vector<std::string> Hacks::musicPaths;
+int shortcutIndex, pitchName, editing, tabIndex = 0, variableIndex = 0;
+char fileName[30], url[100], id[30], macroName[100];
 std::vector<ReplayInfo> replays;
-std::filesystem::path Hacks::path;
 std::vector<const char*> musicPathsVet;
 
 std::string hoveredHack = "";
 
-const char* const priorities[] = {"Low", "Below Normal", "Normal", "Above Normal", "High"};
-const char* const style[] = {"Number and text", "Number Only"};
-const char* const positions[] = {"Top Right", "Top Left", "Bottom Right", "Bottom Left"};
-const char* const items[] = {"Normal", "No Spikes", "No Hitbox", "No Solid", "Force Block", "Everything Hurts"};
-const char* const trail[] = {"Normal", "Always Off", "Always On", "Inversed"};
-const char* const fonts[] = {"Big Font", "Chat Font", "Font 01", "Font 02", "Font 03", "Font 04", "Font 05",
-							 "Font 06",	 "Font 07",	  "Font 08", "Font 09", "Font 10", "Font 11", "Gold Font"};
-const char* const rpc[] = {"Playing", "Editor", "Menu"};
 
-const char* const KeyNames[] = {"Unknown",
-								"Mouse 0",
-								"Mouse 1",
-								"Cancel",
-								"Mouse 3",
-								"Mouse 4",
-								"Mouse 5",
-								"Unknown",
-								"Backspace",
-								"Tab",
-								"Unknown",
-								"Unknown",
-								"Clear",
-								"Return",
-								"Unknown",
-								"Unknown",
-								"Shift",
-								"CTRL",
-								"Alt",
-								"Pause",
-								"Caps Lock",
-								"Kana",
-								"Unknown",
-								"Junja",
-								"Final",
-								"Kanji",
-								"Unknown",
-								"Esc",
-								"Convert",
-								"Nonconvert",
-								"Accept",
-								"Modechange",
-								"Space",
-								"Prior",
-								"Pgdn",
-								"End",
-								"Home",
-								"Left Arrow",
-								"Up Arrow",
-								"Right Arrow",
-								"Down Arrow",
-								"Select",
-								"Print",
-								"Execute",
-								"Print Screen",
-								"Insert",
-								"Canc",
-								"Help",
-								"0",
-								"1",
-								"2",
-								"3",
-								"4",
-								"5",
-								"6",
-								"7",
-								"8",
-								"9",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"A",
-								"B",
-								"C",
-								"D",
-								"E",
-								"F",
-								"G",
-								"H",
-								"I",
-								"J",
-								"K",
-								"L",
-								"M",
-								"N",
-								"O",
-								"P",
-								"Q",
-								"R",
-								"S",
-								"T",
-								"U",
-								"V",
-								"W",
-								"X",
-								"Y",
-								"Z",
-								"LWin",
-								"RWin",
-								"Apps",
-								"Unknown",
-								"Sleep",
-								"Num0",
-								"Num1",
-								"Num2",
-								"Num3",
-								"Num4",
-								"Num5",
-								"Num6",
-								"Num7",
-								"Num8",
-								"Num9",
-								"Multiply",
-								"Add",
-								"Separator",
-								"Subtract",
-								"Decimal",
-								"Divide",
-								"F1",
-								"F2",
-								"F3",
-								"F4",
-								"F5",
-								"F6",
-								"F7",
-								"F8",
-								"F9",
-								"F10",
-								"F11",
-								"F12",
-								"F13",
-								"F14",
-								"F15",
-								"F16",
-								"F17",
-								"F18",
-								"F19",
-								"F20",
-								"F21",
-								"F22",
-								"F23",
-								"F24",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Numlock",
-								"ScrollLock",
-								"VK_OEM_NEC_EQUAL",
-								"VK_OEM_FJ_MASSHOU",
-								"VK_OEM_FJ_TOUROKU",
-								"VK_OEM_FJ_LOYA",
-								"VK_OEM_FJ_ROYA",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"Unknown",
-								"LShift",
-								"RShift",
-								"LCTRL",
-								"RCTRL",
-								"LAlt",
-								"RAlt"};
-
-bool Hotkey(const char* label, int* k, const ImVec2& size_arg = ImVec2(0, 0))
+char* convert(const std::string& s)
 {
-	ImGuiWindow* window = ImGui::GetCurrentWindow();
-	if (window->SkipItems)
-		return false;
-
-	ImGuiContext& g = *GImGui;
-	ImGuiIO& io = g.IO;
-	const ImGuiStyle& style = g.Style;
-
-	const ImGuiID id = window->GetID(label);
-	const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
-	ImVec2 size = ImGui::CalcItemSize(size_arg, ImGui::CalcItemWidth(), label_size.y + style.FramePadding.y * 2.0f);
-	const ImRect frame_bb(window->DC.CursorPos + ImVec2(label_size.x + style.ItemInnerSpacing.x, 0.0f),
-						  window->DC.CursorPos + size);
-	const ImRect total_bb(window->DC.CursorPos, frame_bb.Max);
-
-	ImGui::ItemSize(total_bb, style.FramePadding.y);
-	if (!ImGui::ItemAdd(total_bb, id))
-		return false;
-
-	const bool focus_requested = ImGui::FocusableItemRegister(window, g.ActiveId == id);
-	const bool focus_requested_by_code = focus_requested;
-	const bool focus_requested_by_tab = focus_requested && !focus_requested_by_code;
-
-	const bool hovered = ImGui::ItemHoverable(frame_bb, id);
-
-	if (hovered)
-	{
-		ImGui::SetHoveredID(id);
-		g.MouseCursor = ImGuiMouseCursor_TextInput;
-	}
-
-	const bool user_clicked = hovered && io.MouseClicked[0];
-
-	if (focus_requested || user_clicked)
-	{
-		if (g.ActiveId != id)
-		{
-			*k = 0;
-		}
-		ImGui::SetActiveID(id, window);
-		ImGui::FocusWindow(window);
-	}
-	else if (io.MouseClicked[0])
-	{
-		if (g.ActiveId == id)
-			ImGui::ClearActiveID();
-	}
-
-	bool value_changed = false;
-	int key = *k;
-
-	if (g.ActiveId == id)
-	{
-		if (!value_changed)
-		{
-			for (auto i = VK_BACK; i <= VK_RMENU; i++)
-			{
-				if (ImGui::IsKeyDown(static_cast<ImGuiKey>(i)))
-				{
-					key = i;
-					value_changed = true;
-					ImGui::ClearActiveID();
-				}
-			}
-		}
-
-		if (ImGui::IsKeyPressedMap(static_cast<ImGuiKey>(ImGuiKey_Escape)))
-		{
-			*k = 0;
-			ImGui::ClearActiveID();
-		}
-		else
-		{
-			*k = key;
-		}
-	}
-
-	char buf_display[64] = "None";
-
-	ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBg]), true,
-					   style.FrameRounding);
-
-	if (*k != 0 && g.ActiveId != id)
-	{
-		strcpy_s(buf_display, KeyNames[*k]);
-	}
-	else if (g.ActiveId == id)
-	{
-		strcpy_s(buf_display, "<Press a key>");
-	}
-
-	const ImRect clip_rect(frame_bb.Min.x, frame_bb.Min.y, frame_bb.Min.x + size.x, frame_bb.Min.y + size.y);
-	ImVec2 render_pos = frame_bb.Min + style.FramePadding;
-	ImGui::RenderTextClipped(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding, buf_display, NULL,
-							 NULL, style.ButtonTextAlign, &clip_rect);
-
-	if (label_size.x > 0)
-		ImGui::RenderText(ImVec2(total_bb.Min.x, frame_bb.Min.y + style.FramePadding.y), label);
-
-	return value_changed;
-}
-
-void Marker(const char* marker, const char* desc)
-{
-	ImGui::TextDisabled(marker);
-	if (ImGui::IsItemHovered())
-	{
-		ImGui::BeginTooltip();
-		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-		ImGui::TextUnformatted(desc);
-		ImGui::PopTextWrapPos();
-		ImGui::EndTooltip();
-	}
-}
-
-bool findStringIC(const std::string& strHaystack, const std::string& strNeedle)
-{
-	auto it = std::search(strHaystack.begin(), strHaystack.end(), strNeedle.begin(), strNeedle.end(),
-						  [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); });
-	return (it != strHaystack.end());
-}
-
-bool ImHotkey(const char* label, int* k, const ImVec2& size_arg = ImVec2(0, 0))
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = Hotkey(label, k, size_arg);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = Hotkey(label, k, size_arg);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = Hotkey(label, k, size_arg);
-	return res;
-}
-
-bool ImCheckbox(const char* label, bool* v, bool canMakeShortcut = true)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::Checkbox(label, v);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::Checkbox(label, v);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::Checkbox(label, v);
-
-	if (canMakeShortcut)
-	{
-		std::string labelString = label;
-
-		bool openpopuptemp = false;
-
-		if (ImGui::BeginPopupContextItem(label, ImGuiPopupFlags_MouseButtonRight))
-		{
-			if (ImGui::MenuItem(("Add shortcut##" + labelString).c_str()))
-			{
-				openpopuptemp = true;
-			}
-			if (!Hacks::fake)
-				ImGui::EndPopup();
-		}
-
-		if (openpopuptemp == true)
-		{
-			ImGui::OpenPopup(("Create shortcut for " + labelString).c_str());
-			openpopuptemp = false;
-		}
-
-		if (ImGui::BeginPopupModal(("Create shortcut for " + labelString).c_str(), NULL,
-								   ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			Hotkey("Shortcut Key", &shortcutIndexKey);
-
-			if (ImGui::Button("Add"))
-			{
-				Shortcuts::Shortcut s;
-				s.key = shortcutIndexKey;
-				strcpy(s.name, labelString.c_str());
-				Shortcuts::shortcuts.push_back(s);
-				Shortcuts::Save();
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
-			{
-				ImGui::CloseCurrentPopup();
-			}
-			if (!Hacks::fake)
-				ImGui::EndPopup();
-		}
-
-		if (labelString == Hacks::hackName)
-		{
-			Hacks::hackName = "";
-			*v = !*v;
-			res = true;
-			Hacks::SaveSettings();
-		}
-	}
-
-	return res;
-}
-
-bool ImButton(const char* label, bool canMakeShortcut = true)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::Button(label);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::Button(label);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::Button(label);
-
-	if (canMakeShortcut)
-	{
-		std::string labelString = label;
-
-		bool openpopuptemp = false;
-
-		if (ImGui::BeginPopupContextItem(label, ImGuiPopupFlags_MouseButtonRight))
-		{
-			if (ImGui::MenuItem(("Add shortcut##" + labelString).c_str()))
-			{
-				openpopuptemp = true;
-			}
-			if (!Hacks::fake)
-				ImGui::EndPopup();
-		}
-
-		if (openpopuptemp == true)
-		{
-			ImGui::OpenPopup(("Create shortcut for " + labelString).c_str());
-			openpopuptemp = false;
-		}
-
-		if (ImGui::BeginPopupModal(("Create shortcut for " + labelString).c_str(), NULL,
-								   ImGuiWindowFlags_AlwaysAutoResize))
-		{
-			Hotkey("Shortcut Key", &shortcutIndexKey);
-
-			if (ImGui::Button("Add"))
-			{
-				Shortcuts::Shortcut s;
-				s.key = shortcutIndexKey;
-				strcpy(s.name, labelString.c_str());
-				Shortcuts::shortcuts.push_back(s);
-				Shortcuts::Save();
-				ImGui::CloseCurrentPopup();
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Cancel"))
-			{
-				ImGui::CloseCurrentPopup();
-			}
-			if (!Hacks::fake)
-				ImGui::EndPopup();
-		}
-
-		if (labelString == Hacks::hackName)
-		{
-			Hacks::hackName = "";
-			res = true;
-		}
-	}
-
-	return res;
-}
-
-bool ImInputFloat(const char* label, float* v)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputFloat(label, v);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputFloat(label, v);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::InputFloat(label, v);
-	return res;
-}
-
-bool ImInputInt(const char* label, int* v, int step = 1)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputInt(label, v, step);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputInt(label, v, step);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::InputInt(label, v, step);
-	return res;
-}
-
-bool ImInputInt2(const char* label, int* v)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputInt2(label, v);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputInt2(label, v);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::InputInt2(label, v);
-	return res;
-}
-
-bool ImInputText(const char* label, char* buf, size_t buf_size)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputText(label, buf, buf_size);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::InputText(label, buf, buf_size);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::InputText(label, buf, buf_size);
-	return res;
-}
-
-bool ImCombo(const char* label, int* current_item, const char* const* items, int items_count)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::Combo(label, current_item, items, items_count);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::Combo(label, current_item, items, items_count);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::Combo(label, current_item, items, items_count);
-	return res;
-}
-
-bool ImColorEdit3(const char* label, float* col, ImGuiColorEditFlags flags = 0)
-{
-	bool res = false;
-	if (strlen(searchbar) > 0)
-	{
-		std::string s = label;
-		if (findStringIC(s, searchbar))
-		{
-			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::ColorEdit3(label, col, flags);
-			ImGui::PopStyleColor();
-		}
-		else
-		{
-			ImGui::PushStyleColor(0, {0.4f, 0.4f, 0.4f, 1.0f});
-			res = ImGui::ColorEdit3(label, col, flags);
-			ImGui::PopStyleColor();
-		}
-	}
-	else
-		res = ImGui::ColorEdit3(label, col, flags);
-	return res;
+	char* pc = new char[s.size() + 1];
+	std::strcpy(pc, s.c_str());
+	return pc;
 }
 
 void InitJSONHacks(json& js)
@@ -684,7 +59,7 @@ void DrawFromJSON(json& js)
 {
 	for (size_t i = 0; i < js["mods"].size(); i++)
 	{
-		if (ImCheckbox(js["mods"][i]["name"].get<std::string>().c_str(), js["mods"][i]["toggle"].get<bool*>()))
+		if (GDMO::ImCheckbox(js["mods"][i]["name"].get<std::string>().c_str(), js["mods"][i]["toggle"].get<bool*>()))
 		{
 			Hacks::ToggleJSONHack(js, i, false);
 		}
@@ -693,33 +68,19 @@ void DrawFromJSON(json& js)
 	}
 }
 
-char* convert(const std::string& s)
-{
-	char* pc = new char[s.size() + 1];
-	std::strcpy(pc, s.c_str());
-	return pc;
-}
-
-int roundInt(int n)
-{
-	int a = (n / hacks.windowSnap) * hacks.windowSnap;
-	int b = a + hacks.windowSnap;
-	return (n - a > b - n) ? b : a;
-}
-
 void TextSettings(int index, bool font)
 {
-	if (ImCombo(("Position##" + std::to_string(index)).c_str(), (int*)&labels.positions[index], positions,
+	if (GDMO::ImCombo(("Position##" + std::to_string(index)).c_str(), (int*)&labels.positions[index], positions,
 				IM_ARRAYSIZE(positions)))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
-	if (ImInputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
+	if (GDMO::ImInputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
-	if (ImInputFloat(("Opacity##" + std::to_string(index)).c_str(), &labels.opacity[index]))
+	if (GDMO::ImInputFloat(("Opacity##" + std::to_string(index)).c_str(), &labels.opacity[index]))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
-	if (font && ImCombo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
+	if (font && GDMO::ImCombo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
 }
@@ -737,7 +98,7 @@ uint32_t GetPointerAddress(std::vector<uint32_t> offsets)
     return offsets.size() ? offsets[0] + gd::base : 0;
 }
 
-bool resetWindows = false, repositionWindows = false, saveWindows = false;
+
 
 void SetStyle()
 {
@@ -757,7 +118,7 @@ void SetStyle()
 	style->GrabRounding = 3.0f;
 	style->WindowBorderSize = hacks.borderSize;
 
-	style->ScaleAllSizes(screenSize * hacks.menuSize);
+	style->ScaleAllSizes(ExternData::screenSize * hacks.menuSize);
 
 	float r, g, b;
 	ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks.menuRainbowSpeed, hacks.menuRainbowBrightness,
@@ -901,13 +262,13 @@ void Init()
 	{
 		if (loop.path().extension().string() == ".mp3")
 		{
-			Hacks::musicPaths.push_back(loop.path().string());
+			ExternData::musicPaths.push_back(loop.path().string());
 		}
 	}
 
-	for (size_t i = 0; i < Hacks::musicPaths.size(); i++)
+	for (size_t i = 0; i < ExternData::musicPaths.size(); i++)
 	{
-		musicPathsVet.push_back(Hacks::musicPaths[i].c_str());
+		musicPathsVet.push_back(ExternData::musicPaths[i].c_str());
 	}
 
 	Hacks::AnticheatBypass();
@@ -917,78 +278,78 @@ void Init()
 
 	mods.open("GDMenu/mod/variables.json");
 	buffer << mods.rdbuf();
-	Hacks::variables = json::parse(buffer.str());
+	ExternData::variables = json::parse(buffer.str());
 	mods.close();
 	buffer.str("");
 	buffer.clear();
 
 	mods.open("GDMenu/mod/bypass.json");
 	buffer << mods.rdbuf();
-	Hacks::bypass = json::parse(buffer.str());
-	hackAmts[0] = Hacks::bypass["mods"].size();
+	ExternData::bypass = json::parse(buffer.str());
+	hackAmts[0] = ExternData::bypass["mods"].size();
 	mods.close();
 	buffer.str("");
 	buffer.clear();
-	InitJSONHacks(Hacks::bypass);
+	InitJSONHacks(ExternData::bypass);
 
 	mods.open("GDMenu/mod/creator.json");
 	buffer << mods.rdbuf();
-	Hacks::creator = json::parse(buffer.str());
-	hackAmts[1] = Hacks::creator["mods"].size();
+	ExternData::creator = json::parse(buffer.str());
+	hackAmts[1] = ExternData::creator["mods"].size();
 	mods.close();
 	buffer.str("");
 	buffer.clear();
-	InitJSONHacks(Hacks::creator);
+	InitJSONHacks(ExternData::creator);
 
 	mods.open("GDMenu/mod/global.json");
 	buffer << mods.rdbuf();
-	Hacks::global = json::parse(buffer.str());
-	hackAmts[2] = Hacks::global["mods"].size();
+	ExternData::global = json::parse(buffer.str());
+	hackAmts[2] = ExternData::global["mods"].size();
 	mods.close();
 	buffer.str("");
 	buffer.clear();
-	InitJSONHacks(Hacks::global);
+	InitJSONHacks(ExternData::global);
 
 	mods.open("GDMenu/mod/level.json");
 	buffer << mods.rdbuf();
-	Hacks::level = json::parse(buffer.str());
-	hackAmts[3] = Hacks::level["mods"].size();
+	ExternData::level = json::parse(buffer.str());
+	hackAmts[3] = ExternData::level["mods"].size();
 	mods.close();
 	buffer.str("");
 	buffer.clear();
-	InitJSONHacks(Hacks::level);
+	InitJSONHacks(ExternData::level);
 
 	mods.open("GDMenu/mod/player.json");
 	buffer << mods.rdbuf();
-	Hacks::player = json::parse(buffer.str());
-	hackAmts[4] = Hacks::player["mods"].size();
+	ExternData::player = json::parse(buffer.str());
+	hackAmts[4] = ExternData::player["mods"].size();
 	mods.close();
 	buffer.str("");
 	buffer.clear();
-	InitJSONHacks(Hacks::player);
+	InitJSONHacks(ExternData::player);
 
 	std::ofstream w;
 
 	if (!std::filesystem::exists("imgui.ini") || !std::filesystem::exists("GDmenu/windows.bin"))
 	{
 		w.open("GDmenu/windows.bin", std::fstream::binary);
-		windowPositions.positions[0] = {1210, 710};
-		windowPositions.positions[1] = {10, 10};
-		windowPositions.positions[2] = {250, 10};
-		windowPositions.positions[3] = {730, 10};
-		windowPositions.positions[4] = {1210, 10};
-		windowPositions.positions[5] = {490, 10};
-		windowPositions.positions[6] = {970, 10};
-		windowPositions.positions[7] = {1690, 10};
-		windowPositions.positions[8] = {1450, 10};
-		windowPositions.positions[9] = {10, 720};
-		windowPositions.positions[10] = {1690, 580};
-		windowPositions.positions[11] = {10, 260};
-		w.write((char*)&windowPositions, sizeof(windowPositions));
+		ExternData::windowPositions.positions[0] = {1210, 710};
+		ExternData::windowPositions.positions[1] = {10, 10};
+		ExternData::windowPositions.positions[2] = {250, 10};
+		ExternData::windowPositions.positions[3] = {730, 10};
+		ExternData::windowPositions.positions[4] = {1210, 10};
+		ExternData::windowPositions.positions[5] = {490, 10};
+		ExternData::windowPositions.positions[6] = {970, 10};
+		ExternData::windowPositions.positions[7] = {1690, 10};
+		ExternData::windowPositions.positions[8] = {1450, 10};
+		ExternData::windowPositions.positions[9] = {10, 720};
+		ExternData::windowPositions.positions[10] = {1690, 580};
+		ExternData::windowPositions.positions[11] = {10, 260};
+		w.write((char*)&ExternData::windowPositions, sizeof(ExternData::windowPositions));
 		w.close();
 
 		if (!std::filesystem::exists("imgui.ini"))
-			resetWindows = true;
+			ExternData::resetWindows = true;
 	}
 
 	std::ifstream f;
@@ -996,7 +357,7 @@ void Init()
 	if (f)
 	{
 		f.read((char*)&hacks, sizeof(HacksStr));
-		Hacks::level["mods"][24]["toggle"] = false;
+		ExternData::level["mods"][24]["toggle"] = false;
 
 		Hacks::FPSBypass(hacks.fps);
 		Hacks::Write<float>(gd::base + 0x2E63A0, hacks.waveSize);
@@ -1004,8 +365,8 @@ void Init()
 		hacks.recording = false;
 
 		Hacks::Priority(hacks.priority);
-		Hacks::tps = hacks.tpsBypass;
-		Hacks::screenFps = hacks.screenFPS;
+		ExternData::tps = hacks.tpsBypass;
+		ExternData::screenFps = hacks.screenFPS;
 	}
 	else
 	{
@@ -1022,7 +383,7 @@ void Init()
 	f.open("GDMenu/windows.bin", std::fstream::binary);
 	if (f)
 	{
-		f.read((char*)&windowPositions, sizeof(windowPositions));
+		f.read((char*)&ExternData::windowPositions, sizeof(ExternData::windowPositions));
 	}
 
 	f.close();
@@ -1037,7 +398,7 @@ void Init()
 
 	Shortcuts::Load();
 
-	Hacks::ds.InitDiscord();
+	ExternData::ds.InitDiscord();
 
 	auto path = CCFileUtils::sharedFileUtils()->getWritablePath2() + "GDMenu/dll";
 
@@ -1058,8 +419,8 @@ void Init()
 
 void Hacks::RenderMain()
 {
-	if (Hacks::ds.core)
-		Hacks::ds.core->RunCallbacks();
+	if (ExternData::ds.core)
+		ExternData::ds.core->RunCallbacks();
 
 	const int windowWidth = 220;
 	const int arrowButtonPosition = windowWidth - 39;
@@ -1067,7 +428,7 @@ void Hacks::RenderMain()
 	if (hacks.hitboxMultiplier <= 0)
 		hacks.hitboxMultiplier = 1;
 
-	const float size = screenSize * hacks.menuSize;
+	const float size = ExternData::screenSize * hacks.menuSize;
 	const float windowSize = windowWidth * size;
 
 	const auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
@@ -1080,7 +441,7 @@ void Hacks::RenderMain()
 			ReplayPlayer::getInstance().recorder.stop();
 	}
 
-	if (Hacks::show || debug.enabled)
+	if (ExternData::show || debug.enabled)
 		SetStyle();
 
 	if (debug.enabled)
@@ -1089,17 +450,12 @@ void Hacks::RenderMain()
 		// ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
 		ImGui::Begin("Debug");
 
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		ImGui::SetWindowFontScale(ExternData::screenSize * hacks.menuSize);
 
-		ImInputFloat("N", &debug.debugNumber);
+		GDMO::ImInputFloat("N", &debug.debugNumber);
 		ImGui::Text(debug.debugString.c_str());
 
-		if (ImButton("Copy levelstring"))
+		if (GDMO::ImButton("Copy levelstring"))
 		{
 			if (playLayer)
 				ImGui::SetClipboardText(playLayer->m_level->levelString.c_str());
@@ -1108,13 +464,7 @@ void Hacks::RenderMain()
 		ImGui::End();
 
 		ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		ImGui::SetWindowFontScale(ExternData::screenSize * hacks.menuSize);
 
 		CocosExplorer::draw();
 
@@ -1122,84 +472,68 @@ void Hacks::RenderMain()
 		ImGui::PopStyleColor();
 	}
 
-	if (Hacks::show)
+	if (ExternData::show)
 	{
-		oldScreenSize = screenSize;
-		if (CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width != screenSize)
+		ExternData::oldScreenSize = ExternData::screenSize;
+		if (CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width != ExternData::screenSize)
 		{
-			screenSize = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
-			repositionWindows = true;
+			ExternData::screenSize = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
+			ExternData::repositionWindows = true;
 		}
 
-		if (oldScreenSize == 0)
-			oldScreenSize = screenSize;
+		if (ExternData::oldScreenSize == 0)
+			ExternData::oldScreenSize = ExternData::screenSize;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
-		if (!Hacks::fake)
+		if (!ExternData::fake)
 			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
 		closed = false;
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Menu Settings", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[0].x * screenSize, windowPositions.positions[0].y * screenSize});
-		else if (repositionWindows)
+		for(auto func : ExternData::imguiFuncs)
 		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+			func();
 		}
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[0] = {(int)pos.x, (int)pos.y};
-		}
+		GDMO::ImBegin("Menu Settings");
 
-		ImGui::PushItemWidth(70 * screenSize * hacks.menuSize);
-		ImInputFloat("Menu UI Size", &hacks.menuSize);
+		ImGui::PushItemWidth(70 * ExternData::screenSize * hacks.menuSize);
+		GDMO::ImInputFloat("Menu UI Size", &hacks.menuSize);
 		if (hacks.menuSize > 3)
 			hacks.menuSize = 1;
 		else if (hacks.menuSize < 0.5f)
 			hacks.menuSize = 0.5f;
-		ImInputFloat("Border Size", &hacks.borderSize);
-		ImInputFloat("Window Rounding", &hacks.windowRounding);
-		ImInputInt("Window Snap", &hacks.windowSnap, 0);
+		GDMO::ImInputFloat("Border Size", &hacks.borderSize);
+		GDMO::ImInputFloat("Window Rounding", &hacks.windowRounding);
+		GDMO::ImInputInt("Window Snap", &hacks.windowSnap, 0);
 		ImGui::PopItemWidth();
 
-		ImColorEdit3("Window Title BG Color", hacks.titleColor, ImGuiColorEditFlags_NoInputs);
-		ImColorEdit3("Border Color", hacks.borderColor, ImGuiColorEditFlags_NoInputs);
+		GDMO::ImColorEdit3("Window Title BG Color", hacks.titleColor, ImGuiColorEditFlags_NoInputs);
+		GDMO::ImColorEdit3("Border Color", hacks.borderColor, ImGuiColorEditFlags_NoInputs);
 
-		ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-		if (ImHotkey("Toggle Menu", &hacks.menuKey))
+		ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
+		if (GDMO::ImHotkey("Toggle Menu", &hacks.menuKey))
 		{
 			ImGuiHook::setKeybind(hacks.menuKey);
 		}
 		ImGui::PopItemWidth();
 
-		//ImCheckbox("Experimental Features", &hacks.experimentalFeatures);
+		//GDMO::ImCheckbox("Experimental Features", &hacks.experimentalFeatures);
 
 		if (isDecember)
-			ImCheckbox("Snow", &hacks.snow);
+			GDMO::ImCheckbox("Snow", &hacks.snow);
 
-		ImCheckbox("Rainbow Menu", &hacks.rainbowMenu);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Rainbow Menu", &hacks.rainbowMenu);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::BeginMenu("##rain"))
 		{
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			ImInputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
-			ImInputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImInputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
+			GDMO::ImInputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
 			ImGui::PopItemWidth();
 			ImGui::EndMenu();
 		}
 
-		if (ImCheckbox("Docking", &hacks.dockSpace))
+		if (GDMO::ImCheckbox("Docking", &hacks.dockSpace))
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			if (hacks.dockSpace)
@@ -1208,43 +542,21 @@ void Hacks::RenderMain()
 				io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
 		}
 
-		if (ImButton("Save Windows"))
-			saveWindows = true;
-		if (ImButton("Load Windows"))
-			resetWindows = true;
+		if (GDMO::ImButton("Save Windows"))
+			ExternData::saveWindows = true;
+		if (GDMO::ImButton("Load Windows"))
+			ExternData::resetWindows = true;
 
-		ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-		ImGui::InputText("Search", searchbar, 30);
+		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+		ImGui::InputText("Search", ExternData::searchbar, 30);
 		ImGui::PopItemWidth();
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("General Mods", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[1].x * screenSize, windowPositions.positions[1].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
+		GDMO::ImBegin("General Mods");
 
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
-
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[1] = {(int)pos.x, (int)pos.y};
-		}
-
-		ImGui::PushItemWidth(70 * screenSize * hacks.menuSize);
-		ImInputFloat("FPS Bypass", &hacks.fps);
+		ImGui::PushItemWidth(70 * ExternData::screenSize * hacks.menuSize);
+		GDMO::ImInputFloat("FPS Bypass", &hacks.fps);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
 		if (ImGui::IsItemDeactivatedAfterEdit())
@@ -1254,27 +566,27 @@ void Hacks::RenderMain()
 			Hacks::FPSBypass(hacks.fps);
 		}
 
-		ImInputFloat("##TPSBypass", &hacks.tpsBypass);
+		GDMO::ImInputFloat("##TPSBypass", &hacks.tpsBypass);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Changes how many times the physics gets updated every second.");
 		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
-			Hacks::tps = hacks.tpsBypass;
+			ExternData::tps = hacks.tpsBypass;
 		}
 		ImGui::SameLine();
-		ImCheckbox("TPS Bypass", &hacks.tpsBypassBool);
-		ImInputFloat("##Draw Divide", &hacks.screenFPS);
+		GDMO::ImCheckbox("TPS Bypass", &hacks.tpsBypassBool);
+		GDMO::ImInputFloat("##Draw Divide", &hacks.screenFPS);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be "
 							  "only processed.");
 		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
-			Hacks::screenFps = hacks.screenFPS;
+			ExternData::screenFps = hacks.screenFPS;
 		}
 		ImGui::SameLine();
-		ImCheckbox("Draw Divide", &hacks.drawDivideBool);
+		GDMO::ImCheckbox("Draw Divide", &hacks.drawDivideBool);
 
-		ImInputFloat("##Speed hack", &hacks.speed);
+		GDMO::ImInputFloat("##Speed hack", &hacks.speed);
 		if (ImGui::IsItemDeactivatedAfterEdit() && hacks.speedhackBool)
 		{
 			if (hacks.speed <= 0)
@@ -1289,7 +601,7 @@ void Hacks::RenderMain()
 								hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
 		}
 		ImGui::SameLine();
-		if (ImCheckbox("Speedhack", &hacks.speedhackBool))
+		if (GDMO::ImCheckbox("Speedhack", &hacks.speedhackBool))
 		{
 			Hacks::Speedhack(hacks.speedhackBool ? hacks.speed : 1.0f);
 			if (hacks.tieMusicToSpeed)
@@ -1302,143 +614,122 @@ void Hacks::RenderMain()
 		if (hacks.tieMusicToSpeed)
 		{
 			ImGui::BeginDisabled();
-			ImInputFloat("Music Speed", &hacks.musicSpeed);
+			GDMO::ImInputFloat("Music Speed", &hacks.musicSpeed);
 			ImGui::EndDisabled();
 		}
 		else
-			ImInputFloat("Music Speed", &hacks.musicSpeed);
+			GDMO::ImInputFloat("Music Speed", &hacks.musicSpeed);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			SpeedhackAudio::set(hacks.musicSpeed);
 		}
 
-		ImCombo("Thread Priority", &hacks.priority, priorities, 5);
+		GDMO::ImCombo("Thread Priority", &hacks.priority, priorities, 5);
 		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			Hacks::Priority(hacks.priority);
 		}
 
-		if (ImCheckbox("Tie Music to Gamespeed", &hacks.tieMusicToSpeed))
+		if (GDMO::ImCheckbox("Tie Music to Gamespeed", &hacks.tieMusicToSpeed))
 		{
 			SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
 		}
 
-		ImCheckbox("Tie DeathTime to Gamespeed", &hacks.autoUpdateRespawn);
+		GDMO::ImCheckbox("Tie DeathTime to Gamespeed", &hacks.autoUpdateRespawn);
 
 		ImGui::PopItemWidth();
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Global", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[2].x * screenSize, windowPositions.positions[2].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Global");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[2] = {(int)pos.x, (int)pos.y};
-		}
-
-		ImCheckbox("Auto Deafen", &hacks.autoDeafen);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Auto Deafen", &hacks.autoDeafen);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("autod", 1))
 			ImGui::OpenPopup("Auto Deafen Settings");
 
-		if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			ImInputFloat("Auto Deafen %", &hacks.percentage);
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImInputFloat("Auto Deafen %", &hacks.percentage);
 
-			ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-			ImHotkey("Mute Key", &hacks.muteKey);
+			ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImHotkey("Mute Key", &hacks.muteKey);
 			ImGui::PopItemWidth();
 
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Set a key combination in discord with leftalt + the key you set here");
 			ImGui::PopItemWidth();
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Discord RPC", &hacks.discordRPC))
+		if (GDMO::ImCheckbox("Discord RPC", &hacks.discordRPC))
 		{
 			if (!hacks.discordRPC)
 			{
-				if (Hacks::ds.core)
-					Hacks::ds.core->ActivityManager().ClearActivity([](discord::Result result) {});
+				if (ExternData::ds.core)
+					ExternData::ds.core->ActivityManager().ClearActivity([](discord::Result result) {});
 			}
 		}
 
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("rpc", 1))
 			ImGui::OpenPopup("RPC Settings");
 
-		if (ImGui::BeginPopupModal("RPC Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("RPC Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			ImCombo("##editing", &editing, rpc, 3);
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImCombo("##editing", &editing, rpc, 3);
 
 			switch (editing)
 			{
 			case 0:
 				ImGui::Text("{name}, {author}, {best}, {stars}, {id}, {run}");
 
-				ImInputText("Details", hacks.levelPlayDetail, 60);
-				ImInputText("State", hacks.levelPlayState, 60);
+				GDMO::ImInputText("Details", hacks.levelPlayDetail, 60);
+				GDMO::ImInputText("State", hacks.levelPlayState, 60);
 				break;
 			case 1:
 				ImGui::Text("{name}, {objects}");
 
-				ImInputText("Details", hacks.editorDetail, 60);
-				ImInputText("State", hacks.editorState, 60);
+				GDMO::ImInputText("Details", hacks.editorDetail, 60);
+				GDMO::ImInputText("State", hacks.editorState, 60);
 				break;
 
 			case 2:
 
-				ImInputText("Details", hacks.menuDetail, 60);
-				ImInputText("State", hacks.menuState, 60);
+				GDMO::ImInputText("Details", hacks.menuDetail, 60);
+				GDMO::ImInputText("State", hacks.menuState, 60);
 				break;
 			}
 
 			ImGui::PopItemWidth();
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImCheckbox("Hide Pause Menu", &hacks.hidePause);
+		GDMO::ImCheckbox("Hide Pause Menu", &hacks.hidePause);
 
-		ImCheckbox("Custom Menu Music", &hacks.replaceMenuMusic);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Custom Menu Music", &hacks.replaceMenuMusic);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("custmm", 1))
 			ImGui::OpenPopup("Custom Menu Music Settings");
 
 		if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
-			Hacks::fake)
+			ExternData::fake)
 		{
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			if (ImButton("Select Song"))
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			if (GDMO::ImButton("Select Song"))
 			{
 				auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
 												{"Audio File", "*.mp3"}, pfd::opt::none)
@@ -1452,271 +743,206 @@ void Hacks::RenderMain()
 				Hacks::MenuMusic();
 			}
 			ImGui::PopItemWidth();
-			ImCheckbox("Random Menu Music", &hacks.randomMusic);
-			if (Hacks::path.empty())
-				Hacks::path = Hacks::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
+			GDMO::ImCheckbox("Random Menu Music", &hacks.randomMusic);
+			if (ExternData::path.empty())
+				ExternData::path = ExternData::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
 
 			std::string diobono = hacks.menuSongId;
 			if (hacks.randomMusic)
-				ImGui::Text(("Playing: " + Hacks::path.filename().string()).c_str());
+				ImGui::Text(("Playing: " + ExternData::path.filename().string()).c_str());
 			else
 				ImGui::Text(("Playing: " + diobono).c_str());
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		DrawFromJSON(Hacks::global);
+		DrawFromJSON(ExternData::global);
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Level", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[3].x * screenSize, windowPositions.positions[3].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Level");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[3] = {(int)pos.x, (int)pos.y};
-		}
-
-		ImCheckbox("StartPos Switcher", &hacks.startPosSwitcher);
-		ImCheckbox("Smart StartPos", &hacks.smartStartPos);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("StartPos Switcher", &hacks.startPosSwitcher);
+		GDMO::ImCheckbox("Smart StartPos", &hacks.smartStartPos);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("smar", 1))
 			ImGui::OpenPopup("Smart StartPos Settings");
 
-		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
+			GDMO::ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip(
 					"Enable auto detection of gravity, might not work since it does not account for blue pads or orbs");
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImCheckbox("Show Hitboxes", &hacks.showHitboxes);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Show Hitboxes", &hacks.showHitboxes);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("hit", 1))
 			ImGui::OpenPopup("Hitbox Settings");
 
-		if (ImGui::BeginPopupModal("Hitbox Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Hitbox Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImCheckbox("Only on Death", &hacks.onlyOnDeath);
-			ImCheckbox("Show Decorations", &hacks.showDecorations);
-			ImCheckbox("Coin Tracker", &hacks.coinTracker);
-			ImCheckbox("Hitboxes only", &hacks.hitboxOnly);
-			ImCheckbox("Hitbox trail", &hacks.hitboxTrail);
-			ImInputFloat("Trail Length", &hacks.hitboxTrailLength);
-			ImInputInt("Hitbox Opacity", &hacks.borderOpacity, 0);
-			ImInputInt("Fill Opacity", &hacks.hitboxOpacity, 0);
-			ImInputFloat("Hitbox Thickness", &hacks.hitboxThickness);
-			ImColorEdit3("Solid Color", hacks.solidHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Slope Color", hacks.slopeHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Hazard Color", hacks.hazardHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Portal Color", hacks.portalHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Pad Color", hacks.padHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Ring Color", hacks.ringHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Collectible Color", hacks.collectibleHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Modifier Color", hacks.modifierHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Player Color", hacks.playerHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Rotated Player Color", hacks.rotatedHitboxColor, ImGuiColorEditFlags_NoInputs);
-			ImColorEdit3("Center Player Color", hacks.centerHitboxColor, ImGuiColorEditFlags_NoInputs);
-			if (ImButton("Close", false))
+			GDMO::ImCheckbox("Only on Death", &hacks.onlyOnDeath);
+			GDMO::ImCheckbox("Show Decorations", &hacks.showDecorations);
+			GDMO::ImCheckbox("Coin Tracker", &hacks.coinTracker);
+			GDMO::ImCheckbox("Hitboxes only", &hacks.hitboxOnly);
+			GDMO::ImCheckbox("Hitbox trail", &hacks.hitboxTrail);
+			GDMO::ImInputFloat("Trail Length", &hacks.hitboxTrailLength);
+			GDMO::ImInputInt("Hitbox Opacity", &hacks.borderOpacity, 0);
+			GDMO::ImInputInt("Fill Opacity", &hacks.hitboxOpacity, 0);
+			GDMO::ImInputFloat("Hitbox Thickness", &hacks.hitboxThickness);
+			GDMO::ImColorEdit3("Solid Color", hacks.solidHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Slope Color", hacks.slopeHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Hazard Color", hacks.hazardHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Portal Color", hacks.portalHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Pad Color", hacks.padHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Ring Color", hacks.ringHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Collectible Color", hacks.collectibleHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Modifier Color", hacks.modifierHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Player Color", hacks.playerHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Rotated Player Color", hacks.rotatedHitboxColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Center Player Color", hacks.centerHitboxColor, ImGuiColorEditFlags_NoInputs);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
-		ImCheckbox("Layout Mode", &hacks.layoutMode);
-		ImCheckbox("Hide Attempts", &hacks.hideattempts);
+		GDMO::ImCheckbox("Layout Mode", &hacks.layoutMode);
+		GDMO::ImCheckbox("Hide Attempts", &hacks.hideattempts);
 
-		DrawFromJSON(Hacks::level);
+		DrawFromJSON(ExternData::level);
 
-		ImCheckbox("Auto Safe Mode", &hacks.autoSafeMode);
-		ImCheckbox("Practice Fix", &hacks.fixPractice);
+		GDMO::ImCheckbox("Auto Safe Mode", &hacks.autoSafeMode);
+		GDMO::ImCheckbox("Practice Fix", &hacks.fixPractice);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(
 				"Activate this if you want the practice fixes to be active even if macrobot is not recording");
 
-		ImCheckbox("Auto Sync Music", &hacks.autoSyncMusic);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Auto Sync Music", &hacks.autoSyncMusic);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("ausm", 1))
 			ImGui::OpenPopup("Auto Sync Music Settings");
 
-		if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImInputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
-			if (ImButton("Sync Now"))
+			GDMO::ImInputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
+			if (GDMO::ImButton("Sync Now"))
 				PlayLayer::SyncMusic();
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImCheckbox("Confirm Quit", &hacks.confirmQuit);
-		ImCheckbox("Show Endscreen Info", &hacks.showExtraInfo);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Confirm Quit", &hacks.confirmQuit);
+		GDMO::ImCheckbox("Show Endscreen Info", &hacks.showExtraInfo);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("sei", 1))
 			ImGui::OpenPopup("Endscreen Settings");
 
 		if (ImGui::BeginPopupModal("Endscreen Settings", NULL))
 		{
-			ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
-			ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
-			ImCheckbox("Cheat Indicator##chea", &hacks.cheatIndicatorEndscreen);
-			if (ImButton("Close", false))
+			GDMO::ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
+			GDMO::ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
+			GDMO::ImCheckbox("Cheat Indicator##chea", &hacks.cheatIndicatorEndscreen);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImGui::PushItemWidth(50 * screenSize * hacks.menuSize);
-		ImCheckbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Requires level reload to apply properly");
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(50 * ExternData::screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("hbm", 1))
 			ImGui::OpenPopup("Hitbox Multiplier Settings");
 
 		if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL))
 		{
-			ImInputFloat("Harards", &hacks.hitboxMultiplier);
-			ImInputFloat("Solids", &hacks.hitboxSolids);
-			ImInputFloat("Special", &hacks.hitboxSpecial);
-			if (ImButton("Close", false))
+			GDMO::ImInputFloat("Harards", &hacks.hitboxMultiplier);
+			GDMO::ImInputFloat("Solids", &hacks.hitboxSolids);
+			GDMO::ImInputFloat("Special", &hacks.hitboxSpecial);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Bypass", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[4].x * screenSize, windowPositions.positions[4].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Bypass");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[4] = {(int)pos.x, (int)pos.y};
-		}
-
-		DrawFromJSON(Hacks::bypass);
+		DrawFromJSON(ExternData::bypass);
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Player", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[5].x * screenSize, windowPositions.positions[5].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Player");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[5] = {(int)pos.x, (int)pos.y};
-		}
+		DrawFromJSON(ExternData::player);
 
-		DrawFromJSON(Hacks::player);
-
-		ImCheckbox("Void Click Fix", &hacks.voidClick);
-		ImCheckbox("Lock Cursor", &hacks.lockCursor);
-		ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
-		ImCheckbox("Show Trajectory", &hacks.trajectory);
+		GDMO::ImCheckbox("Void Click Fix", &hacks.voidClick);
+		GDMO::ImCheckbox("Lock Cursor", &hacks.lockCursor);
+		GDMO::ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
+		GDMO::ImCheckbox("Show Trajectory", &hacks.trajectory);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
 
-		ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
+		GDMO::ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
 
-		ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("rain", 1))
 			ImGui::OpenPopup("Rainbow Icons Settings");
 
-		if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImCheckbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
-			ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
-			ImCheckbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
-			ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
+			GDMO::ImCheckbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
+			GDMO::ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
+			GDMO::ImCheckbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
+			GDMO::ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
 
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			ImInputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
-			if (ImInputFloat("Rainbow Pastel Amount", &hacks.pastel))
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImInputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
+			if (GDMO::ImInputFloat("Rainbow Pastel Amount", &hacks.pastel))
 			{
 				hacks.pastel = hacks.pastel <= 0.1f ? 0.1f : hacks.pastel > 1.0f ? 1.0f : hacks.pastel;
 			}
 			ImGui::PopItemWidth();
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImColorEdit3("##WaveTrailColor", hacks.waveTrailColor, ImGuiColorEditFlags_NoInputs);
+		GDMO::ImColorEdit3("##WaveTrailColor", hacks.waveTrailColor, ImGuiColorEditFlags_NoInputs);
 		ImGui::SameLine();
-		ImCheckbox("Wave Trail Color", &hacks.enableWaveTrailColor);
+		GDMO::ImCheckbox("Wave Trail Color", &hacks.enableWaveTrailColor);
 
-		ImGui::PushItemWidth(90 * screenSize * hacks.menuSize);
-		if (ImInputFloat("Wave Trail Size", &hacks.waveSize))
+		ImGui::PushItemWidth(90 * ExternData::screenSize * hacks.menuSize);
+		if (GDMO::ImInputFloat("Wave Trail Size", &hacks.waveSize))
 			Hacks::Write<float>(gd::base + 0x2E63A0, hacks.waveSize);
-		if (ImInputFloat("Respawn Time", &hacks.respawnTime))
+		if (GDMO::ImInputFloat("Respawn Time", &hacks.respawnTime))
 			Hacks::WriteRef(gd::base + 0x20A677,
 							hacks.respawnTime * (hacks.autoUpdateRespawn
 													 ? CCDirector::sharedDirector()->getScheduler()->getTimeScale()
@@ -1725,374 +951,311 @@ void Hacks::RenderMain()
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Creator", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[6].x * screenSize, windowPositions.positions[6].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Creator");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[6] = {(int)pos.x, (int)pos.y};
-		}
-
-		DrawFromJSON(Hacks::creator);
+		DrawFromJSON(ExternData::creator);
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Status", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[7].x * screenSize, windowPositions.positions[7].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Status");
+		GDMO::ImCheckbox("Hide All", &labels.hideLabels);
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[7] = {(int)pos.x, (int)pos.y};
-		}
-		ImCheckbox("Hide All", &labels.hideLabels);
-
-		ImCheckbox("Rainbow Labels", &labels.rainbowLabels);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Rainbow Labels", &labels.rainbowLabels);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::BeginMenu("##rainl"))
 		{
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			ImInputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImInputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
 			ImGui::PopItemWidth();
 			ImGui::EndMenu();
 		}
 
-		if (ImCheckbox("Cheat Indicator", &labels.statuses[0]))
+		if (GDMO::ImCheckbox("Cheat Indicator", &labels.statuses[0]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("ci", 1))
 			ImGui::OpenPopup("Cheat Indicator Settings");
-		if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(0, false);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("FPS Counter", &labels.statuses[1]))
+		if (GDMO::ImCheckbox("FPS Counter", &labels.statuses[1]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("fps", 1))
 			ImGui::OpenPopup("FPS Counter Settings");
-		if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(1, true);
-			ImInputText("Style##fpsc", labels.styles[0], 15);
+			GDMO::ImInputText("Style##fpsc", labels.styles[0], 15);
 			ImGui::SameLine();
-			if(ImButton("Reset##fpsc"))
+			if(GDMO::ImButton("Reset##fpsc"))
 			{
 				strcpy(labels.styles[0], "%.0f/%.0f");
 			}
-			ImInputFloat("Update Interval", &labels.fpsUpdate);
-			if (ImButton("Close", false))
+			GDMO::ImInputFloat("Update Interval", &labels.fpsUpdate);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("CPS Counter", &labels.statuses[2]))
+		if (GDMO::ImCheckbox("CPS Counter", &labels.statuses[2]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("cps", 1))
 			ImGui::OpenPopup("CPS Counter Settings");
-		if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(2, true);
-			ImInputText("Style##cpsc", labels.styles[1], 15);
+			GDMO::ImInputText("Style##cpsc", labels.styles[1], 15);
 			ImGui::SameLine();
-			if(ImButton("Reset##cpsc"))
+			if(GDMO::ImButton("Reset##cpsc"))
 			{
 				strcpy(labels.styles[1], "%i/%i");
 			}
-			ImColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
-			if (ImButton("Close", false))
+			GDMO::ImColorEdit3("Clicked Color", hacks.clickColor, ImGuiColorEditFlags_NoInputs);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Noclip accuracy", &labels.statuses[3]))
+		if (GDMO::ImCheckbox("Noclip accuracy", &labels.statuses[3]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("nca", 1))
 			ImGui::OpenPopup("Noclip Accuracy Settings");
 
-		if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(3, true);
-			ImInputText("Style##noclipacc", labels.styles[2], 15);
+			GDMO::ImInputText("Style##noclipacc", labels.styles[2], 15);
 			ImGui::SameLine();
-			if(ImButton("Reset##noclipacc"))
+			if(GDMO::ImButton("Reset##noclipacc"))
 			{
 				strcpy(labels.styles[2], "Accuracy: %.2f");
 			}
-			ImInputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
-			ImCheckbox("Play Sound on death", &hacks.accuracySound);
-			ImCheckbox("Enable Screen Effect", &hacks.noclipRed);
-			ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-			ImInputFloat("Opacity Limit", &hacks.noclipRedLimit);
-			ImInputFloat("Opacity Rate Up", &hacks.noclipRedRate);
-			ImInputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
-			ImColorEdit3("Overlay Color", hacks.noclipColor, ImGuiColorEditFlags_NoInputs);
-			if (ImButton("Close", false))
+			GDMO::ImInputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
+			GDMO::ImCheckbox("Play Sound on death", &hacks.accuracySound);
+			GDMO::ImCheckbox("Enable Screen Effect", &hacks.noclipRed);
+			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImInputFloat("Opacity Limit", &hacks.noclipRedLimit);
+			GDMO::ImInputFloat("Opacity Rate Up", &hacks.noclipRedRate);
+			GDMO::ImInputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
+			GDMO::ImColorEdit3("Overlay Color", hacks.noclipColor, ImGuiColorEditFlags_NoInputs);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Noclip deaths", &labels.statuses[4]))
+		if (GDMO::ImCheckbox("Noclip deaths", &labels.statuses[4]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("ncd", 1))
 			ImGui::OpenPopup("Noclip Deaths Settings");
 
-		if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImInputText("Style##noclipdeaths", labels.styles[3], 15);
+			GDMO::ImInputText("Style##noclipdeaths", labels.styles[3], 15);
 			ImGui::SameLine();
-			if(ImButton("Reset##noclipdeaths"))
+			if(GDMO::ImButton("Reset##noclipdeaths"))
 			{
 				strcpy(labels.styles[3], "Deaths: %i");
 			}
 			TextSettings(4, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Clock", &labels.statuses[5]))
+		if (GDMO::ImCheckbox("Clock", &labels.statuses[5]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("clock", 1))
 			ImGui::OpenPopup("Clock Settings");
-		if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(5, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Best Run", &labels.statuses[6]))
+		if (GDMO::ImCheckbox("Best Run", &labels.statuses[6]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("best run", 1))
 			ImGui::OpenPopup("Best Run Settings");
-		if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(6, true);
-			ImCheckbox("Accumulate Runs", &hacks.accumulateRuns);
-			if (ImButton("Close", false))
+			GDMO::ImCheckbox("Accumulate Runs", &hacks.accumulateRuns);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Attempts", &labels.statuses[7]))
+		if (GDMO::ImCheckbox("Attempts", &labels.statuses[7]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("attempts", 1))
 			ImGui::OpenPopup("Attempts Settings");
-		if (ImGui::BeginPopupModal("Attempts Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Attempts Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(7, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("From %", &labels.statuses[8]))
+		if (GDMO::ImCheckbox("From %", &labels.statuses[8]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("from", 1))
 			ImGui::OpenPopup("From % Settings");
-		if (ImGui::BeginPopupModal("From % Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("From % Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(8, true);
-			ImCheckbox("Only in Runs", &hacks.onlyInRuns);
-			if (ImButton("Close", false))
+			GDMO::ImCheckbox("Only in Runs", &hacks.onlyInRuns);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Message Status", &labels.statuses[9]))
+		if (GDMO::ImCheckbox("Message Status", &labels.statuses[9]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("stat", 1))
 			ImGui::OpenPopup("Message Status Settings");
-		if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(9, true);
-			ImInputText("Message", hacks.message, 30);
-			if (ImButton("Close", false))
+			GDMO::ImInputText("Message", hacks.message, 30);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Current Attempt", &labels.statuses[10]))
+		if (GDMO::ImCheckbox("Current Attempt", &labels.statuses[10]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("curr", 1))
 			ImGui::OpenPopup("Current Attempt Settings");
-		if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(10, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Level ID", &labels.statuses[11]))
+		if (GDMO::ImCheckbox("Level ID", &labels.statuses[11]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("levelid", 1))
 			ImGui::OpenPopup("Level ID Settings");
-		if (ImGui::BeginPopupModal("Level ID Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Level ID Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(11, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Jumps", &labels.statuses[12]))
+		if (GDMO::ImCheckbox("Jumps", &labels.statuses[12]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("jumps", 1))
 			ImGui::OpenPopup("Jumps Settings");
-		if (ImGui::BeginPopupModal("Jumps Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Jumps Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(12, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		if (ImCheckbox("Frame", &labels.statuses[13]))
+		if (GDMO::ImCheckbox("Frame", &labels.statuses[13]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("frame", 1))
 			ImGui::OpenPopup("Frame Settings");
-		if (ImGui::BeginPopupModal("Frame Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Frame Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(13, true);
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-		if (ImInputFloat("Label Spacing", &labels.labelSpacing))
+		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+		if (GDMO::ImInputFloat("Label Spacing", &labels.labelSpacing))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
 		ImGui::PopItemWidth();
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Shortcuts", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[8].x * screenSize, windowPositions.positions[8].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
-
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[8] = {(int)pos.x, (int)pos.y};
-		}
+		GDMO::ImBegin("Shortcuts");
 
 		if (Shortcuts::shortcuts.size() == 0)
 		{
@@ -2106,8 +1269,8 @@ void Hacks::RenderMain()
 			ImGui::Text(KeyNames[Shortcuts::shortcuts[i].key]);
 			ImGui::SameLine();
 			ImGui::Text(Shortcuts::shortcuts[i].name);
-			ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-			if (ImButton(("x##" + std::to_string(i)).c_str()))
+			ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+			if (GDMO::ImButton(("x##" + std::to_string(i)).c_str()))
 			{
 				Shortcuts::shortcuts.erase(Shortcuts::shortcuts.begin() + i);
 				Shortcuts::Save();
@@ -2116,14 +1279,14 @@ void Hacks::RenderMain()
 			ImGui::Separator();
 		}
 
-		if (ImButton("Open GD Settings"))
+		if (GDMO::ImButton("Open GD Settings"))
 			gd::OptionsLayer::addToCurrentScene(false);
-		if (ImButton("Open Song Folder"))
+		if (GDMO::ImButton("Open Song Folder"))
 		{
 			ShellExecute(0, NULL, Hacks::GetSongFolder().c_str(), NULL, NULL, SW_SHOW);
 		}
 
-		if (ImButton("Uncomplete Level"))
+		if (GDMO::ImButton("Uncomplete Level"))
 		{
 			if (playLayer)
 			{
@@ -2151,7 +1314,7 @@ void Hacks::RenderMain()
 			}
 		}
 
-		if (ImButton("Inject DLL"))
+		if (GDMO::ImButton("Inject DLL"))
 		{
 			auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath2(),
 											{"DLL File", "*.dll"}, pfd::opt::multiselect)
@@ -2160,13 +1323,13 @@ void Hacks::RenderMain()
 				LoadLibrary(filename.c_str());
 		}
 
-		if (ImButton("Reset Level"))
+		if (GDMO::ImButton("Reset Level"))
 		{
 			if (playLayer)
 				PlayLayer::resetLevelHook(playLayer, 0);
 		}
 
-		if (ImButton("Toggle Practice Mode"))
+		if (GDMO::ImButton("Toggle Practice Mode"))
 		{
 			if (playLayer)
 				PlayLayer::togglePracticeModeHook(playLayer, 0, !playLayer->m_isPracticeMode);
@@ -2174,31 +1337,10 @@ void Hacks::RenderMain()
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Pitch Shift", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[9].x * screenSize, windowPositions.positions[9].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Pitch Shift");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[9] = {(int)pos.x, (int)pos.y};
-		}
-
-		ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
-		if (ImButton("Select Song##pitch"))
+		ImGui::PushItemWidth(120 * ExternData::screenSize * hacks.menuSize);
+		if (GDMO::ImButton("Select Song##pitch"))
 		{
 			auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
 											{"Audio File", "*.mp3"}, pfd::opt::none)
@@ -2214,72 +1356,30 @@ void Hacks::RenderMain()
 		ImGui::SameLine();
 		ImGui::Text(hacks.pitchId);
 
-		ImInputFloat("Pitch", &pitch);
+		GDMO::ImInputFloat("Pitch", &pitch);
 		ImGui::PopItemWidth();
 
-		if (ImButton("Render"))
+		if (GDMO::ImButton("Render"))
 			Hacks::ChangePitch(pitch);
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Nong Downloader", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[12].x * screenSize, windowPositions.positions[12].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Nong Downloader");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[12] = {(int)pos.x, (int)pos.y};
-		}
+		ImGui::PushItemWidth(120 * ExternData::screenSize * hacks.menuSize);
 
-		ImGui::PushItemWidth(120 * screenSize * hacks.menuSize);
-
-		ImInputText("Song Url", url, 100);
-		ImInputText("Song Id", id, 30);
+		GDMO::ImInputText("Song Url", url, 100);
+		GDMO::ImInputText("Song Id", id, 30);
 		ImGui::PopItemWidth();
 
-		if (ImButton("Download"))
+		if (GDMO::ImButton("Download"))
 			Hacks::NongDownload(url, id);
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Internal Recorder", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[10].x * screenSize, windowPositions.positions[10].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
+		GDMO::ImBegin("Internal Recorder");
 
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[10] = {(int)pos.x, (int)pos.y};
-		}
-
-		if (ImCheckbox("Record", &hacks.recording))
+		if (GDMO::ImCheckbox("Record", &hacks.recording))
 		{
 			if (!playLayer)
 				return;
@@ -2294,59 +1394,39 @@ void Hacks::RenderMain()
 				ReplayPlayer::getInstance().recorder.start();
 			}
 		}
-		ImCheckbox("Include Clicks", &hacks.includeClicks);
-		ImGui::PushItemWidth(110 * screenSize * hacks.menuSize);
-		ImInputInt2("Size##videosize", hacks.videoDimenstions);
+		GDMO::ImCheckbox("Include Clicks", &hacks.includeClicks);
+		ImGui::PushItemWidth(110 * ExternData::screenSize * hacks.menuSize);
+		GDMO::ImInputInt2("Size##videosize", hacks.videoDimenstions);
 		ImGui::PopItemWidth();
-		ImGui::PushItemWidth(75 * screenSize * hacks.menuSize);
-		ImInputInt("Framerate", &hacks.videoFps, 0);
-		ImInputFloat("Music Volume", &hacks.renderMusicVolume);
-		ImInputFloat("Click Volume", &hacks.renderClickVolume);
-		ImInputText("Bitrate", hacks.bitrate, 8);
-		ImInputText("Codec", hacks.codec, 20);
-		ImInputText("Extraargs Before -i", hacks.extraArgs, 60);
-		ImInputText("Extraargs After -i", hacks.extraArgsAfter, 60);
-		ImInputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
+		ImGui::PushItemWidth(75 * ExternData::screenSize * hacks.menuSize);
+		GDMO::ImInputInt("Framerate", &hacks.videoFps, 0);
+		GDMO::ImInputFloat("Music Volume", &hacks.renderMusicVolume);
+		GDMO::ImInputFloat("Click Volume", &hacks.renderClickVolume);
+		GDMO::ImInputText("Bitrate", hacks.bitrate, 8);
+		GDMO::ImInputText("Codec", hacks.codec, 20);
+		GDMO::ImInputText("Extraargs Before -i", hacks.extraArgs, 60);
+		GDMO::ImInputText("Extraargs After -i", hacks.extraArgsAfter, 60);
+		GDMO::ImInputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the "
 							  "whole rendered clicks, i have to split them to bypass the command character limit.\nTry "
 							  "increasing this if the clicks do not render.");
-		ImInputFloat("Show End For", &hacks.afterEndDuration);
+		GDMO::ImInputFloat("Show End For", &hacks.afterEndDuration);
 		ImGui::PopItemWidth();
 
-		Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in "
+		GDMO::Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in "
 						"GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on "
 						"default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: "
 						"-hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using "
 						"an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
-		Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i "
+		GDMO::Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i "
 						  "integrated my clickbot into it");
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Variable Changer", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[11].x * screenSize, windowPositions.positions[11].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[11] = {(int)pos.x, (int)pos.y};
-		}
+		GDMO::ImBegin("Variable Changer");
 
-		auto jarray = Hacks::variables["variables"];
+		auto jarray = ExternData::variables["variables"];
 		std::vector<std::string> variableTabs;
 		std::vector<std::string> variables;
 
@@ -2355,7 +1435,7 @@ void Hacks::RenderMain()
 			variableTabs.push_back(jobject["name"].get<std::string>());
 		}
 
-		ImGui::PushItemWidth(140 * screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(140 * ExternData::screenSize * hacks.menuSize);
 
 		ImGui::Combo(
 			"Tab", &tabIndex,
@@ -2384,7 +1464,7 @@ void Hacks::RenderMain()
 				*out_text = vector->at(idx).c_str();
 				return true;
 			},
-			reinterpret_cast<void*>(&variables), variables.size());
+			reinterpret_cast<void*>(&ExternData::variables), ExternData::variables.size());
 
 		if(variableIndex >= arr["data"].size()) variableIndex = 0;
 
@@ -2393,7 +1473,7 @@ void Hacks::RenderMain()
 		if (type == "float")
 		{
 			static float input;
-			if (ImInputFloat(arr["data"][variableIndex]["name"].get<std::string>().c_str(), &input))
+			if (GDMO::ImInputFloat(arr["data"][variableIndex]["name"].get<std::string>().c_str(), &input))
 			{
 				for (auto ob : arr["data"][variableIndex]["pointers"])
 				{
@@ -2410,7 +1490,7 @@ void Hacks::RenderMain()
 		else
 		{
 			static int input;
-			if (ImInputInt(arr["data"][variableIndex]["name"].get<std::string>().c_str(), &input))
+			if (GDMO::ImInputInt(arr["data"][variableIndex]["name"].get<std::string>().c_str(), &input))
 			{
 				for (auto ob : arr["data"][variableIndex]["pointers"])
 				{
@@ -2429,127 +1509,108 @@ void Hacks::RenderMain()
 
 		ImGui::End();
 
-		ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-		ImGui::Begin("Macrobot", 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetWindowFontScale(screenSize * hacks.menuSize);
-		if (resetWindows)
-			ImGui::SetWindowPos(
-				{windowPositions.positions[11].x * screenSize, windowPositions.positions[11].y * screenSize});
-		else if (repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (screenSize / oldScreenSize), pos.y * (screenSize / oldScreenSize)});
-		}
-		if (hacks.windowSnap > 1)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-		}
-		if (saveWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			windowPositions.positions[11] = {(int)pos.x, (int)pos.y};
-		}
+		GDMO::ImBegin("Macrobot");
+
 		if (ReplayPlayer::getInstance().IsRecording())
 			ImGui::PushStyleColor(0, ImVec4(0, 1, 0, 1));
 		else
 			ImGui::PushStyleColor(0, ImVec4(1, 0, 0, 1));
-		if (ImButton("Toggle Recording"))
+		if (GDMO::ImButton("Toggle Recording"))
 			ReplayPlayer::getInstance().ToggleRecording();
 		if (ReplayPlayer::getInstance().IsPlaying())
 			ImGui::PushStyleColor(0, ImVec4(0, 1, 0, 1));
 		else
 			ImGui::PushStyleColor(0, ImVec4(1, 0, 0, 1));
-		if (ImButton("Toggle Playing"))
+		if (GDMO::ImButton("Toggle Playing"))
 			ReplayPlayer::getInstance().TogglePlaying();
 		else
 			ImGui::PushStyleColor(0, ImVec4(1, 1, 1, 1));
-		ImCheckbox("Show Replay Label", &hacks.botTextEnabled);
+		GDMO::ImCheckbox("Show Replay Label", &hacks.botTextEnabled);
 
-		ImCheckbox("Click sounds", &hacks.clickbot);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Click sounds", &hacks.clickbot);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("clicks", 1))
 			ImGui::OpenPopup("Click sounds settings");
-		if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImInputFloat("Click volume", &hacks.baseVolume);
-			ImInputFloat("Max pitch variation", &hacks.maxPitch);
-			ImInputFloat("Min pitch variation", &hacks.minPitch);
+			GDMO::ImInputFloat("Click volume", &hacks.baseVolume);
+			GDMO::ImInputFloat("Max pitch variation", &hacks.maxPitch);
+			GDMO::ImInputFloat("Min pitch variation", &hacks.minPitch);
 			ImGui::InputDouble("Play Medium Clicks at", &hacks.playMediumClicksAt);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Amount of time between click so that a medium click is played");
-			ImInputFloat("Minimum time difference", &hacks.minTimeDifference);
+			GDMO::ImInputFloat("Minimum time difference", &hacks.minTimeDifference);
 			if (ImGui::IsItemHovered())
 				ImGui::SetTooltip("Minimum time difference for a click to play, to avoid tiny double clicks");
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
 			ImGui::SameLine();
-			Marker("?", "Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
-			if (!Hacks::fake)
+			GDMO::Marker("?", "Put clicks, releases and mediumclicks in the respective folders found in GDMenu/clicks");
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
-		ImCheckbox("Prevent inputs", &hacks.preventInput);
+		GDMO::ImCheckbox("Prevent inputs", &hacks.preventInput);
 
-		ImCheckbox("Disable Corrections", &hacks.disableBotCorrection);
+		GDMO::ImCheckbox("Disable Corrections", &hacks.disableBotCorrection);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Disable physics correction with the bot, only uses the clicks.");
 
-		ImCheckbox("Autoclicker", &hacks.autoclicker);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Autoclicker", &hacks.autoclicker);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("aut", 1))
 			ImGui::OpenPopup("Autoclicker Settings");
 
-		if (ImGui::BeginPopupModal("Autoclicker Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Autoclicker Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImInputFloat("Click time", &hacks.clickTime);
-			ImInputFloat("Release time", &hacks.releaseTime);
-			if (ImButton("Close", false))
+			GDMO::ImInputFloat("Click time", &hacks.clickTime);
+			GDMO::ImInputFloat("Release time", &hacks.releaseTime);
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
-		ImCheckbox("Frame Step", &hacks.frameStep);
-		ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
+		GDMO::ImCheckbox("Frame Step", &hacks.frameStep);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("fra", 1))
 			ImGui::OpenPopup("Frame Step Settings");
 
-		if (ImGui::BeginPopupModal("Frame Step Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || Hacks::fake)
+		if (ImGui::BeginPopupModal("Frame Step Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImInputInt("Step Count", &hacks.stepCount, 0);
-			ImGui::PushItemWidth(180 * screenSize * hacks.menuSize);
-			ImHotkey("Step Key", &hacks.stepIndex);
+			GDMO::ImInputInt("Step Count", &hacks.stepCount, 0);
+			ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
+			GDMO::ImHotkey("Step Key", &hacks.stepIndex);
 			ImGui::PopItemWidth();
-			ImCheckbox("Hold to Advance", &hacks.holdAdvance);
+			GDMO::ImCheckbox("Hold to Advance", &hacks.holdAdvance);
 
-			if (ImButton("Close", false))
+			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();
 			}
-			if (!Hacks::fake)
+			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
 
 		ImGui::Spacing();
-		if (ImButton("Clear actions"))
+		if (GDMO::ImButton("Clear actions"))
 			ReplayPlayer::getInstance().ClearActions();
 
 		ImGui::Spacing();
-		ImGui::PushItemWidth(100 * screenSize * hacks.menuSize);
-		ImInputText("Replay Name", fileName, 30);
+		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+		GDMO::ImInputText("Replay Name", fileName, 30);
 		ImGui::PopItemWidth();
-		if (ImButton("Save"))
+		if (GDMO::ImButton("Save"))
 			ReplayPlayer::getInstance().Save(fileName);
 
 		ImGui::SameLine();
 
 		static bool showSelector = false;
 
-		if (ImButton("Open Selector"))
+		if (GDMO::ImButton("Open Selector"))
 		{
 			showSelector = !showSelector;
 		}
@@ -2559,7 +1620,7 @@ void Hacks::RenderMain()
 		{
 			ImGui::SetNextWindowSizeConstraints({windowSize, windowSize}, {windowSize * 4, windowSize * 4});
 			ImGui::Begin("Selector", &showSelector);
-			ImInputText("Search", macroName, 100);
+			GDMO::ImInputText("Search", macroName, 100);
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {10, 10});
 			if (ImGui::BeginTable("table1", 3,
 								  ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable |
@@ -2580,8 +1641,8 @@ void Hacks::RenderMain()
 					ImGui::Text(std::to_string(ri.fps).c_str());
 					ImGui::TableNextColumn();
 					ImGui::Text(std::to_string(ri.actionSize).c_str());
-					ImGui::SameLine(arrowButtonPosition * screenSize * hacks.menuSize);
-					if (ImButton((std::string("Load##") + ri.name).c_str()))
+					ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+					if (GDMO::ImButton((std::string("Load##") + ri.name).c_str()))
 						ReplayPlayer::getInstance().Load(ri.name);
 				}
 				ImGui::EndTable();
@@ -2590,12 +1651,12 @@ void Hacks::RenderMain()
 			ImGui::End();
 		}
 
-		if (ImButton("Load"))
+		if (GDMO::ImButton("Load"))
 			ReplayPlayer::getInstance().Load(fileName);
 
 		ImGui::SameLine();
 
-		if (ImButton("Select File"))
+		if (GDMO::ImButton("Select File"))
 		{
 			auto selection =
 				pfd::open_file("Select a macro", "GDMenu/replays", {"REPLAY file", "*.replay"}, pfd::opt::none)
@@ -2609,14 +1670,14 @@ void Hacks::RenderMain()
 
 		ImGui::Spacing();
 
-		if (ImButton("Open Converter"))
+		if (GDMO::ImButton("Open Converter"))
 		{
 			ImGui::OpenPopup("Converter");
 		}
 
 		if (ImGui::BeginPopupModal("Converter"))
 		{
-			if (ImButton("Export JSON"))
+			if (GDMO::ImButton("Export JSON"))
 			{
 				json tasmacro;
 				tasmacro["fps"] = ReplayPlayer::getInstance().GetReplay()->fps;
@@ -2636,7 +1697,7 @@ void Hacks::RenderMain()
 				std::ofstream file("GDMenu/replays/" + std::string(fileName) + ".mcb.json");
 				file << tasmacro;
 			}
-			if (ImButton("Import JSON"))
+			if (GDMO::ImButton("Import JSON"))
 			{
 				auto selection =
 					pfd::open_file("Select a macro", "", {"JSON File", "*.mcb.json"}, pfd::opt::none).result();
@@ -2665,7 +1726,7 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (ImButton("From TASBOT"))
+			if (GDMO::ImButton("From TASBOT"))
 			{
 				auto selection = pfd::open_file("Select a macro", "", {"JSON File", "*.json"}, pfd::opt::none).result();
 				for (auto const& filename : selection)
@@ -2700,7 +1761,7 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (ImButton("From zBot"))
+			if (GDMO::ImButton("From zBot"))
 			{
 				auto selection =
 					pfd::open_file("Select a macro", "", {"zBot file", "*.zbot, *.zbf"}, pfd::opt::none).result();
@@ -2743,7 +1804,7 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (ImButton("From xBot"))
+			if (GDMO::ImButton("From xBot"))
 			{
 				auto selection = pfd::open_file("Select a macro", "", {"xBot file", "*.xbot"}, pfd::opt::none).result();
 				for (auto const& filename : selection)
@@ -2791,7 +1852,7 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (ImButton("From ECHO"))
+			if (GDMO::ImButton("From ECHO"))
 			{
 				auto selection = pfd::open_file("Select a macro", "", {"ECHO File", "*.echo"}, pfd::opt::none).result();
 				for (auto const& filename : selection)
@@ -2821,7 +1882,7 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (ImButton("From MHREPLAY"))
+			if (GDMO::ImButton("From MHREPLAY"))
 			{
 				auto selection =
 					pfd::open_file("Select a macro", "", {"MHR File", "*.mhr.json"}, pfd::opt::none).result();
@@ -2857,29 +1918,30 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (ImButton("Close"))
+			if (GDMO::ImButton("Close"))
 				ImGui::CloseCurrentPopup();
 		}
 		ImGui::PopStyleColor();
 
 		ImGui::End();
+
 		ImGui::PopStyleVar();
 
-		if (resetWindows || repositionWindows)
+		if (ExternData::resetWindows || ExternData::repositionWindows)
 			ImGui::SaveIniSettingsToDisk("imgui.ini");
 
-		if (saveWindows)
+		if (ExternData::saveWindows)
 		{
 			std::ofstream w;
 			w.open("GDmenu/windows.bin", std::fstream::binary);
-			w.write((char*)&windowPositions, sizeof(windowPositions));
+			w.write((char*)&ExternData::windowPositions, sizeof(ExternData::windowPositions));
 			w.close();
 		}
 
-		resetWindows = false;
-		repositionWindows = false;
-		saveWindows = false;
-		Hacks::isCheating = PlayLayer::IsCheating();
+		ExternData::resetWindows = false;
+		ExternData::repositionWindows = false;
+		ExternData::saveWindows = false;
+		ExternData::isCheating = PlayLayer::IsCheating();
 	}
 	else if (!closed)
 	{
@@ -2897,7 +1959,7 @@ DWORD WINAPI my_thread(void* hModule)
 	ImGuiHook::setRenderFunction(Hacks::RenderMain);
 	ImGuiHook::setInitFunction(Init);
 	ImGuiHook::setToggleCallback([]() {
-		Hacks::show = !Hacks::show;
+		ExternData::show = !ExternData::show;
 
 		auto dirIter = std::filesystem::directory_iterator("GDMenu/replays");
 		static int fileCount = 0;

@@ -163,11 +163,11 @@ void Recorder::start()
 
                                 if (actions[actionTracker + i].press)
                                 {
-                                    (actions[actionTracker + i].frame / hacks.fps) - (actions[actionTracker + i].player2 ? prevClickP2 : prevClick) > hacks.playMediumClicksAt ? path += "\\clicks\\" + std::to_string(rand() % Hacks::amountOfClicks + 1) + ".wav" : path += "\\mediumclicks\\" + std::to_string(rand() % Hacks::amountOfMediumClicks + 1) + ".wav";
+                                    (actions[actionTracker + i].frame / hacks.fps) - (actions[actionTracker + i].player2 ? prevClickP2 : prevClick) > hacks.playMediumClicksAt ? path += "\\clicks\\" + std::to_string(rand() % ExternData::amountOfClicks + 1) + ".wav" : path += "\\mediumclicks\\" + std::to_string(rand() % ExternData::amountOfMediumClicks + 1) + ".wav";
                                 }
                                 else
                                 {
-                                    path += "\\releases\\" + std::to_string(rand() % Hacks::amountOfReleases + 1) + ".wav";
+                                    path += "\\releases\\" + std::to_string(rand() % ExternData::amountOfReleases + 1) + ".wav";
                                 }
                                 if(actions[actionTracker + i].player2) prevClickP2 = actions[actionTracker + i].frame / hacks.fps;
                                 else prevClick = actions[actionTracker + i].frame / hacks.fps;

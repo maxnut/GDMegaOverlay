@@ -2,6 +2,7 @@
 #include "pch.h"
 
 extern int hackAmts[];
+extern int shortcutIndexKey;
 
 class Shortcuts
 {
