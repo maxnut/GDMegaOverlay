@@ -2,8 +2,11 @@
 #include <imgui-hook.hpp>
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include "API.h"
 #include "CCSchedulerHook.h"
+#include "ConstData.h"
 #include "EndLevelLayer.h"
+#include "ExternData.h"
 #include "Hacks.h"
 #include "ImgUtil.h"
 #include "LevelEditorLayer.h"
@@ -18,9 +21,6 @@
 #include "portable-file-dialogs.h"
 #include <fstream>
 #include <shellapi.h>
-#include "API.h"
-#include "ConstData.h"
-#include "ExternData.h"
 
 using json = nlohmann::json;
 
@@ -38,7 +38,6 @@ std::vector<ReplayInfo> replays;
 std::vector<const char*> musicPathsVet;
 
 std::string hoveredHack = "";
-
 
 char* convert(const std::string& s)
 {
@@ -71,7 +70,7 @@ void DrawFromJSON(json& js)
 void TextSettings(int index, bool font)
 {
 	if (GDMO::ImCombo(("Position##" + std::to_string(index)).c_str(), (int*)&labels.positions[index], positions,
-				IM_ARRAYSIZE(positions)))
+					  IM_ARRAYSIZE(positions)))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
 	if (GDMO::ImInputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
@@ -80,25 +79,24 @@ void TextSettings(int index, bool font)
 	if (GDMO::ImInputFloat(("Opacity##" + std::to_string(index)).c_str(), &labels.opacity[index]))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
-	if (font && GDMO::ImCombo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
+	if (font &&
+		GDMO::ImCombo(("Font##" + std::to_string(index)).c_str(), &labels.fonts[index], fonts, IM_ARRAYSIZE(fonts)))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
 }
 
 uint32_t GetPointerAddress(std::vector<uint32_t> offsets)
 {
-    if (offsets.size() > 1)
-    {
-        uint32_t buf = Hacks::Read<uint32_t>(offsets[0] + gd::base);
+	if (offsets.size() > 1)
+	{
+		uint32_t buf = Hacks::Read<uint32_t>(offsets[0] + gd::base);
 
-        for (size_t i = 1; i < offsets.size() - 1 /*ignore last offset*/; ++i)
-            buf = Hacks::Read<uint32_t>(buf + offsets[i]);
-        return buf + offsets.back();
-    }
-    return offsets.size() ? offsets[0] + gd::base : 0;
+		for (size_t i = 1; i < offsets.size() - 1 /*ignore last offset*/; ++i)
+			buf = Hacks::Read<uint32_t>(buf + offsets[i]);
+		return buf + offsets.back();
+	}
+	return offsets.size() ? offsets[0] + gd::base : 0;
 }
-
-
 
 void SetStyle()
 {
@@ -224,9 +222,9 @@ void Init()
 	{
 		std::filesystem::create_directory("GDMenu/renders");
 	}
-	if (!std::filesystem::is_directory("GDMenu/replays") || !std::filesystem::exists("GDMenu/replays"))
+	if (!std::filesystem::is_directory("GDMenu/macros") || !std::filesystem::exists("GDMenu/macros"))
 	{
-		std::filesystem::create_directory("GDMenu/replays");
+		std::filesystem::create_directory("GDMenu/macros");
 	}
 	if (!std::filesystem::is_directory("GDMenu/clicks") || !std::filesystem::exists("GDMenu/clicks"))
 	{
@@ -489,7 +487,7 @@ void Hacks::RenderMain()
 			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
 		closed = false;
 
-		for(auto func : ExternData::imguiFuncs)
+		for (auto func : ExternData::imguiFuncs)
 		{
 			func();
 		}
@@ -517,7 +515,7 @@ void Hacks::RenderMain()
 		}
 		ImGui::PopItemWidth();
 
-		//GDMO::ImCheckbox("Experimental Features", &hacks.experimentalFeatures);
+		// GDMO::ImCheckbox("Experimental Features", &hacks.experimentalFeatures);
 
 		if (isDecember)
 			GDMO::ImCheckbox("Snow", &hacks.snow);
@@ -745,7 +743,8 @@ void Hacks::RenderMain()
 			ImGui::PopItemWidth();
 			GDMO::ImCheckbox("Random Menu Music", &hacks.randomMusic);
 			if (ExternData::path.empty())
-				ExternData::path = ExternData::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
+				ExternData::path =
+					ExternData::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
 
 			std::string diobono = hacks.menuSongId;
 			if (hacks.randomMusic)
@@ -772,7 +771,8 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("smar", 1))
 			ImGui::OpenPopup("Smart StartPos Settings");
 
-		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			GDMO::ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
 			if (ImGui::IsItemHovered())
@@ -836,7 +836,8 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("ausm", 1))
 			ImGui::OpenPopup("Auto Sync Music Settings");
 
-		if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Auto Sync Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			GDMO::ImInputInt("Max Desync Amount (ms)", &hacks.musicMaxDesync, 0);
 			if (GDMO::ImButton("Sync Now"))
@@ -903,8 +904,8 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("Lock Cursor", &hacks.lockCursor);
 		GDMO::ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
 		GDMO::ImCheckbox("Show Trajectory", &hacks.trajectory);
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
 
 		GDMO::ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
 
@@ -913,7 +914,8 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("rain", 1))
 			ImGui::OpenPopup("Rainbow Icons Settings");
 
-		if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Rainbow Icons Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			GDMO::ImCheckbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
 			GDMO::ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
@@ -976,7 +978,8 @@ void Hacks::RenderMain()
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("ci", 1))
 			ImGui::OpenPopup("Cheat Indicator Settings");
-		if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			TextSettings(0, false);
 			if (GDMO::ImButton("Close", false))
@@ -998,7 +1001,7 @@ void Hacks::RenderMain()
 			TextSettings(1, true);
 			GDMO::ImInputText("Style##fpsc", labels.styles[0], 15);
 			ImGui::SameLine();
-			if(GDMO::ImButton("Reset##fpsc"))
+			if (GDMO::ImButton("Reset##fpsc"))
 			{
 				strcpy(labels.styles[0], "%.0f/%.0f");
 			}
@@ -1022,7 +1025,7 @@ void Hacks::RenderMain()
 			TextSettings(2, true);
 			GDMO::ImInputText("Style##cpsc", labels.styles[1], 15);
 			ImGui::SameLine();
-			if(GDMO::ImButton("Reset##cpsc"))
+			if (GDMO::ImButton("Reset##cpsc"))
 			{
 				strcpy(labels.styles[1], "%i/%i");
 			}
@@ -1042,12 +1045,13 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("nca", 1))
 			ImGui::OpenPopup("Noclip Accuracy Settings");
 
-		if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Noclip Accuracy Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			TextSettings(3, true);
 			GDMO::ImInputText("Style##noclipacc", labels.styles[2], 15);
 			ImGui::SameLine();
-			if(GDMO::ImButton("Reset##noclipacc"))
+			if (GDMO::ImButton("Reset##noclipacc"))
 			{
 				strcpy(labels.styles[2], "Accuracy: %.2f");
 			}
@@ -1074,11 +1078,12 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("ncd", 1))
 			ImGui::OpenPopup("Noclip Deaths Settings");
 
-		if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Noclip Deaths Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			GDMO::ImInputText("Style##noclipdeaths", labels.styles[3], 15);
 			ImGui::SameLine();
-			if(GDMO::ImButton("Reset##noclipdeaths"))
+			if (GDMO::ImButton("Reset##noclipdeaths"))
 			{
 				strcpy(labels.styles[3], "Deaths: %i");
 			}
@@ -1167,7 +1172,8 @@ void Hacks::RenderMain()
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("stat", 1))
 			ImGui::OpenPopup("Message Status Settings");
-		if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			TextSettings(9, true);
 			GDMO::ImInputText("Message", hacks.message, 30);
@@ -1185,7 +1191,8 @@ void Hacks::RenderMain()
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("curr", 1))
 			ImGui::OpenPopup("Current Attempt Settings");
-		if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			TextSettings(10, true);
 			if (GDMO::ImButton("Close", false))
@@ -1414,13 +1421,14 @@ void Hacks::RenderMain()
 		GDMO::ImInputFloat("Show End For", &hacks.afterEndDuration);
 		ImGui::PopItemWidth();
 
-		GDMO::Marker("Usage", "Hit record in a level and let a macro play. The rendered video will be in "
-						"GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on "
-						"default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: "
-						"-hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using "
-						"an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
+		GDMO::Marker("Usage",
+					 "Hit record in a level and let a macro play. The rendered video will be in "
+					 "GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on "
+					 "default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: "
+					 "-hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using "
+					 "an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
 		GDMO::Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i "
-						  "integrated my clickbot into it");
+								"integrated my clickbot into it");
 
 		ImGui::End();
 
@@ -1466,7 +1474,8 @@ void Hacks::RenderMain()
 			},
 			reinterpret_cast<void*>(&ExternData::variables), ExternData::variables.size());
 
-		if(variableIndex >= arr["data"].size()) variableIndex = 0;
+		if (variableIndex >= arr["data"].size())
+			variableIndex = 0;
 
 		auto type = arr["data"][variableIndex]["pointers"][0]["type"].get<std::string>();
 
@@ -1478,12 +1487,13 @@ void Hacks::RenderMain()
 				for (auto ob : arr["data"][variableIndex]["pointers"])
 				{
 					std::vector<uint32_t> addrs;
-					for(auto str : Hacks::splitByDelim(ob["offsets"].get<std::string>(), ' '))
+					for (auto str : Hacks::splitByDelim(ob["offsets"].get<std::string>(), ' '))
 					{
 						addrs.push_back(std::stoul(str, nullptr, 16));
 					}
 					auto addr = GetPointerAddress(addrs);
-					arr["data"][variableIndex].contains("is_reference") ? Hacks::WriteRef<float>(addr, input) : Hacks::Write<float>(addr, input);
+					arr["data"][variableIndex].contains("is_reference") ? Hacks::WriteRef<float>(addr, input)
+																		: Hacks::Write<float>(addr, input);
 				}
 			}
 		}
@@ -1495,12 +1505,13 @@ void Hacks::RenderMain()
 				for (auto ob : arr["data"][variableIndex]["pointers"])
 				{
 					std::vector<uint32_t> addrs;
-					for(auto str : Hacks::splitByDelim(ob["offsets"].get<std::string>(), ' '))
+					for (auto str : Hacks::splitByDelim(ob["offsets"].get<std::string>(), ' '))
 					{
 						addrs.push_back(std::stoul(str, nullptr, 16));
 					}
 					auto addr = GetPointerAddress(addrs);
-					arr["data"][variableIndex].contains("is_reference") ? Hacks::WriteRef<int>(addr, input) : Hacks::Write<int>(addr, input);
+					arr["data"][variableIndex].contains("is_reference") ? Hacks::WriteRef<int>(addr, input)
+																		: Hacks::Write<int>(addr, input);
 				}
 			}
 		}
@@ -1525,13 +1536,14 @@ void Hacks::RenderMain()
 			ReplayPlayer::getInstance().TogglePlaying();
 		else
 			ImGui::PushStyleColor(0, ImVec4(1, 1, 1, 1));
-		GDMO::ImCheckbox("Show Replay Label", &hacks.botTextEnabled);
+		GDMO::ImCheckbox("Show Macro Label", &hacks.botTextEnabled);
 
 		GDMO::ImCheckbox("Click sounds", &hacks.clickbot);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("clicks", 1))
 			ImGui::OpenPopup("Click sounds settings");
-		if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
 		{
 			GDMO::ImInputFloat("Click volume", &hacks.baseVolume);
 			GDMO::ImInputFloat("Max pitch variation", &hacks.maxPitch);
@@ -1601,7 +1613,7 @@ void Hacks::RenderMain()
 
 		ImGui::Spacing();
 		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
-		GDMO::ImInputText("Replay Name", fileName, 30);
+		GDMO::ImInputText("Macro Name", fileName, 30);
 		ImGui::PopItemWidth();
 		if (GDMO::ImButton("Save"))
 			ReplayPlayer::getInstance().Save(fileName);
@@ -1659,7 +1671,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImButton("Select File"))
 		{
 			auto selection =
-				pfd::open_file("Select a macro", "GDMenu/replays", {"REPLAY file", "*.replay"}, pfd::opt::none)
+				pfd::open_file("Select a macro", "GDMenu/macros", {"*.macro", "*.replay"}, pfd::opt::none)
 					.result();
 			if (selection.size() > 0)
 			{
@@ -1694,7 +1706,7 @@ void Hacks::RenderMain()
 					action["frame"] = ac.frame;
 					tasmacro["actions"].push_back(action);
 				}
-				std::ofstream file("GDMenu/replays/" + std::string(fileName) + ".mcb.json");
+				std::ofstream file("GDMenu/macros/" + std::string(fileName) + ".mcb.json");
 				file << tasmacro;
 			}
 			if (GDMO::ImButton("Import JSON"))
@@ -1720,7 +1732,7 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Replay loaded with " +
+											 ("Macro loaded with " +
 											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
 											  " actions."))
 						->show();
@@ -1755,7 +1767,7 @@ void Hacks::RenderMain()
 						}
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Replay loaded with " +
+											 ("Macro loaded with " +
 											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
 											  " actions."))
 						->show();
@@ -1798,7 +1810,7 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(action);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Replay loaded with " +
+											 ("Macro loaded with " +
 											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
 											  " actions."))
 						->show();
@@ -1846,7 +1858,7 @@ void Hacks::RenderMain()
 						}
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Replay loaded with " +
+											 ("Macro loaded with " +
 											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
 											  " actions."))
 						->show();
@@ -1876,7 +1888,7 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Replay loaded with " +
+											 ("Macro loaded with " +
 											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
 											  " actions."))
 						->show();
@@ -1912,7 +1924,7 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Replay loaded with " +
+											 ("Macro loaded with " +
 											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
 											  " actions."))
 						->show();
@@ -1961,8 +1973,23 @@ DWORD WINAPI my_thread(void* hModule)
 	ImGuiHook::setToggleCallback([]() {
 		ExternData::show = !ExternData::show;
 
-		auto dirIter = std::filesystem::directory_iterator("GDMenu/replays");
-		static int fileCount = 0;
+		if (ExternData::show)
+		{
+			for (auto func : ExternData::openFuncs)
+			{
+				if(func) func();
+			}
+		}
+		else
+		{
+			for (auto func : ExternData::closeFuncs)
+			{
+				if(func) func();
+			}
+		}
+
+		auto dirIter = std::filesystem::directory_iterator("GDMenu/macros");
+		static int fileCount = 0, fileCount2 = 0;
 		int fileCountNow =
 			std::count_if(begin(dirIter), end(dirIter), [](auto& entry) { return entry.is_regular_file(); });
 
@@ -1970,9 +1997,9 @@ DWORD WINAPI my_thread(void* hModule)
 		{
 			fileCount = fileCountNow;
 			replays.clear();
-			for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu/replays"})
+			for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu/macros"})
 			{
-				if (loop.path().extension().string() == ".replay")
+				if (loop.path().extension().string() == ".replay" || loop.path().extension().string() == ".macro")
 				{
 					replays.push_back(Replay::GetInfo(loop.path()));
 				}

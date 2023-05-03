@@ -13,7 +13,7 @@ namespace ExternData
     extern std::vector<std::string> musicPaths;
     extern std::filesystem::path path;
 
-    extern std::vector<std::function<void()>> imguiFuncs;
+    extern std::vector<std::function<void()>> imguiFuncs, openFuncs, closeFuncs;
 
     extern DiscordManager ds;
 
@@ -30,4 +30,6 @@ namespace ExternData
     extern bool resetWindows, repositionWindows, saveWindows;
 
     extern Windows windowPositions;
+
+    extern std::map<std::string, nlohmann::json> settingFiles;
 } // namespace ExternData

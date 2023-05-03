@@ -4,6 +4,7 @@
 #include "Hacks.h"
 #include "ImgUtil.h"
 #include "Shortcuts.h"
+#include "fstream"
 #include "imgui-hook.hpp"
 #include "imgui_internal.h"
 #include <imgui.h>
@@ -198,7 +199,7 @@ bool findStringIC(const std::string& strHaystack, const std::string& strNeedle)
 
 bool GDMO::ImHotkey(const char* label, int* k)
 {
-	const ImVec2& size_arg = {0,0};
+	const ImVec2& size_arg = {0, 0};
 	bool res = false;
 	if (strlen(ExternData::searchbar) > 0)
 	{
@@ -556,4 +557,86 @@ void GDMO::writeOutput(float out)
 void GDMO::writeOutput(double out)
 {
 	Hacks::writeOutput(out);
+}
+
+template <class T> void Save(const char* filename, const char* key, T value)
+{
+	Hacks::writeOutput(value);
+	ExternData::settingFiles.at(filename)[key] = value;
+}
+
+void GDMO::SaveInt(const char* filename, const char* key, int value)
+{
+	Save(filename, key, value);
+}
+void GDMO::SaveBool(const char* filename, const char* key, bool value)
+{
+	Save(filename, key, value);
+}
+void GDMO::SaveFloat(const char* filename, const char* key, float value)
+{
+	Save(filename, key, value);
+}
+void GDMO::SaveDouble(const char* filename, const char* key, double value)
+{
+	Save(filename, key, value);
+}
+void GDMO::SaveString(const char* filename, const char* key, const char* value)
+{
+	Save(filename, key, value);
+}
+void GDMO::ReadInt(const char* filename, const char* key, int* value)
+{
+	auto json = ExternData::settingFiles.at(filename);
+	if (json.contains(key))
+		*value = json[key].get<int>();
+}
+void GDMO::ReadBool(const char* filename, const char* key, bool* value)
+{
+	auto json = ExternData::settingFiles.at(filename);
+	if (json.contains(key))
+		*value = json[key].get<bool>();
+}
+void GDMO::ReadFloat(const char* filename, const char* key, float* value)
+{
+	auto json = ExternData::settingFiles.at(filename);
+	if (json.contains(key))
+		*value = json[key].get<float>();
+}
+void GDMO::ReadDouble(const char* filename, const char* key, double* value)
+{
+	auto json = ExternData::settingFiles.at(filename);
+	if (json.contains(key))
+		*value = json[key].get<double>();
+}
+void GDMO::ReadString(const char* filename, const char* key, std::string *value)
+{
+	auto json = ExternData::settingFiles.at(filename);
+	if (json.contains(key))
+		*value = json[key].get<std::string>();
+}
+
+void GDMO::Init(std::string name, std::function<void()> openCallback, std::function<void()> closeCallback)
+{
+	if (!std::filesystem::is_directory("GDMenu/extsettings") || !std::filesystem::exists("GDMenu/extsettings"))
+	{
+		std::filesystem::create_directory("GDMenu/extsettings");
+	}
+	auto path = "GDMenu/extsettings/" + name + ".json";
+	if(!std::filesystem::exists(path))
+	{
+		std::ofstream file(path);
+		file.close();
+	}
+	std::ifstream mods;
+	std::stringstream buffer;
+	mods.open(path);
+	buffer << mods.rdbuf();
+	json json;
+	if(buffer.rdbuf()->in_avail() > 0) json = json::parse(buffer.str());
+	ExternData::settingFiles.insert({name, json});
+	mods.close();
+	buffer.clear();
+	ExternData::openFuncs.push_back(openCallback);
+	ExternData::closeFuncs.push_back(closeCallback);
 }

@@ -7,7 +7,7 @@ void Replay::Load(std::string path)
 	std::ifstream file(path, std::ios::in | std::ios::binary);
 	if (!file.is_open())
 	{
-		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Could not find replay"))->show();
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Could not find macro"))->show();
 		return;
 	}
 	file.seekg(0, std::ios::end);
@@ -28,7 +28,7 @@ void Replay::Load(std::string path)
 	file.read((char*)&fps, sizeof(float));
 	file.close();
 	gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-							 ("Replay loaded with " + std::to_string(GetActionsSize()) + " actions."))
+							 ("Macro loaded with " + std::to_string(GetActionsSize()) + " actions."))
 		->show();
 }
 
@@ -36,13 +36,13 @@ void Replay::Save(std::string name)
 {
 	if (GetActionsSize() <= 0)
 	{
-		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Replay must contain at least one action"))->show();
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Macro must contain at least one action"))->show();
 		return;
 	}
-	if (!std::filesystem::is_directory("GDMenu/replays") || !std::filesystem::exists("GDMenu/replays"))
-		std::filesystem::create_directory("GDMenu/replays");
+	if (!std::filesystem::is_directory("GDMenu/macros") || !std::filesystem::exists("GDMenu/macros"))
+		std::filesystem::create_directory("GDMenu/macros");
 
-	std::ofstream file("GDMenu/replays/" + name + ".replay", std::ios::out | std::ios::binary);
+	std::ofstream file("GDMenu/macros/" + name + ".macro", std::ios::out | std::ios::binary);
 	for (const auto& a : actions)
 	{
 		file.write((char*)&a.press, sizeof(bool));
@@ -55,7 +55,7 @@ void Replay::Save(std::string name)
 	file.write((char*)&fps, sizeof(float));
 	file.close();
 	gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-							 ("Replay saved with " + std::to_string(GetActionsSize()) + " actions."))
+							 ("Macro saved with " + std::to_string(GetActionsSize()) + " actions."))
 		->show();
 }
 

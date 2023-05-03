@@ -361,6 +361,15 @@ static void SaveSettings()
 			f << ExternData::player;
 		f.close();
 	}
+
+	for(auto s : ExternData::settingFiles)
+	{
+		auto path = "GDMenu/extsettings/" + s.first + ".json";
+		f.open(path);
+		if (f)
+			f << s.second;
+		f.close();
+	}
 }
 
 static void Priority(int priority)
