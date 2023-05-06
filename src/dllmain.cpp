@@ -415,6 +415,16 @@ void Init()
 	loaded = true;
 }
 
+std::vector<std::string> get_dll_names() {
+	std::vector<std::string> dll_names;
+	for (const auto& entry : std::filesystem::directory_iterator("GDMenu/dll")) {
+		if (entry.path().extension() == ".dll") {
+			dll_names.push_back(entry.path().filename().string());
+		}
+	}
+	return dll_names;
+}
+
 void Hacks::RenderMain()
 {
 	if (ExternData::ds.core)
@@ -1518,6 +1528,34 @@ void Hacks::RenderMain()
 
 		ImGui::PopItemWidth();
 
+		ImGui::End();
+		
+		GDMO::ImBegin("Extensions");
+		std::vector<std::string> dllNames = get_dll_names();
+		char buffer[256];
+		sprintf(buffer, "Extensions Loaded: %d", dllNames.size());
+		GDMO::ImText(buffer);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		if (ImGui::ArrowButton("dll_lists", 1))
+			ImGui::OpenPopup("DLL List");
+		if (ImGui::BeginPopupModal("DLL List"))
+		{
+			for (const auto& name : dllNames)
+			{
+				GDMO::ImText(name.c_str());
+			}
+			if (GDMO::ImButton("Close", false))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			if (!ExternData::fake)
+				ImGui::EndPopup();
+		}
+		GDMO::ImButton("Extensions Folder");
+		if (ImGui::IsItemClicked())
+		{
+			ShellExecute(NULL, "open", "GDMenu\\dll", NULL, NULL, SW_SHOWNORMAL);
+		}
 		ImGui::End();
 
 		GDMO::ImBegin("Macrobot");
