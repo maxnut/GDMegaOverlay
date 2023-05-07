@@ -21,10 +21,10 @@ void runNormalRotation(gd::PlayerObject* player, float rate)
 		else
 			rotateBy = (cocos2d::CCRotateBy*)1051372203;
 
-        int flipMod = rate > 0 ? 1 : -1;
+		int flipMod = rate > 0 ? 1 : -1;
 
 		action = rotateBy->create(0.421, (float)(180 * flipMod));
-			
+
 		action->setTag(0);
 		player->runAction(action);
 	}
@@ -79,13 +79,14 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 {
 	gd::PlayLayer* pl = gd::GameManager::sharedState()->getPlayLayer();
 	CheckpointData cd;
+	bool isp1 = p == pl->m_pPlayer1;
 	cd.xAccel = p->m_xAccel;
 	cd.yAccel = p->m_yAccel;
 	cd.jumpAccel = p->m_jumpAccel;
 	cd.xPos = p->m_position.x;
 	cd.yPos = p->m_position.y;
 	cd.rotation = p->getRotation();
-    cd.rotRate = p == pl->m_pPlayer1 ? PlayLayer::player1RotRate : PlayLayer::player2RotRate;
+	cd.rotRate = isp1 ? PlayLayer::player1RotRate : PlayLayer::player2RotRate;
 	cd.unkRot = p->m_fUnkRotationField;
 	cd.playerSpeed = p->m_playerSpeed;
 	cd.vehichleSize = p->m_vehicleSize;
@@ -107,6 +108,18 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 	cd.isDropping = p->m_isDropping;
 	cd.touchRing = p->m_touchingRings->count();
 	cd.gamemode = GetGamemode(p);
+	auto ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(1));
+	if (ac && p->m_isBall && !p->m_isOnGround)
+	{
+		ac->setTag(isp1 ? 5000 : 5001);
+		auto r = static_cast<CCRotateBy*>(ac);
+		cd.ballRotationElapsed = ac->getElapsed();
+	}
+	ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(isp1 ? 5000 : 5001));
+	if (ac && p->m_isBall && !p->m_isOnGround)
+	{
+		cd.ballRotationElapsed = ac->getElapsed();
+	}
 	return cd;
 }
 
@@ -131,12 +144,14 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 		out = 1;
 	}
 
+	bool isp1 = p == pl->m_pPlayer1;
+
 	if (tp && isHolding2 == p->m_isHolding2)
 		out = p->m_isHolding2 ? 2 : 1;
 
-	if (out == 0 && p == pl->m_pPlayer1 && PlayLayer::respawnAction > 0)
+	if (out == 0 && isp1 && PlayLayer::respawnAction > 0)
 		out = PlayLayer::respawnAction;
-	if (out == 0 && p == pl->m_pPlayer2 && PlayLayer::respawnAction2 > 0)
+	if (out == 0 && !isp1 && PlayLayer::respawnAction2 > 0)
 		out = PlayLayer::respawnAction2;
 
 	p->setPosition({xPos, yPos});
@@ -170,11 +185,14 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 	{
 		runNormalRotation(p, rotRate);
 	}
-
 	if (gamemode == gd::kGamemodeBall && !p->m_isOnGround)
 	{
-		p->runBallRotation2();
-		auto ac = static_cast<cocos2d::CCFiniteTimeAction*>(p->getActionByTag(1));
+		auto ac = static_cast<CCRotateBy*>(p->getActionByTag(isp1 ? 5000 : 5001));
+		if (ac)
+		{
+			ac->step(-ac->getElapsed());
+			ac->step(ballRotationElapsed);
+		}
 	}
 
 	return out;

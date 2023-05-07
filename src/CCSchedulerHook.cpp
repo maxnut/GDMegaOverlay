@@ -131,6 +131,17 @@ float GetActiveFpsLimit()
 	}
 }
 
+void(__thiscall* CCAction_step)(CCAction*, float dt);
+void __fastcall CCAction_stepHook(CCAction* self, void*, float dt)
+{
+	if(self->getTag() == 5000 && ExternData::pauseRotateAction1 || self->getTag() == 5001 && ExternData::pauseRotateAction2)
+	{
+		return;
+	}
+	
+	CCAction_step(self, dt);
+}
+
 void(__thiscall* CCDirector_drawScene)(CCDirector*);
 void __fastcall CCDirector_drawSceneHook(CCDirector* self, void*)
 {
@@ -188,4 +199,6 @@ void Setup()
 				  (void**)&CCScheduler_update);
 	MH_CreateHook(GetProcAddress((HMODULE)libcocosbase, "?drawScene@CCDirector@cocos2d@@QAEXXZ"),
 				  CCDirector_drawSceneHook, (void**)&CCDirector_drawScene);
+	MH_CreateHook(GetProcAddress((HMODULE)libcocosbase, "?step@CCActionInterval@cocos2d@@UAEXM@Z"),
+				  CCAction_stepHook, (void**)&CCAction_step);
 }

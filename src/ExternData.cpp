@@ -20,4 +20,4 @@ Windows ExternData::windowPositions;
 std::map<std::string, nlohmann::json> ExternData::settingFiles;
 std::vector<std::string> ExternData::dllNames;
 
-bool ExternData::hasSaiModPack;
+bool ExternData::hasSaiModPack, ExternData::pauseRotateAction1, ExternData::pauseRotateAction2;

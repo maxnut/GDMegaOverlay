@@ -204,32 +204,37 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 
 	for (size_t i = 0; i < ExternData::bypass["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   ExternData::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(
+			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+					   ExternData::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::creator["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   ExternData::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(
+			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+					   ExternData::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::global["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   ExternData::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(
+			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+					   ExternData::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::level["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   ExternData::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(
+			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+					   ExternData::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::player["mods"].size(); i++)
 	{
-		Hacks::cheatCheck.push_back(std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-											   ExternData::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+		Hacks::cheatCheck.push_back(
+			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
+					   ExternData::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	CCARRAY_FOREACH(self->m_pObjects, obje)
@@ -429,7 +434,8 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::Playe
 		TrajectorySimulation::getInstance()->m_pDieInSimulation = true;
 		return;
 	}
-	if (delta > 0.2f && !ExternData::player["mods"][0]["toggle"] && !ExternData::player["mods"][2]["toggle"] && !self->m_isDead)
+	if (delta > 0.2f && !ExternData::player["mods"][0]["toggle"] && !ExternData::player["mods"][2]["toggle"] &&
+		!self->m_isDead)
 	{
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
@@ -1177,10 +1183,18 @@ void Update(gd::PlayLayer* self, float dt)
 
 	PlayLayer::update(self, dt);
 
-	std::stringstream raif;
-	raif << "yspeed " << self->m_pPlayer1->m_yAccel << " rate1 " << PlayLayer::player1RotRate << " rate2 "
-		 << PlayLayer::player2RotRate;
-	debug.debugString = raif.str();
+	auto ac = static_cast<CCRotateBy*>(self->m_pPlayer1->getActionByTag(5000));
+	if (ac)
+	{
+		ExternData::pauseRotateAction1 = ExternData::pauseRotateAction2 = !self->m_pPlayer1->m_isBall || self->m_pPlayer1->m_isOnGround;
+	}
+	ac = static_cast<CCRotateBy*>(self->m_pPlayer2->getActionByTag(5001));
+	if (ac)
+	{
+		ExternData::pauseRotateAction2 = !self->m_pPlayer2->m_isBall || self->m_pPlayer2->m_isOnGround;
+	}
+
+	debug.debugNumber = ExternData::pauseRotateAction1;
 
 	if (hacks.trajectory)
 		TrajectorySimulation::getInstance()->processMainSimulation(dt);
@@ -1488,8 +1502,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
 		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
 		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA *>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
 	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])

@@ -34,5 +34,5 @@ namespace ExternData
     extern std::map<std::string, nlohmann::json> settingFiles;
     extern std::vector<std::string> dllNames;
 
-    extern bool hasSaiModPack;
+    extern bool hasSaiModPack, pauseRotateAction1, pauseRotateAction2;
 } // namespace ExternData
