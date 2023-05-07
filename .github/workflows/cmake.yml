@@ -32,7 +32,7 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j 4
 
     - name: Artifact
-    - uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3
       with:
        name: Nightly
        path: ${{github.workspace}}/build/Release/GDMenu.dll
