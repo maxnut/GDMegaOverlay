@@ -326,6 +326,19 @@ void Init()
 	buffer.clear();
 	InitJSONHacks(ExternData::player);
 
+	auto extpath = "GDMenu/dll/extensions.json";
+	if (!std::filesystem::exists(extpath))
+	{
+		std::ofstream file(extpath);
+		file.close();
+	}
+	mods.open(extpath);
+	buffer << mods.rdbuf();
+	if (buffer.rdbuf()->in_avail() > 0)
+		ExternData::dlls = json::parse(buffer.str());
+	mods.close();
+	buffer.clear();
+
 	std::ofstream w;
 
 	if (!std::filesystem::exists("imgui.ini") || !std::filesystem::exists("GDmenu/windows.bin"))
@@ -402,27 +415,41 @@ void Init()
 
 	for (const auto& file : std::filesystem::directory_iterator(path))
 	{
-		if (file.path().filename().string().find("SaiModPack") != std::string::npos)
+		if (file.path().filename().string().find("Sai") != std::string::npos)
 		{
 			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
 									 ("Sai Mod Pack is not compatible with this menu and will not be loaded"))
 				->show();
 			continue;
 		}
-		LoadLibrary(file.path().string().c_str());
+		if (file.path().extension() == ".dll")
+		{
+			auto dllname = file.path().filename().string();
+			ExternData::dllNames.push_back(dllname);
+			if (!ExternData::dlls.contains(dllname))
+			{
+				ExternData::dlls[dllname] = true;
+			}
+			else if (ExternData::dlls[dllname].get<bool>() == false)
+			{
+				continue;
+			}
+			LoadLibrary(file.path().string().c_str());
+		}
+	}
+
+	path = CCFileUtils::sharedFileUtils()->getWritablePath2();
+
+	for (const auto& file : std::filesystem::directory_iterator(path))
+	{
+		if (file.path().extension() == ".dll" && file.path().filename().string().find("Sai") != std::string::npos)
+		{
+			ExternData::hasSaiModPack = true;
+			break;
+		}
 	}
 
 	loaded = true;
-}
-
-std::vector<std::string> get_dll_names() {
-	std::vector<std::string> dll_names;
-	for (const auto& entry : std::filesystem::directory_iterator("GDMenu/dll")) {
-		if (entry.path().extension() == ".dll") {
-			dll_names.push_back(entry.path().filename().string());
-		}
-	}
-	return dll_names;
 }
 
 void Hacks::RenderMain()
@@ -1337,7 +1364,11 @@ void Hacks::RenderMain()
 											{"DLL File", "*.dll"}, pfd::opt::multiselect)
 								 .result();
 			for (auto const& filename : selection)
+			{
 				LoadLibrary(filename.c_str());
+				std::filesystem::path path = filename;
+				ExternData::dllNames.push_back(path.filename().string());
+			}
 		}
 
 		if (GDMO::ImButton("Reset Level"))
@@ -1529,20 +1560,19 @@ void Hacks::RenderMain()
 		ImGui::PopItemWidth();
 
 		ImGui::End();
-		
+
 		GDMO::ImBegin("Extensions");
-		std::vector<std::string> dllNames = get_dll_names();
 		char buffer[256];
-		sprintf(buffer, "Extensions Loaded: %d", dllNames.size());
+		sprintf(buffer, "Extensions Loaded: %d", ExternData::dllNames.size());
 		GDMO::ImText(buffer);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("dll_lists", 1))
 			ImGui::OpenPopup("DLL List");
 		if (ImGui::BeginPopupModal("DLL List"))
 		{
-			for (const auto& name : dllNames)
+			for (const auto& name : ExternData::dllNames)
 			{
-				GDMO::ImText(name.c_str());
+				GDMO::ImCheckbox(name.c_str(), ExternData::dlls[name].get<bool*>());
 			}
 			if (GDMO::ImButton("Close", false))
 			{
@@ -1709,8 +1739,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImButton("Select File"))
 		{
 			auto selection =
-				pfd::open_file("Select a macro", "GDMenu/macros", {"*.macro", "*.replay"}, pfd::opt::none)
-					.result();
+				pfd::open_file("Select a macro", "GDMenu/macros", {"*.macro", "*.replay"}, pfd::opt::none).result();
 			if (selection.size() > 0)
 			{
 				std::filesystem::path p = selection[0];
@@ -2015,14 +2044,22 @@ DWORD WINAPI my_thread(void* hModule)
 		{
 			for (auto func : ExternData::openFuncs)
 			{
-				if(func) func();
+				if (func)
+					func();
+			}
+			if (ExternData::hasSaiModPack)
+			{
+				gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+										 ("Sai Mod Pack is not compatible with this menu, remove it!"))
+					->show();
 			}
 		}
 		else
 		{
 			for (auto func : ExternData::closeFuncs)
 			{
-				if(func) func();
+				if (func)
+					func();
 			}
 		}
 

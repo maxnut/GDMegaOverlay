@@ -1,4 +1,6 @@
-#pragma once
+#pragma once.
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #include <functional>
 #include <string>
 #include <vector>
@@ -41,7 +43,12 @@ void ReadInt(const char* filename, const char* key, int* value);
 void ReadBool(const char* filename, const char* key, bool* value);
 void ReadFloat(const char* filename, const char* key, float* value);
 void ReadDouble(const char* filename, const char* key, double* value);
-void ReadString(const char* filename, const char* key, std::string *value);
+void ReadString(const char* filename, const char* key, std::string* value);
 
 void Init(std::string name, std::function<void()> openCallback, std::function<void()> closeCallback);
+
+static bool IsLoaded()
+{
+	return GetModuleHandleA("GDMenu.dll");
+}
 }; // namespace GDMO

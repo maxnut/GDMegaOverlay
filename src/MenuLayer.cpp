@@ -9,12 +9,11 @@ Debug debug;
 
 bool firstCall = false;
 
-bool __fastcall MenuLayer::hook(CCLayer *self)
+bool __fastcall MenuLayer::hook(CCLayer* self)
 {
 	bool result = MenuLayer::init(self);
 
 	auto gm = gd::GameManager::sharedState();
-
 
 	if (!firstCall)
 	{
@@ -40,7 +39,7 @@ bool __fastcall MenuLayer::hook(CCLayer *self)
 
 	if (tm.tm_mon == 11 && hacks.snow)
 	{
-		CCParticleSnow *snow;
+		CCParticleSnow* snow;
 		snow = CCParticleSnow::createWithTotalParticles(700);
 		self->addChild(snow);
 	}
@@ -59,7 +58,7 @@ bool __fastcall MenuLayer::hook(CCLayer *self)
 	return result;
 }
 
-void __fastcall MenuLayer::onBackHook(CCLayer *self, void *, cocos2d::CCObject *sender)
+void __fastcall MenuLayer::onBackHook(CCLayer* self, void*, cocos2d::CCObject* sender)
 {
 	auto gm = gd::GameManager::sharedState();
 	hacks.iconIds[0] = gm->getPlayerFrame();
@@ -78,13 +77,13 @@ void __fastcall MenuLayer::onBackHook(CCLayer *self, void *, cocos2d::CCObject *
 	std::ofstream f;
 	f.open("GDMenu/settings.bin", std::fstream::binary);
 	if (f)
-		f.write((char *)&hacks, sizeof(HacksStr));
+		f.write((char*)&hacks, sizeof(HacksStr));
 	f.close();
 
 	MenuLayer::onBack(self, sender);
 }
 
-const char *__fastcall MenuLayer::loadingStringHook(CCLayer *self, void *)
+const char* __fastcall MenuLayer::loadingStringHook(CCLayer* self, void*)
 {
 	return "GD Mega Overlay - Made by maxnut";
 }

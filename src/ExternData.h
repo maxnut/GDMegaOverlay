@@ -17,7 +17,7 @@ namespace ExternData
 
     extern DiscordManager ds;
 
-    extern json bypass, creator, global, level, player, variables;
+    extern json bypass, creator, global, level, player, variables, dlls;
 
     extern int amountOfClicks, amountOfReleases, amountOfMediumClicks, steps;
 
@@ -32,4 +32,7 @@ namespace ExternData
     extern Windows windowPositions;
 
     extern std::map<std::string, nlohmann::json> settingFiles;
+    extern std::vector<std::string> dllNames;
+
+    extern bool hasSaiModPack;
 } // namespace ExternData

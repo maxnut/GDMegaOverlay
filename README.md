@@ -25,8 +25,6 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 
 Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder.
 
-## Any suggestions or bug reports?
-
 ## Development
 
 <span style="color:red">THIS PROJECT CAN BE COMPILED ONLY ON WINDOWS</span>

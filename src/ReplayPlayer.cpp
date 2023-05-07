@@ -200,7 +200,7 @@ void ReplayPlayer::Reset(gd::PlayLayer* playLayer)
 
 void ReplayPlayer::Load(std::string name)
 {
-	replay.Load("GDMenu/replays/" + name + ".replay");
+	replay.Load("GDMenu/macros/" + name + ".macro");
 }
 
 float ReplayPlayer::Update(gd::PlayLayer* playLayer)

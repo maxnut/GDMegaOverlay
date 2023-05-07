@@ -362,7 +362,12 @@ static void SaveSettings()
 		f.close();
 	}
 
-	for(auto s : ExternData::settingFiles)
+	f.open("GDMenu/dll/extensions.json");
+	if (f)
+		f << ExternData::dlls;
+	f.close();
+
+	for (auto s : ExternData::settingFiles)
 	{
 		auto path = "GDMenu/extsettings/" + s.first + ".json";
 		f.open(path);
