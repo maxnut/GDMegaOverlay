@@ -13,11 +13,13 @@ bool ExternData::show, ExternData::fake, ExternData::isCheating, ExternData::hol
 char ExternData::searchbar[30];
 std::string ExternData::hackName;
 
-bool ExternData::resetWindows = false, ExternData::repositionWindows = false, ExternData::saveWindows = false;
+bool ExternData::resetWindows = false, ExternData::repositionWindows = false;
 
-Windows ExternData::windowPositions;
+json ExternData::windowPositions;
 
 std::map<std::string, nlohmann::json> ExternData::settingFiles;
 std::vector<std::string> ExternData::dllNames;
 
-bool ExternData::hasSaiModPack, ExternData::pauseRotateAction1, ExternData::pauseRotateAction2;
+bool ExternData::hasSaiModPack, ExternData::animationDone;
+
+float ExternData::animation;

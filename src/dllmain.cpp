@@ -5,6 +5,7 @@
 #include "API.h"
 #include "CCSchedulerHook.h"
 #include "ConstData.h"
+#include "CustomAction.h"
 #include "EndLevelLayer.h"
 #include "ExternData.h"
 #include "Hacks.h"
@@ -44,6 +45,26 @@ char* convert(const std::string& s)
 	char* pc = new char[s.size() + 1];
 	std::strcpy(pc, s.c_str());
 	return pc;
+}
+
+void GetMacros()
+{
+	auto dirIter = std::filesystem::directory_iterator("GDMenu/macros");
+	static int fileCount = 0, fileCount2 = 0;
+	int fileCountNow = std::count_if(begin(dirIter), end(dirIter), [](auto& entry) { return entry.is_regular_file(); });
+
+	if (fileCount != fileCountNow)
+	{
+		fileCount = fileCountNow;
+		replays.clear();
+		for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu/macros"})
+		{
+			if (loop.path().extension().string() == ".replay" || loop.path().extension().string() == ".macro")
+			{
+				replays.push_back(Replay::GetInfo(loop.path()));
+			}
+		}
+	}
 }
 
 void InitJSONHacks(json& js)
@@ -124,7 +145,8 @@ void SetStyle()
 
 	style->Colors[ImGuiCol_Text] = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
 	style->Colors[ImGuiCol_TextDisabled] = ImVec4(1.0f, 0.03f, 0.03f, 1.00f);
-	style->Colors[ImGuiCol_WindowBg] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
+	style->Colors[ImGuiCol_WindowBg] =
+		ImVec4(hacks.windowBgColor[0], hacks.windowBgColor[1], hacks.windowBgColor[2], 1);
 	style->Colors[ImGuiCol_ChildBg] = ImVec4(0.07f, 0.07f, 0.09f, 1.00f);
 
 	if (!hacks.rainbowMenu)
@@ -162,9 +184,9 @@ void SetStyle()
 	}
 
 	style->Colors[ImGuiCol_BorderShadow] = ImVec4(0.92f, 0.91f, 0.88f, 0.00f);
-	style->Colors[ImGuiCol_FrameBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
-	style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
-	style->Colors[ImGuiCol_FrameBgActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
+	style->Colors[ImGuiCol_FrameBg] = ImVec4(0.14f, 0.15f, 0.18f, 0.3f);
+	style->Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.14f, 0.15f, 0.18f, 0.4f);
+	style->Colors[ImGuiCol_FrameBgActive] = ImVec4(0.14f, 0.15f, 0.18f, 0.5f);
 
 	style->Colors[ImGuiCol_MenuBarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.0f);
 	style->Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.09f, 0.12f, 1.0f);
@@ -178,7 +200,6 @@ void SetStyle()
 	style->Colors[ImGuiCol_Button] = ImVec4(0.10f, 0.09f, 0.12f, 0.30f);
 	style->Colors[ImGuiCol_ButtonHovered] = ImVec4(0.24f, 0.23f, 0.29f, 1.00f);
 	style->Colors[ImGuiCol_ButtonActive] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
-	style->Colors[ImGuiCol_Header] = ImVec4(0.10f, 0.09f, 0.12f, 1.00f);
 	style->Colors[ImGuiCol_HeaderHovered] = ImVec4(0.56f, 0.56f, 0.58f, 1.00f);
 	style->Colors[ImGuiCol_HeaderActive] = ImVec4(0.06f, 0.05f, 0.07f, 1.00f);
 	style->Colors[ImGuiCol_ResizeGrip] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -192,11 +213,8 @@ void SetStyle()
 	style->Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.1f, 0.1f, 0.1f, 0.73f);
 }
 
-bool closed = true;
-
 void Init()
 {
-	closed = true;
 	srand(time(NULL));
 
 	ImGuiIO& io = ImGui::GetIO();
@@ -337,31 +355,22 @@ void Init()
 	if (buffer.rdbuf()->in_avail() > 0)
 		ExternData::dlls = json::parse(buffer.str());
 	mods.close();
+	buffer.str("");
 	buffer.clear();
 
-	std::ofstream w;
-
-	if (!std::filesystem::exists("imgui.ini") || !std::filesystem::exists("GDmenu/windows.bin"))
+	auto winpath = "GDMenu/windows.json";
+	if (!std::filesystem::exists(winpath))
 	{
-		w.open("GDmenu/windows.bin", std::fstream::binary);
-		ExternData::windowPositions.positions[0] = {1210, 710};
-		ExternData::windowPositions.positions[1] = {10, 10};
-		ExternData::windowPositions.positions[2] = {250, 10};
-		ExternData::windowPositions.positions[3] = {730, 10};
-		ExternData::windowPositions.positions[4] = {1210, 10};
-		ExternData::windowPositions.positions[5] = {490, 10};
-		ExternData::windowPositions.positions[6] = {970, 10};
-		ExternData::windowPositions.positions[7] = {1690, 10};
-		ExternData::windowPositions.positions[8] = {1450, 10};
-		ExternData::windowPositions.positions[9] = {10, 720};
-		ExternData::windowPositions.positions[10] = {1690, 580};
-		ExternData::windowPositions.positions[11] = {10, 260};
-		w.write((char*)&ExternData::windowPositions, sizeof(ExternData::windowPositions));
-		w.close();
-
-		if (!std::filesystem::exists("imgui.ini"))
-			ExternData::resetWindows = true;
+		std::ofstream file(winpath);
+		file.close();
 	}
+
+	mods.open(winpath);
+	buffer << mods.rdbuf();
+	if (buffer.rdbuf()->in_avail() > 0)
+		ExternData::windowPositions = json::parse(buffer.str());
+	mods.close();
+	buffer.str("");
 
 	std::ifstream f;
 	f.open("GDMenu/settings.bin", std::fstream::binary);
@@ -381,6 +390,7 @@ void Init()
 	}
 	else
 	{
+		hacks.menuAnimationLength = 0.25f;
 		Hacks::FPSBypass(60);
 	}
 
@@ -388,14 +398,6 @@ void Init()
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	else
 		io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
-
-	f.close();
-
-	f.open("GDMenu/windows.bin", std::fstream::binary);
-	if (f)
-	{
-		f.read((char*)&ExternData::windowPositions, sizeof(ExternData::windowPositions));
-	}
 
 	f.close();
 
@@ -520,9 +522,6 @@ void Hacks::RenderMain()
 			ExternData::oldScreenSize = ExternData::screenSize;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
-		if (!ExternData::fake)
-			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
-		closed = false;
 
 		for (auto func : ExternData::imguiFuncs)
 		{
@@ -542,8 +541,19 @@ void Hacks::RenderMain()
 		GDMO::ImInputInt("Window Snap", &hacks.windowSnap, 0);
 		ImGui::PopItemWidth();
 
-		GDMO::ImColorEdit3("Window Title BG Color", hacks.titleColor, ImGuiColorEditFlags_NoInputs);
-		GDMO::ImColorEdit3("Border Color", hacks.borderColor, ImGuiColorEditFlags_NoInputs);
+		if (ImGui::BeginMenu("Menu Colors"))
+		{
+			GDMO::ImColorEdit3("Title BG Color", hacks.titleColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Border Color", hacks.borderColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("BG Color", hacks.windowBgColor, ImGuiColorEditFlags_NoInputs);
+			if (GDMO::ImButton("Reset"))
+			{
+				hacks.windowBgColor[0] = 0.06f;
+				hacks.windowBgColor[1] = 0.05f;
+				hacks.windowBgColor[2] = 0.07f;
+			}
+			ImGui::EndMenu();
+		}
 
 		ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
 		if (GDMO::ImHotkey("Toggle Menu", &hacks.menuKey))
@@ -559,7 +569,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImCheckbox("Rainbow Menu", &hacks.rainbowMenu);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
-		if (ImGui::BeginMenu("##rain"))
+		if (ImGui::BeginMenu("##rain", true, 5))
 		{
 			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
@@ -577,13 +587,12 @@ void Hacks::RenderMain()
 				io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
 		}
 
-		if (GDMO::ImButton("Save Windows"))
-			ExternData::saveWindows = true;
 		if (GDMO::ImButton("Load Windows"))
 			ExternData::resetWindows = true;
 
 		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
-		ImGui::InputText("Search", ExternData::searchbar, 30);
+		GDMO::ImInputFloat("Open Speed", &hacks.menuAnimationLength);
+		GDMO::ImInputText("Search", ExternData::searchbar, 30);
 		ImGui::PopItemWidth();
 
 		ImGui::End();
@@ -1001,7 +1010,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImCheckbox("Rainbow Labels", &labels.rainbowLabels);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
-		if (ImGui::BeginMenu("##rainl"))
+		if (ImGui::BeginMenu("##rainl", true, 5))
 		{
 			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
@@ -1568,6 +1577,11 @@ void Hacks::RenderMain()
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
 		if (ImGui::ArrowButton("dll_lists", 1))
 			ImGui::OpenPopup("DLL List");
+
+		if(ImGui::IsPopupOpen("DLL List"))
+		{
+			ImGui::SetNextWindowSizeConstraints({windowSize, windowSize}, {windowSize * 2, 1000});
+		}
 		if (ImGui::BeginPopupModal("DLL List"))
 		{
 			for (const auto& name : ExternData::dllNames)
@@ -1633,9 +1647,21 @@ void Hacks::RenderMain()
 		}
 		GDMO::ImCheckbox("Prevent inputs", &hacks.preventInput);
 
-		GDMO::ImCheckbox("Disable Corrections", &hacks.disableBotCorrection);
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Disable physics correction with the bot, only uses the clicks.");
+		ImGui::PushItemWidth(80 * ExternData::screenSize * hacks.menuSize);
+		if (ReplayPlayer::getInstance().IsRecording())
+		{
+			ImGui::BeginDisabled();
+			GDMO::ImCombo("Correction Type", &hacks.replayMode, replayMode, 3);
+			ImGui::EndDisabled();
+		}
+		else
+			GDMO::ImCombo("Correction Type", &hacks.replayMode, replayMode, 3);
+
+		ImGui::PopItemWidth();
+
+		// GDMO::ImCheckbox("Disable Corrections", &hacks.disableBotCorrection);
+		// if (ImGui::IsItemHovered())
+		// 	ImGui::SetTooltip("Disable physics correction with the bot, only uses the clicks.");
 
 		GDMO::ImCheckbox("Autoclicker", &hacks.autoclicker);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
@@ -1684,7 +1710,10 @@ void Hacks::RenderMain()
 		GDMO::ImInputText("Macro Name", fileName, 30);
 		ImGui::PopItemWidth();
 		if (GDMO::ImButton("Save"))
+		{
 			ReplayPlayer::getInstance().Save(fileName);
+			GetMacros();
+		}
 
 		ImGui::SameLine();
 
@@ -1698,17 +1727,18 @@ void Hacks::RenderMain()
 		bool cool = true;
 		if (showSelector)
 		{
-			ImGui::SetNextWindowSizeConstraints({windowSize, windowSize}, {windowSize * 4, windowSize * 4});
+			ImGui::SetNextWindowSizeConstraints({windowSize * 4, windowSize * 4}, {windowSize * 4, windowSize * 4});
 			ImGui::Begin("Selector", &showSelector);
 			GDMO::ImInputText("Search", macroName, 100);
 			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {10, 10});
-			if (ImGui::BeginTable("table1", 3,
+			if (ImGui::BeginTable("table1", 4,
 								  ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable |
 									  ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				ImGui::TableSetupColumn("Macro Name");
 				ImGui::TableSetupColumn("FPS");
 				ImGui::TableSetupColumn("Actions");
+				ImGui::TableSetupColumn("Captures");
 				ImGui::TableHeadersRow();
 				for (auto ri : replays)
 				{
@@ -1721,9 +1751,17 @@ void Hacks::RenderMain()
 					ImGui::Text(std::to_string(ri.fps).c_str());
 					ImGui::TableNextColumn();
 					ImGui::Text(std::to_string(ri.actionSize).c_str());
-					ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+					ImGui::TableNextColumn();
+					ImGui::Text(std::to_string(ri.capturesSize).c_str());
+					ImGui::SameLine((arrowButtonPosition - 10) * ExternData::screenSize * hacks.menuSize);
 					if (GDMO::ImButton((std::string("Load##") + ri.name).c_str()))
 						ReplayPlayer::getInstance().Load(ri.name);
+					ImGui::SameLine((arrowButtonPosition - 70) * ExternData::screenSize * hacks.menuSize);
+					if (GDMO::ImButton((std::string("Delete##") + ri.name).c_str()))
+					{
+						ReplayPlayer::getInstance().Delete(ri.name);
+						GetMacros();
+					}
 				}
 				ImGui::EndTable();
 			}
@@ -2009,39 +2047,52 @@ void Hacks::RenderMain()
 		if (ExternData::resetWindows || ExternData::repositionWindows)
 			ImGui::SaveIniSettingsToDisk("imgui.ini");
 
-		if (ExternData::saveWindows)
-		{
-			std::ofstream w;
-			w.open("GDmenu/windows.bin", std::fstream::binary);
-			w.write((char*)&ExternData::windowPositions, sizeof(ExternData::windowPositions));
-			w.close();
-		}
-
 		ExternData::resetWindows = false;
 		ExternData::repositionWindows = false;
-		ExternData::saveWindows = false;
 		ExternData::isCheating = PlayLayer::IsCheating();
 	}
-	else if (!closed)
+}
+
+void AnimationIsDone()
+{
+	if (ExternData::animation == 1)
 	{
-		closed = true;
-		auto p = playLayer;
-		if (p && !p->m_bIsPaused && !p->m_hasCompletedLevel)
-			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(false);
+		Hacks::RenderMain();
 
 		Hacks::SaveSettings();
+
+		ExternData::show = false;
+
+		auto p = gd::GameManager::sharedState()->getPlayLayer();
+
+		if (p && !p->m_bIsPaused && !p->m_hasCompletedLevel)
+			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(false);
 	}
+	else
+	{
+		Hacks::RenderMain();
+	}
+	ExternData::animationDone = true;
 }
 
 DWORD WINAPI my_thread(void* hModule)
 {
+	ExternData::animation = -10;
 	ImGuiHook::setRenderFunction(Hacks::RenderMain);
 	ImGuiHook::setInitFunction(Init);
 	ImGuiHook::setToggleCallback([]() {
 		ExternData::show = !ExternData::show;
 
+		CCAction* ac;
+
+		ExternData::animationDone = false;
+
 		if (ExternData::show)
 		{
+			ac = CCEaseIn::create(CustomAction::create(hacks.menuAnimationLength *
+														   CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
+													   1, 0, &ExternData::animation, AnimationIsDone),
+								  0.5f);
 			for (auto func : ExternData::openFuncs)
 			{
 				if (func)
@@ -2053,33 +2104,34 @@ DWORD WINAPI my_thread(void* hModule)
 										 ("Sai Mod Pack is not compatible with this menu, remove it!"))
 					->show();
 			}
+
+			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
 		}
 		else
 		{
+			ac =
+				CCEaseOut::create(CustomAction::create(hacks.menuAnimationLength *
+														   CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
+													   0, 1, &ExternData::animation, AnimationIsDone),
+								  0.5f);
+
 			for (auto func : ExternData::closeFuncs)
 			{
 				if (func)
 					func();
 			}
+
+			ExternData::show = true;
 		}
 
-		auto dirIter = std::filesystem::directory_iterator("GDMenu/macros");
-		static int fileCount = 0, fileCount2 = 0;
-		int fileCountNow =
-			std::count_if(begin(dirIter), end(dirIter), [](auto& entry) { return entry.is_regular_file(); });
-
-		if (fileCount != fileCountNow)
+		if (ac)
 		{
-			fileCount = fileCountNow;
-			replays.clear();
-			for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu/macros"})
-			{
-				if (loop.path().extension().string() == ".replay" || loop.path().extension().string() == ".macro")
-				{
-					replays.push_back(Replay::GetInfo(loop.path()));
-				}
-			}
+			CCDirector::sharedDirector()->getRunningScene()->stopActionByTag(4000);
+			ac->setTag(4000);
+			CCDirector::sharedDirector()->getRunningScene()->runAction(ac);
 		}
+
+		GetMacros();
 	});
 	if (MH_Initialize() == MH_OK)
 	{

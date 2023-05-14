@@ -8,6 +8,7 @@ struct CheckpointData
     bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, isDropping, mouseDown, isOnSlope, wasOnSlope;
     size_t touchRing;
     gd::Gamemode gamemode;
+    float rotationElapsed;
     static CheckpointData fromPlayer(gd::PlayerObject *p);
 
     int Apply(gd::PlayerObject *p, bool tp);

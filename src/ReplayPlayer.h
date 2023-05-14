@@ -8,7 +8,7 @@ class ReplayPlayer
 {
     protected:
     Replay replay;
-    uint32_t actionIndex;
+    uint32_t actionIndex, actionIndex2;
     Practice practice;
     uint32_t frameOffset;
     bool playing;
@@ -26,7 +26,9 @@ class ReplayPlayer
 
     uint32_t GetFrame();
     uint32_t GetActionsSize() {return replay.GetActionsSize();}
+    uint32_t GetFrameCapturesSize() {return replay.GetFrameCapturesSize();}
     uint32_t GetActionIndex() {return actionIndex;}
+    uint32_t GetCapturesIndex() {return actionIndex2;}
 
     Practice& GetPractice() {return practice;}
     bool IsRecording() {return recording;}
@@ -34,6 +36,7 @@ class ReplayPlayer
 
     void Save(std::string name) {replay.Save(name);}
     void Load(std::string name);
+    void Delete(std::string name);
 
     void RecordAction(bool press, gd::PlayerObject* pl, bool player1);
     void HandleActivatedObjects(bool a, bool b, gd::GameObject* object);

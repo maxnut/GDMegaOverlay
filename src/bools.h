@@ -94,6 +94,12 @@ struct HacksStr
 	float solidHitboxColor[3] = {0, 0, 1}, slopeHitboxColor[3] = {0, 0, 1}, hazardHitboxColor[3] = {1, 0, 0}, portalHitboxColor[3] = {1, 0.498f, 1}, padHitboxColor[3] = {0, 1, 1},
 		ringHitboxColor[3] = {0, 1, 1}, collectibleHitboxColor[3] = {0.87f, 0.87f, 0.87f}, modifierHitboxColor[3] = {1, 1, 1}, playerHitboxColor[3] = {1, 0.247f, 0.247f},
 		rotatedHitboxColor[3] = {0.498f, 0, 0}, centerHitboxColor[3] = {0, 1, 0};
+
+	float menuAnimationLength = 0.25f;
+
+	float windowBgColor[3] = {0.06f, 0.05f, 0.07f};
+
+	int replayMode = 1;
 };
 
 enum position
@@ -116,15 +122,6 @@ struct Labels
 	bool hideLabels, rainbowLabels = false;
 	float rainbowSpeed = 1.0f;
 	float fpsUpdate = 0.5f;
-};
-
-struct Windows
-{
-	struct Vec2I
-	{
-		int x, y;
-	};
-	Vec2I positions[13];
 };
 
 struct Debug

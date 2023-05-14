@@ -4,6 +4,7 @@
 #include "bools.h"
 #include "ctime"
 #include "fmod.hpp"
+#include <stdio.h>
 
 extern struct HacksStr hacks;
 FMOD::System* sys;
@@ -31,6 +32,7 @@ void ReplayPlayer::StartPlaying(gd::PlayLayer* playLayer)
 {
 	UpdateFrameOffset();
 	actionIndex = 0;
+	actionIndex2 = 0;
 }
 
 ReplayPlayer::ReplayPlayer()
@@ -131,6 +133,7 @@ void ReplayPlayer::Reset(gd::PlayLayer* playLayer)
 	{
 		UpdateFrameOffset();
 		actionIndex = 0;
+		actionIndex2 = 0;
 		playLayer->releaseButton(0, false);
 		playLayer->releaseButton(0, true);
 		practice.activatedObjects.clear();
@@ -182,7 +185,7 @@ void ReplayPlayer::Reset(gd::PlayLayer* playLayer)
 		float targetX = playLayer->m_pPlayer1->getPositionX();
 		size_t ind = 0;
 		auto ac = replay.getActions();
-		while(ind < ac.size() && ac[ind].px < targetX)
+		while (ind < ac.size() && ac[ind].px < targetX)
 			ind++;
 
 		actionIndex = ind;
@@ -203,6 +206,11 @@ void ReplayPlayer::Load(std::string name)
 	replay.Load("GDMenu/macros/" + name + ".macro");
 }
 
+void ReplayPlayer::Delete(std::string name)
+{
+	remove(std::string("GDMenu/macros/" + name + ".macro").c_str());
+}
+
 float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 {
 	sys->update();
@@ -217,42 +225,49 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 		ExternData::tps = hacks.tpsBypass;
 	}
 
+	if (playLayer->m_hasCompletedLevel || playLayer->m_isDead)
+		return dt;
+
+	if (IsRecording() && hacks.replayMode == 2)
+	{
+		replay.AddFrame({false, GetFrame(), playLayer->m_pPlayer1->m_yAccel, playLayer->m_pPlayer1->m_position.x,
+						 playLayer->m_pPlayer1->m_position.y, playLayer->m_pPlayer1->getRotation()});
+		if (playLayer->m_bIsDualMode)
+		{
+			replay.AddFrame({true, GetFrame(), playLayer->m_pPlayer2->m_yAccel, playLayer->m_pPlayer2->m_position.x,
+							 playLayer->m_pPlayer2->m_position.y, playLayer->m_pPlayer2->getRotation()});
+		}
+	}
+
 	if (!IsPlaying() || actionIndex >= replay.getActions().size() || replay.getActions().size() <= 0 ||
-		playLayer->m_hasCompletedLevel || playLayer->m_isDead)
+		(hacks.replayMode == 2 && (actionIndex2 >= replay.getCaptures().size() || replay.getCaptures().size() <= 0)))
 		return dt;
 
 	size_t limit = 1;
-	while (actionIndex + limit < replay.getActions().size() &&
-		   (replay.getActions()[actionIndex + limit].player2 ||
-			(replay.getActions()[actionIndex].frame == replay.getActions()[actionIndex + limit].frame ||
-			 replay.getActions()[actionIndex].px >= 0 &&
-				 replay.getActions()[actionIndex].px == replay.getActions()[actionIndex + limit].px)))
+	auto actions = replay.getActions();
+	while (actionIndex + limit < actions.size() &&
+		   (actions[actionIndex + limit].player2 ||
+			(actions[actionIndex].frame == actions[actionIndex + limit].frame ||
+			 actions[actionIndex].px >= 0 && actions[actionIndex].px == actions[actionIndex + limit].px)))
 		limit++;
 
 	for (size_t i = 0; i < limit; i++)
 	{
-		auto ac = replay.getActions()[actionIndex];
+		auto ac = actions[actionIndex];
 		if (/* (ac.frame >= 0 && GetFrame() >= ac.frame) ||  */ playLayer->m_pPlayer1->m_position.x >= ac.px)
 		{
 			if (debug.enabled && playLayer->m_pPlayer1->m_position.x != ac.px/*  || playLayer->m_pPlayer1->m_yAccel != ac.yAccel ||
 				playLayer->m_pPlayer1->m_position.y != ac.py */)
 			{
 				hacks.frameStep = true;
-				Hacks::writeOutput(std::to_string(actionIndex) + "x is " +
-								   std::to_string(playLayer->m_pPlayer1->m_position.x) + " should be " +
-								   std::to_string(ac.px));
-				Hacks::writeOutput(std::to_string(actionIndex) + "y is " +
-				std::to_string(playLayer->m_pPlayer1->m_position.y) + " should be " + std::to_string(ac.py));
-				Hacks::writeOutput(std::to_string(actionIndex) + "yvel is " +
-				std::to_string(playLayer->m_pPlayer1->m_yAccel) + " should be " + std::to_string(ac.yAccel));
 			}
-			if (!ac.player2 && !hacks.disableBotCorrection)
+			if (!ac.player2 && hacks.replayMode == 1)
 			{
 				playLayer->m_pPlayer1->m_position.x = ac.px;
 				playLayer->m_pPlayer1->m_yAccel = ac.yAccel;
 				playLayer->m_pPlayer1->m_position.y = ac.py;
 			}
-			else if (!hacks.disableBotCorrection)
+			else if (hacks.replayMode == 1)
 			{
 				playLayer->m_pPlayer2->m_position.x = ac.px;
 				playLayer->m_pPlayer2->m_yAccel = ac.yAccel;
@@ -334,6 +349,41 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			oldClick = ac.press;
 
 			actionIndex++;
+		}
+	}
+
+	if (replay.GetFrameCapturesSize() <= 0 || hacks.replayMode < 2)
+		return dt;
+
+	auto captures = replay.getCaptures();
+
+	size_t limit2 = 1;
+	while (actionIndex2 + limit2 < captures.size() &&
+		   (captures[actionIndex2 + limit2].player2 ||
+			(captures[actionIndex2].frame == captures[actionIndex2 + limit2].frame ||
+			 captures[actionIndex2].px >= 0 && captures[actionIndex2].px == captures[actionIndex2 + limit2].px)))
+		limit2++;
+
+	for (int i = 0; i < limit2; i++)
+	{
+		auto cap = captures[actionIndex2];
+		if (playLayer->m_pPlayer1->m_position.x >= cap.px)
+		{
+			if (!cap.player2)
+			{
+				playLayer->m_pPlayer1->m_position.x = cap.px;
+				playLayer->m_pPlayer1->m_position.y = cap.py;
+				playLayer->m_pPlayer1->m_yAccel = cap.yAccel;
+				playLayer->m_pPlayer1->setRotation(cap.rot);
+			}
+			else
+			{
+				playLayer->m_pPlayer2->m_position.x = cap.px;
+				playLayer->m_pPlayer2->m_position.y = cap.py;
+				playLayer->m_pPlayer2->m_yAccel = cap.yAccel;
+				playLayer->m_pPlayer2->setRotation(cap.rot);
+			}
+			actionIndex2++;
 		}
 	}
 

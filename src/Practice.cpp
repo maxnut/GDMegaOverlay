@@ -21,12 +21,54 @@ void runNormalRotation(gd::PlayerObject* player, float rate)
 		else
 			rotateBy = (cocos2d::CCRotateBy*)1051372203;
 
-		int flipMod = rate > 0 ? 1 : -1;
+		int flipMod = rate >= 0 ? 1 : -1;
 
 		action = rotateBy->create(0.421, (float)(180 * flipMod));
 
 		action->setTag(0);
 		player->runAction(action);
+	}
+}
+
+void runBallRotation2(gd::PlayerObject* pl, CheckpointData c)
+{
+	if (!pl->m_isDashing)
+	{
+		pl->stopActionByTag(1);
+
+		float v2 = 1.0f;
+		float v3 = 0;
+
+		if (pl->m_vehicleSize == 1.0f)
+			v3 = 1.0f;
+		else
+			v3 = 0.8f;
+
+		if (pl->m_playerSpeed == 0.7f)
+			v2 = 1.2405638f;
+		else if (pl->m_playerSpeed == 1.1f)
+		{
+			v2 = 0.80424345f;
+		}
+		else if (pl->m_playerSpeed == 1.3f)
+		{
+			v2 = 0.66576928f;
+		}
+		else if (pl->m_playerSpeed == 1.6f)
+		{
+			v2 = 0.54093748f;
+		}
+
+		float v5 = v3 * 0.8f * v2;
+
+		auto rotate = CCRotateBy::create(v5, (float)(-340 * (2 * !pl->m_isUpsideDown - 1)));
+		auto easeout = CCEaseOut::create(rotate, 1.2f);
+		easeout->setTag(1);
+
+		pl->setRotation(c.rotationElapsed);
+		pl->runAction(easeout);
+		easeout->step(0);
+		easeout->step(c.ballRotationElapsed);
 	}
 }
 
@@ -109,16 +151,13 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 	cd.touchRing = p->m_touchingRings->count();
 	cd.gamemode = GetGamemode(p);
 	auto ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(1));
-	if (ac && p->m_isBall && !p->m_isOnGround)
+	if (p->m_isBall && !p->m_isOnGround && ac)
 	{
-		ac->setTag(isp1 ? 5000 : 5001);
-		auto r = static_cast<CCRotateBy*>(ac);
-		cd.ballRotationElapsed = ac->getElapsed();
-	}
-	ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(isp1 ? 5000 : 5001));
-	if (ac && p->m_isBall && !p->m_isOnGround)
-	{
-		cd.ballRotationElapsed = ac->getElapsed();
+		float el = ac->getElapsed();
+		cd.ballRotationElapsed = el;
+		ac->step(-el);
+		cd.rotationElapsed = p->getRotation();
+		ac->step(el);
 	}
 	return cd;
 }
@@ -185,14 +224,9 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 	{
 		runNormalRotation(p, rotRate);
 	}
-	if (gamemode == gd::kGamemodeBall && !p->m_isOnGround)
+	if (p->m_isBall && !p->m_isOnGround)
 	{
-		auto ac = static_cast<CCRotateBy*>(p->getActionByTag(isp1 ? 5000 : 5001));
-		if (ac)
-		{
-			ac->step(-ac->getElapsed());
-			ac->step(ballRotationElapsed);
-		}
+		runBallRotation2(p, *this);
 	}
 
 	return out;

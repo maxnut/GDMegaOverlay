@@ -27,34 +27,73 @@ int roundInt(int n)
 	return (n - a > b - n) ? b : a;
 }
 
-void GDMO::ImBegin(const char* name)
+void GDMO::ImBegin(const char* name, bool *open)
 {
 	const int windowWidth = 220;
 	const float size = ExternData::screenSize * hacks.menuSize;
 	const float windowSize = windowWidth * size;
 	ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
-	ImGui::Begin(name, 0, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
+	ImGui::Begin(name, open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
 	ImGui::SetWindowFontScale(ExternData::screenSize * hacks.menuSize);
-	if (ExternData::resetWindows)
-		ImGui::SetWindowPos({ExternData::windowPositions.positions[1].x * ExternData::screenSize,
-							 ExternData::windowPositions.positions[1].y * ExternData::screenSize});
-	else if (ExternData::repositionWindows)
+	if (!ExternData::animationDone)
 	{
-		auto pos = ImGui::GetWindowPos();
-		ImGui::SetWindowPos({pos.x * (ExternData::screenSize / ExternData::oldScreenSize),
-							 pos.y * (ExternData::screenSize / ExternData::oldScreenSize)});
+		uint8_t animationType = strlen(name) % 4;
+		if (!ExternData::windowPositions.contains(name))
+		{
+			auto pos = ImGui::GetWindowPos();
+			ExternData::windowPositions[name]["x"] = (int)pos.x;
+			ExternData::windowPositions[name]["y"] = (int)pos.y;
+		}
+		int xoff = 0, yoff = 0;
+		switch (animationType)
+		{
+		case 0:
+			xoff = 1400;
+			yoff = 1400;
+			break;
+		case 1:
+			xoff = 1400;
+			yoff = -1400;
+			break;
+		case 2:
+			xoff = -1400;
+			yoff = 1400;
+			break;
+		case 3:
+			xoff = -1400;
+			yoff = -1400;
+			break;
+		}
+		ImGui::SetWindowPos(
+			{ExternData::windowPositions[name]["x"] -
+				 (ExternData::animation * xoff) * (ExternData::screenSize / ExternData::oldScreenSize),
+			 ExternData::windowPositions[name]["y"] -
+				 (ExternData::animation * yoff) * (ExternData::screenSize / ExternData::oldScreenSize)});
+	}
+	else
+	{
+		if (ExternData::resetWindows && ExternData::windowPositions.contains(name))
+			ImGui::SetWindowPos({ExternData::windowPositions[name]["x"] * ExternData::screenSize,
+								 ExternData::windowPositions[name]["y"] * ExternData::screenSize});
+		else if (ExternData::repositionWindows)
+		{
+			auto pos = ImGui::GetWindowPos();
+			ImGui::SetWindowPos({pos.x * (ExternData::screenSize / ExternData::oldScreenSize),
+								 pos.y * (ExternData::screenSize / ExternData::oldScreenSize)});
+		}
+
+		if (hacks.windowSnap > 1)
+		{
+			auto pos = ImGui::GetWindowPos();
+			ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
+		}
 	}
 
-	if (hacks.windowSnap > 1)
+	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && ExternData::animationDone)
 	{
 		auto pos = ImGui::GetWindowPos();
-		ImGui::SetWindowPos({(float)roundInt(pos.x), (float)roundInt(pos.y)});
-	}
-
-	if (ExternData::saveWindows)
-	{
-		auto pos = ImGui::GetWindowPos();
-		ExternData::windowPositions.positions[1] = {(int)pos.x, (int)pos.y};
+		ExternData::windowPositions[name]["x"] = (int)pos.x * (ExternData::screenSize / ExternData::oldScreenSize);
+		ExternData::windowPositions[name]["y"] = (int)pos.y * (ExternData::screenSize / ExternData::oldScreenSize);
 	}
 }
 
@@ -609,7 +648,7 @@ void GDMO::ReadDouble(const char* filename, const char* key, double* value)
 	if (json.contains(key))
 		*value = json[key].get<double>();
 }
-void GDMO::ReadString(const char* filename, const char* key, std::string *value)
+void GDMO::ReadString(const char* filename, const char* key, std::string* value)
 {
 	auto json = ExternData::settingFiles.at(filename);
 	if (json.contains(key))
@@ -623,7 +662,7 @@ void GDMO::Init(std::string name, std::function<void()> openCallback, std::funct
 		std::filesystem::create_directory("GDMenu/extsettings");
 	}
 	auto path = "GDMenu/extsettings/" + name + ".json";
-	if(!std::filesystem::exists(path))
+	if (!std::filesystem::exists(path))
 	{
 		std::ofstream file(path);
 		file.close();
@@ -633,7 +672,8 @@ void GDMO::Init(std::string name, std::function<void()> openCallback, std::funct
 	mods.open(path);
 	buffer << mods.rdbuf();
 	json json;
-	if(buffer.rdbuf()->in_avail() > 0) json = json::parse(buffer.str());
+	if (buffer.rdbuf()->in_avail() > 0)
+		json = json::parse(buffer.str());
 	ExternData::settingFiles.insert({name, json});
 	mods.close();
 	buffer.clear();

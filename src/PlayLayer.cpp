@@ -830,11 +830,25 @@ void UpdateLabels(gd::PlayLayer* self)
 	if (replayPlayer && hacks.botTextEnabled && macroText)
 	{
 		if (replayPlayer->IsRecording())
-			macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize())).c_str());
+		{
+			if (hacks.replayMode < 2)
+				macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize())).c_str());
+			else
+				macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize()) + " | " +
+									  std::to_string(replayPlayer->GetFrameCapturesSize()))
+										 .c_str());
+		}
 		else if (replayPlayer->IsPlaying())
-			macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" +
-								  std::to_string(replayPlayer->GetActionsSize()))
-									 .c_str());
+			if (hacks.replayMode < 2)
+				macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" +
+									  std::to_string(replayPlayer->GetActionsSize()))
+										 .c_str());
+			else
+				macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" +
+									  std::to_string(replayPlayer->GetActionsSize()) + " | " +
+									  std::to_string(replayPlayer->GetCapturesIndex()) + "/" +
+									  std::to_string(replayPlayer->GetFrameCapturesSize()))
+										 .c_str());
 		else
 			macroText->setString("");
 	}
@@ -1178,23 +1192,10 @@ void Update(gd::PlayLayer* self, float dt)
 	if (prevRot2 != self->m_pPlayer2->getRotation())
 	{
 		PlayLayer::player2RotRate = self->m_pPlayer2->getRotation() - prevRot2;
-		prevRot1 = self->m_pPlayer2->getRotation();
+		prevRot2 = self->m_pPlayer2->getRotation();
 	}
 
 	PlayLayer::update(self, dt);
-
-	auto ac = static_cast<CCRotateBy*>(self->m_pPlayer1->getActionByTag(5000));
-	if (ac)
-	{
-		ExternData::pauseRotateAction1 = ExternData::pauseRotateAction2 = !self->m_pPlayer1->m_isBall || self->m_pPlayer1->m_isOnGround;
-	}
-	ac = static_cast<CCRotateBy*>(self->m_pPlayer2->getActionByTag(5001));
-	if (ac)
-	{
-		ExternData::pauseRotateAction2 = !self->m_pPlayer2->m_isBall || self->m_pPlayer2->m_isOnGround;
-	}
-
-	debug.debugNumber = ExternData::pauseRotateAction1;
 
 	if (hacks.trajectory)
 		TrajectorySimulation::getInstance()->processMainSimulation(dt);

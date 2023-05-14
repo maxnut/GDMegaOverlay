@@ -1,4 +1,4 @@
-#pragma once.
+#pragma once
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <functional>
@@ -9,7 +9,7 @@ namespace GDMO
 {
 void addImGuiFunc(std::function<void()> func);
 
-void ImBegin(const char* name);
+void ImBegin(const char* name, bool *open = (bool*)false);
 void ImEnd();
 void ImText(const char* text);
 

@@ -27,12 +27,14 @@ namespace ExternData
     extern char searchbar[30];
     extern std::string hackName;
 
-    extern bool resetWindows, repositionWindows, saveWindows;
+    extern bool resetWindows, repositionWindows;
 
-    extern Windows windowPositions;
+    extern json windowPositions;
 
     extern std::map<std::string, nlohmann::json> settingFiles;
     extern std::vector<std::string> dllNames;
 
-    extern bool hasSaiModPack, pauseRotateAction1, pauseRotateAction2;
+    extern bool hasSaiModPack, animationDone;
+
+    extern float animation;
 } // namespace ExternData

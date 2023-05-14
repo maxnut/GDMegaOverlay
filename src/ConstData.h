@@ -174,3 +174,12 @@ const char* const trail[] = {"Normal", "Always Off", "Always On", "Inversed"};
 const char* const fonts[] = {"Big Font", "Chat Font", "Font 01", "Font 02", "Font 03", "Font 04", "Font 05",
 							 "Font 06",	 "Font 07",	  "Font 08", "Font 09", "Font 10", "Font 11", "Gold Font"};
 const char* const rpc[] = {"Playing", "Editor", "Menu"};
+
+const char* const easings[] = {"None",
+							   "EaseInOut",
+							   "EaseIn",
+							   "EaseOut"};
+
+const char* const replayMode[] = {"None",
+							   "Every Action",
+							   "Every Frame"};

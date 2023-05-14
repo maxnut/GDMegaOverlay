@@ -362,6 +362,11 @@ static void SaveSettings()
 		f.close();
 	}
 
+	f.open("GDMenu/windows.json");
+	if (f)
+		f << ExternData::windowPositions;
+	f.close();
+
 	f.open("GDMenu/dll/extensions.json");
 	if (f)
 		f << ExternData::dlls;
@@ -597,4 +602,4 @@ static void UpdateRichPresence(int state, gd::GJGameLevel* lvl = 0, std::string 
 		ExternData::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
 	}
 }
-} // namespace Hacks
+}; // namespace Hacks

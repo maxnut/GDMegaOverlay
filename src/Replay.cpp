@@ -10,26 +10,39 @@ void Replay::Load(std::string path)
 		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Could not find macro"))->show();
 		return;
 	}
-	file.seekg(0, std::ios::end);
-	size_t left = static_cast<size_t>(file.tellg());
-	file.seekg(0);
-	left -= sizeof(float) * 2;
-	for (size_t _ = 0; _ <= left / 22U; ++_)
-	{
-		Action a;
-		file.read((char*)&a.press, sizeof(bool));
-		file.read((char*)&a.player2, sizeof(bool));
-		file.read((char*)&a.frame, sizeof(uint32_t));
-		file.read((char*)&a.yAccel, sizeof(double));
-		file.read((char*)&a.px, sizeof(float));
-		file.read((char*)&a.py, sizeof(float));
-		AddAction(a);
-	}
+
+	size_t acSize;
+	size_t fcSize;
+
 	file.read((char*)&fps, sizeof(float));
+
+	file.read((char*)&acSize, sizeof(size_t));
+	file.read((char*)&fcSize, sizeof(size_t));
+
+	bool frameCapture = fcSize > 0;
+
+	actions.resize(acSize);
+	frameCaptures.resize(fcSize);
+
+	file.read((char*)&actions[0], sizeof(Action) * acSize);
+	if (frameCapture)
+		file.read((char*)&frameCaptures[0], sizeof(FrameCapture) * fcSize);
+
 	file.close();
-	gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-							 ("Macro loaded with " + std::to_string(GetActionsSize()) + " actions."))
-		->show();
+
+	if (frameCapture)
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+								 ("Macro loaded with " + std::to_string(acSize) + " actions and " +
+								  std::to_string(fcSize) + " frame captures."))
+			->show();
+	}
+	else
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+								 ("Macro loaded with " + std::to_string(acSize) + " actions."))
+			->show();
+	}
 }
 
 void Replay::Save(std::string name)
@@ -43,20 +56,35 @@ void Replay::Save(std::string name)
 		std::filesystem::create_directory("GDMenu/macros");
 
 	std::ofstream file("GDMenu/macros/" + name + ".macro", std::ios::out | std::ios::binary);
-	for (const auto& a : actions)
-	{
-		file.write((char*)&a.press, sizeof(bool));
-		file.write((char*)&a.player2, sizeof(bool));
-		file.write((char*)&a.frame, sizeof(uint32_t));
-		file.write((char*)&a.yAccel, sizeof(double));
-		file.write((char*)&a.px, sizeof(float));
-		file.write((char*)&a.py, sizeof(float));
-	}
+
+	size_t acSize = actions.size();
+	size_t fcSize = frameCaptures.size();
+
+	bool frameCapture = fcSize > 0;
+
 	file.write((char*)&fps, sizeof(float));
+
+	file.write((char*)&acSize, sizeof(size_t));
+	file.write((char*)&fcSize, sizeof(size_t));
+
+	file.write((char*)&actions[0], sizeof(Action) * acSize);
+	if (frameCapture)
+		file.write((char*)&frameCaptures[0], sizeof(FrameCapture) * fcSize);
+
 	file.close();
-	gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-							 ("Macro saved with " + std::to_string(GetActionsSize()) + " actions."))
-		->show();
+
+	if (frameCapture)
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+								 ("Macro saved with " + std::to_string(acSize) + " actions and " + std::to_string(fcSize) + " captures."))
+			->show();
+	}
+	else
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+								 ("Macro saved with " + std::to_string(acSize) + " actions."))
+			->show();
+	}
 }
 
 ReplayInfo Replay::GetInfo(const std::filesystem::path& name)
@@ -70,16 +98,10 @@ ReplayInfo Replay::GetInfo(const std::filesystem::path& name)
 		return ri;
 	}
 
-	float fps = -1;
+	file.read((char*)&ri.fps, sizeof(float));
 
-	file.seekg(0, std::ios::end);
-	size_t left = static_cast<size_t>(file.tellg());
+	file.read((char*)&ri.actionSize, sizeof(size_t));
+	file.read((char*)&ri.capturesSize, sizeof(size_t));
 
-	left -= 4;
-	file.seekg(left);
-	file.read((char*)&fps, sizeof(float));
-	ri.actionSize = left / 22U;
-	ri.fps = fps;
-	file.close();
 	return ri;
 }

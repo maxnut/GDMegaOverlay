@@ -14,8 +14,6 @@ void Shortcuts::Save()
     if (!std::filesystem::is_directory("GDMenu") || !std::filesystem::exists("GDMenu"))
         std::filesystem::create_directory("GDMenu");
 
-    Hacks::writeOutput((int)shortcuts.size());
-
     std::ofstream file("GDMenu/shortcuts.bin", std::ios::out | std::ios::binary);
     for (const auto &s : shortcuts)
     {
