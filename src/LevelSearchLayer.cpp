@@ -73,7 +73,6 @@ void __fastcall LevelSearchLayer::httpHook(gd::GameLevelManager* self, void*, gd
 {
 	std::string url = gdurl.c_str();
 	std::string query = gdquery.c_str();
-	std::string idk2 = idk.c_str();
 	if (url == "http://www.boomlings.com/database/getGJLevels21.php")
 	{
 		auto thing = atoi(query.substr(query.find("page=") + 5).c_str());
@@ -87,6 +86,5 @@ void __fastcall LevelSearchLayer::httpHook(gd::GameLevelManager* self, void*, gd
 				std::string("http://absolllute.com/api/mega_hack/challengelist/page") + std::to_string(thing) + ".txt";
 		}
 	}
-	sizeof(gd::CCCircleWaveDelegate);
-	sizeof(std::map<std::string,bool>);
+	LevelSearchLayer::http(self, gdurl, gdquery, idk, type);
 }
