@@ -34,11 +34,13 @@ extern struct Debug debug;
 float pitch;
 
 int shortcutIndex, pitchName, editing, tabIndex = 0, variableIndex = 0;
-char fileName[30], url[100], id[30], macroName[100];
+char url[100], id[30], macroName[100];
 std::vector<ReplayInfo> replays;
 std::vector<const char*> musicPathsVet;
 
 std::string hoveredHack = "";
+
+bool opening = false;
 
 char* convert(const std::string& s)
 {
@@ -137,7 +139,7 @@ void SetStyle()
 	style->GrabRounding = 3.0f;
 	style->WindowBorderSize = hacks.borderSize;
 
-	style->ScaleAllSizes(ExternData::screenSize * hacks.menuSize);
+	style->ScaleAllSizes(ExternData::screenSizeX * hacks.menuSize);
 
 	float r, g, b;
 	ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks.menuRainbowSpeed, hacks.menuRainbowBrightness,
@@ -222,6 +224,8 @@ void Init()
 	io.Fonts->Build();
 	ImGui_ImplOpenGL3_CreateFontsTexture();
 	io.FontDefault = font;
+
+	io.IniFilename = NULL;
 
 	if (loaded)
 	{
@@ -451,6 +455,8 @@ void Init()
 		}
 	}
 
+	ExternData::screenSizeX = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
+
 	loaded = true;
 }
 
@@ -465,7 +471,7 @@ void Hacks::RenderMain()
 	if (hacks.hitboxMultiplier <= 0)
 		hacks.hitboxMultiplier = 1;
 
-	const float size = ExternData::screenSize * hacks.menuSize;
+	const float size = ExternData::screenSizeX * hacks.menuSize;
 	const float windowSize = windowWidth * size;
 
 	const auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
@@ -487,7 +493,7 @@ void Hacks::RenderMain()
 		// ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
 		ImGui::Begin("Debug");
 
-		ImGui::SetWindowFontScale(ExternData::screenSize * hacks.menuSize);
+		ImGui::SetWindowFontScale(ExternData::screenSizeX * hacks.menuSize);
 
 		GDMO::ImInputFloat("N", &debug.debugNumber);
 		ImGui::Text(debug.debugString.c_str());
@@ -501,7 +507,7 @@ void Hacks::RenderMain()
 		ImGui::End();
 
 		ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
-		ImGui::SetWindowFontScale(ExternData::screenSize * hacks.menuSize);
+		ImGui::SetWindowFontScale(ExternData::screenSizeX * hacks.menuSize);
 
 		CocosExplorer::draw();
 
@@ -511,15 +517,10 @@ void Hacks::RenderMain()
 
 	if (ExternData::show)
 	{
-		ExternData::oldScreenSize = ExternData::screenSize;
-		if (CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width != ExternData::screenSize)
-		{
-			ExternData::screenSize = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
-			ExternData::repositionWindows = true;
-		}
-
-		if (ExternData::oldScreenSize == 0)
-			ExternData::oldScreenSize = ExternData::screenSize;
+		float s = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
+		if(s != ExternData::screenSizeX) ExternData::resetWindows = true;
+		ExternData::screenSizeX = s;
+		ExternData::screenSizeY = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().height / 1080.0f;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
 
@@ -530,7 +531,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImBegin("Menu Settings");
 
-		ImGui::PushItemWidth(70 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(70 * ExternData::screenSizeX * hacks.menuSize);
 		GDMO::ImInputFloat("Menu UI Size", &hacks.menuSize);
 		if (hacks.menuSize > 3)
 			hacks.menuSize = 1;
@@ -555,7 +556,7 @@ void Hacks::RenderMain()
 			ImGui::EndMenu();
 		}
 
-		ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(180 * ExternData::screenSizeX * hacks.menuSize);
 		if (GDMO::ImHotkey("Toggle Menu", &hacks.menuKey))
 		{
 			ImGuiHook::setKeybind(hacks.menuKey);
@@ -568,10 +569,10 @@ void Hacks::RenderMain()
 			GDMO::ImCheckbox("Snow", &hacks.snow);
 
 		GDMO::ImCheckbox("Rainbow Menu", &hacks.rainbowMenu);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::BeginMenu("##rain", true, 5))
 		{
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed", &hacks.menuRainbowSpeed);
 			GDMO::ImInputFloat("Rainbow Brightness", &hacks.menuRainbowBrightness);
 			ImGui::PopItemWidth();
@@ -590,7 +591,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImButton("Load Windows"))
 			ExternData::resetWindows = true;
 
-		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 		GDMO::ImInputFloat("Open Speed", &hacks.menuAnimationLength);
 		GDMO::ImInputText("Search", ExternData::searchbar, 30);
 		ImGui::PopItemWidth();
@@ -599,7 +600,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImBegin("General Mods");
 
-		ImGui::PushItemWidth(70 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(70 * ExternData::screenSizeX * hacks.menuSize);
 		GDMO::ImInputFloat("FPS Bypass", &hacks.fps);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Changes Max FPS. Disable VSync both in gd and your gpu drivers for it to work.");
@@ -689,16 +690,16 @@ void Hacks::RenderMain()
 		GDMO::ImBegin("Global");
 
 		GDMO::ImCheckbox("Auto Deafen", &hacks.autoDeafen);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("autod", 1))
 			ImGui::OpenPopup("Auto Deafen Settings");
 
 		if (ImGui::BeginPopupModal("Auto Deafen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Auto Deafen %", &hacks.percentage);
 
-			ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(180 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImHotkey("Mute Key", &hacks.muteKey);
 			ImGui::PopItemWidth();
 
@@ -722,13 +723,13 @@ void Hacks::RenderMain()
 			}
 		}
 
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("rpc", 1))
 			ImGui::OpenPopup("RPC Settings");
 
 		if (ImGui::BeginPopupModal("RPC Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImCombo("##editing", &editing, rpc, 3);
 
 			switch (editing)
@@ -765,14 +766,14 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("Hide Pause Menu", &hacks.hidePause);
 
 		GDMO::ImCheckbox("Custom Menu Music", &hacks.replaceMenuMusic);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("custmm", 1))
 			ImGui::OpenPopup("Custom Menu Music Settings");
 
 		if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
 			ExternData::fake)
 		{
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			if (GDMO::ImButton("Select Song"))
 			{
 				auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
@@ -813,7 +814,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImCheckbox("StartPos Switcher", &hacks.startPosSwitcher);
 		GDMO::ImCheckbox("Smart StartPos", &hacks.smartStartPos);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("smar", 1))
 			ImGui::OpenPopup("Smart StartPos Settings");
 
@@ -833,7 +834,7 @@ void Hacks::RenderMain()
 		}
 
 		GDMO::ImCheckbox("Show Hitboxes", &hacks.showHitboxes);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("hit", 1))
 			ImGui::OpenPopup("Hitbox Settings");
 
@@ -878,7 +879,7 @@ void Hacks::RenderMain()
 				"Activate this if you want the practice fixes to be active even if macrobot is not recording");
 
 		GDMO::ImCheckbox("Auto Sync Music", &hacks.autoSyncMusic);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("ausm", 1))
 			ImGui::OpenPopup("Auto Sync Music Settings");
 
@@ -898,7 +899,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImCheckbox("Confirm Quit", &hacks.confirmQuit);
 		GDMO::ImCheckbox("Show Endscreen Info", &hacks.showExtraInfo);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("sei", 1))
 			ImGui::OpenPopup("Endscreen Settings");
 
@@ -915,9 +916,9 @@ void Hacks::RenderMain()
 				ImGui::EndPopup();
 		}
 
-		ImGui::PushItemWidth(50 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(50 * ExternData::screenSizeX * hacks.menuSize);
 		GDMO::ImCheckbox("Hitbox Multiplier", &hacks.enableHitboxMultiplier);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("hbm", 1))
 			ImGui::OpenPopup("Hitbox Multiplier Settings");
 
@@ -956,7 +957,7 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
 
 		GDMO::ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("rain", 1))
 			ImGui::OpenPopup("Rainbow Icons Settings");
 
@@ -968,7 +969,7 @@ void Hacks::RenderMain()
 			GDMO::ImCheckbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
 			GDMO::ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
 
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
 			if (GDMO::ImInputFloat("Rainbow Pastel Amount", &hacks.pastel))
 			{
@@ -987,7 +988,7 @@ void Hacks::RenderMain()
 		ImGui::SameLine();
 		GDMO::ImCheckbox("Wave Trail Color", &hacks.enableWaveTrailColor);
 
-		ImGui::PushItemWidth(90 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(90 * ExternData::screenSizeX * hacks.menuSize);
 		if (GDMO::ImInputFloat("Wave Trail Size", &hacks.waveSize))
 			Hacks::Write<float>(gd::base + 0x2E63A0, hacks.waveSize);
 		if (GDMO::ImInputFloat("Respawn Time", &hacks.respawnTime))
@@ -1009,10 +1010,10 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("Hide All", &labels.hideLabels);
 
 		GDMO::ImCheckbox("Rainbow Labels", &labels.rainbowLabels);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::BeginMenu("##rainl", true, 5))
 		{
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed##lab", &labels.rainbowSpeed);
 			ImGui::PopItemWidth();
 			ImGui::EndMenu();
@@ -1021,7 +1022,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Cheat Indicator", &labels.statuses[0]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("ci", 1))
 			ImGui::OpenPopup("Cheat Indicator Settings");
 		if (ImGui::BeginPopupModal("Cheat Indicator Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
@@ -1039,7 +1040,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("FPS Counter", &labels.statuses[1]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("fps", 1))
 			ImGui::OpenPopup("FPS Counter Settings");
 		if (ImGui::BeginPopupModal("FPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1063,7 +1064,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("CPS Counter", &labels.statuses[2]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("cps", 1))
 			ImGui::OpenPopup("CPS Counter Settings");
 		if (ImGui::BeginPopupModal("CPS Counter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1087,7 +1088,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Noclip accuracy", &labels.statuses[3]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("nca", 1))
 			ImGui::OpenPopup("Noclip Accuracy Settings");
 
@@ -1104,7 +1105,7 @@ void Hacks::RenderMain()
 			GDMO::ImInputFloat("Noclip Accuracy limit", &hacks.noClipAccuracyLimit);
 			GDMO::ImCheckbox("Play Sound on death", &hacks.accuracySound);
 			GDMO::ImCheckbox("Enable Screen Effect", &hacks.noclipRed);
-			ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Opacity Limit", &hacks.noclipRedLimit);
 			GDMO::ImInputFloat("Opacity Rate Up", &hacks.noclipRedRate);
 			GDMO::ImInputFloat("Opacity Rate Down", &hacks.noclipRedRateDown);
@@ -1120,7 +1121,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Noclip deaths", &labels.statuses[4]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("ncd", 1))
 			ImGui::OpenPopup("Noclip Deaths Settings");
 
@@ -1145,7 +1146,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Clock", &labels.statuses[5]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("clock", 1))
 			ImGui::OpenPopup("Clock Settings");
 		if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1162,7 +1163,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Best Run", &labels.statuses[6]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("best run", 1))
 			ImGui::OpenPopup("Best Run Settings");
 		if (ImGui::BeginPopupModal("Best Run Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1180,7 +1181,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Attempts", &labels.statuses[7]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("attempts", 1))
 			ImGui::OpenPopup("Attempts Settings");
 		if (ImGui::BeginPopupModal("Attempts Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1197,7 +1198,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("From %", &labels.statuses[8]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("from", 1))
 			ImGui::OpenPopup("From % Settings");
 		if (ImGui::BeginPopupModal("From % Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1215,7 +1216,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Message Status", &labels.statuses[9]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("stat", 1))
 			ImGui::OpenPopup("Message Status Settings");
 		if (ImGui::BeginPopupModal("Message Status Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
@@ -1234,7 +1235,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Current Attempt", &labels.statuses[10]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("curr", 1))
 			ImGui::OpenPopup("Current Attempt Settings");
 		if (ImGui::BeginPopupModal("Current Attempt Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
@@ -1252,7 +1253,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Level ID", &labels.statuses[11]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("levelid", 1))
 			ImGui::OpenPopup("Level ID Settings");
 		if (ImGui::BeginPopupModal("Level ID Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1269,7 +1270,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Jumps", &labels.statuses[12]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("jumps", 1))
 			ImGui::OpenPopup("Jumps Settings");
 		if (ImGui::BeginPopupModal("Jumps Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1286,7 +1287,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImCheckbox("Frame", &labels.statuses[13]))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("frame", 1))
 			ImGui::OpenPopup("Frame Settings");
 		if (ImGui::BeginPopupModal("Frame Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
@@ -1300,7 +1301,7 @@ void Hacks::RenderMain()
 				ImGui::EndPopup();
 		}
 
-		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 		if (GDMO::ImInputFloat("Label Spacing", &labels.labelSpacing))
 			for (size_t i = 0; i < STATUSSIZE; i++)
 				PlayLayer::UpdatePositions(i);
@@ -1322,7 +1323,7 @@ void Hacks::RenderMain()
 			ImGui::Text(KeyNames[Shortcuts::shortcuts[i].key]);
 			ImGui::SameLine();
 			ImGui::Text(Shortcuts::shortcuts[i].name);
-			ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+			ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 			if (GDMO::ImButton(("x##" + std::to_string(i)).c_str()))
 			{
 				Shortcuts::shortcuts.erase(Shortcuts::shortcuts.begin() + i);
@@ -1396,7 +1397,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImBegin("Pitch Shift");
 
-		ImGui::PushItemWidth(120 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(120 * ExternData::screenSizeX * hacks.menuSize);
 		if (GDMO::ImButton("Select Song##pitch"))
 		{
 			auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
@@ -1423,7 +1424,7 @@ void Hacks::RenderMain()
 
 		GDMO::ImBegin("Nong Downloader");
 
-		ImGui::PushItemWidth(120 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(120 * ExternData::screenSizeX * hacks.menuSize);
 
 		GDMO::ImInputText("Song Url", url, 100);
 		GDMO::ImInputText("Song Id", id, 30);
@@ -1452,10 +1453,10 @@ void Hacks::RenderMain()
 			}
 		}
 		GDMO::ImCheckbox("Include Clicks", &hacks.includeClicks);
-		ImGui::PushItemWidth(110 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(110 * ExternData::screenSizeX * hacks.menuSize);
 		GDMO::ImInputInt2("Size##videosize", hacks.videoDimenstions);
 		ImGui::PopItemWidth();
-		ImGui::PushItemWidth(75 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(75 * ExternData::screenSizeX * hacks.menuSize);
 		GDMO::ImInputInt("Framerate", &hacks.videoFps, 0);
 		GDMO::ImInputFloat("Music Volume", &hacks.renderMusicVolume);
 		GDMO::ImInputFloat("Click Volume", &hacks.renderClickVolume);
@@ -1493,7 +1494,7 @@ void Hacks::RenderMain()
 			variableTabs.push_back(jobject["name"].get<std::string>());
 		}
 
-		ImGui::PushItemWidth(140 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(140 * ExternData::screenSizeX * hacks.menuSize);
 
 		ImGui::Combo(
 			"Tab", &tabIndex,
@@ -1522,7 +1523,7 @@ void Hacks::RenderMain()
 				*out_text = vector->at(idx).c_str();
 				return true;
 			},
-			reinterpret_cast<void*>(&ExternData::variables), ExternData::variables.size());
+			reinterpret_cast<void*>(&variables), variables.size());
 
 		if (variableIndex >= arr["data"].size())
 			variableIndex = 0;
@@ -1574,11 +1575,11 @@ void Hacks::RenderMain()
 		char buffer[256];
 		sprintf(buffer, "Extensions Loaded: %d", ExternData::dllNames.size());
 		GDMO::ImText(buffer);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("dll_lists", 1))
 			ImGui::OpenPopup("DLL List");
 
-		if(ImGui::IsPopupOpen("DLL List"))
+		if (ImGui::IsPopupOpen("DLL List"))
 		{
 			ImGui::SetNextWindowSizeConstraints({windowSize, windowSize}, {windowSize * 2, 1000});
 		}
@@ -1621,7 +1622,7 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("Show Macro Label", &hacks.botTextEnabled);
 
 		GDMO::ImCheckbox("Click sounds", &hacks.clickbot);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("clicks", 1))
 			ImGui::OpenPopup("Click sounds settings");
 		if (ImGui::BeginPopupModal("Click sounds settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
@@ -1647,7 +1648,7 @@ void Hacks::RenderMain()
 		}
 		GDMO::ImCheckbox("Prevent inputs", &hacks.preventInput);
 
-		ImGui::PushItemWidth(80 * ExternData::screenSize * hacks.menuSize);
+		ImGui::PushItemWidth(80 * ExternData::screenSizeX * hacks.menuSize);
 		if (ReplayPlayer::getInstance().IsRecording())
 		{
 			ImGui::BeginDisabled();
@@ -1664,7 +1665,7 @@ void Hacks::RenderMain()
 		// 	ImGui::SetTooltip("Disable physics correction with the bot, only uses the clicks.");
 
 		GDMO::ImCheckbox("Autoclicker", &hacks.autoclicker);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("aut", 1))
 			ImGui::OpenPopup("Autoclicker Settings");
 
@@ -1681,14 +1682,14 @@ void Hacks::RenderMain()
 		}
 
 		GDMO::ImCheckbox("Frame Step", &hacks.frameStep);
-		ImGui::SameLine(arrowButtonPosition * ExternData::screenSize * hacks.menuSize);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("fra", 1))
 			ImGui::OpenPopup("Frame Step Settings");
 
 		if (ImGui::BeginPopupModal("Frame Step Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			GDMO::ImInputInt("Step Count", &hacks.stepCount, 0);
-			ImGui::PushItemWidth(180 * ExternData::screenSize * hacks.menuSize);
+			ImGui::PushItemWidth(180 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImHotkey("Step Key", &hacks.stepIndex);
 			ImGui::PopItemWidth();
 			GDMO::ImCheckbox("Hold to Advance", &hacks.holdAdvance);
@@ -1706,12 +1707,12 @@ void Hacks::RenderMain()
 			ReplayPlayer::getInstance().ClearActions();
 
 		ImGui::Spacing();
-		ImGui::PushItemWidth(100 * ExternData::screenSize * hacks.menuSize);
-		GDMO::ImInputText("Macro Name", fileName, 30);
+		ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
+		GDMO::ImInputText("Macro Name", ExternData::replayName, 30);
 		ImGui::PopItemWidth();
 		if (GDMO::ImButton("Save"))
 		{
-			ReplayPlayer::getInstance().Save(fileName);
+			ReplayPlayer::getInstance().Save(ExternData::replayName);
 			GetMacros();
 		}
 
@@ -1753,10 +1754,10 @@ void Hacks::RenderMain()
 					ImGui::Text(std::to_string(ri.actionSize).c_str());
 					ImGui::TableNextColumn();
 					ImGui::Text(std::to_string(ri.capturesSize).c_str());
-					ImGui::SameLine((arrowButtonPosition - 10) * ExternData::screenSize * hacks.menuSize);
+					ImGui::SameLine((arrowButtonPosition - 10) * ExternData::screenSizeX * hacks.menuSize);
 					if (GDMO::ImButton((std::string("Load##") + ri.name).c_str()))
 						ReplayPlayer::getInstance().Load(ri.name);
-					ImGui::SameLine((arrowButtonPosition - 70) * ExternData::screenSize * hacks.menuSize);
+					ImGui::SameLine((arrowButtonPosition - 70) * ExternData::screenSizeX * hacks.menuSize);
 					if (GDMO::ImButton((std::string("Delete##") + ri.name).c_str()))
 					{
 						ReplayPlayer::getInstance().Delete(ri.name);
@@ -1770,7 +1771,7 @@ void Hacks::RenderMain()
 		}
 
 		if (GDMO::ImButton("Load"))
-			ReplayPlayer::getInstance().Load(fileName);
+			ReplayPlayer::getInstance().Load(ExternData::replayName);
 
 		ImGui::SameLine();
 
@@ -1811,7 +1812,7 @@ void Hacks::RenderMain()
 					action["frame"] = ac.frame;
 					tasmacro["actions"].push_back(action);
 				}
-				std::ofstream file("GDMenu/macros/" + std::string(fileName) + ".mcb.json");
+				std::ofstream file("GDMenu/macros/" + std::string(ExternData::replayName) + ".mcb.json");
 				file << tasmacro;
 			}
 			if (GDMO::ImButton("Import JSON"))
@@ -2044,12 +2045,15 @@ void Hacks::RenderMain()
 
 		ImGui::PopStyleVar();
 
-		if (ExternData::resetWindows || ExternData::repositionWindows)
-			ImGui::SaveIniSettingsToDisk("imgui.ini");
-
 		ExternData::resetWindows = false;
 		ExternData::repositionWindows = false;
 		ExternData::isCheating = PlayLayer::IsCheating();
+
+		if (!ExternData::animationDone && (opening && ExternData::animation == 0 || !opening && ExternData::animation == 1))
+		{
+			ExternData::animationDone = true;
+			ExternData::animationAction = nullptr;
+		}
 	}
 }
 
@@ -2068,11 +2072,6 @@ void AnimationIsDone()
 		if (p && !p->m_bIsPaused && !p->m_hasCompletedLevel)
 			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(false);
 	}
-	else
-	{
-		Hacks::RenderMain();
-	}
-	ExternData::animationDone = true;
 }
 
 DWORD WINAPI my_thread(void* hModule)
@@ -2087,11 +2086,13 @@ DWORD WINAPI my_thread(void* hModule)
 
 		ExternData::animationDone = false;
 
+		ExternData::randomDirection = std::rand() % 4 + 1;
+
 		if (ExternData::show)
 		{
 			ac = CCEaseIn::create(CustomAction::create(hacks.menuAnimationLength *
 														   CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
-													   1, 0, &ExternData::animation, AnimationIsDone),
+													   1, 0, &ExternData::animation, nullptr),
 								  0.5f);
 			for (auto func : ExternData::openFuncs)
 			{
@@ -2106,6 +2107,7 @@ DWORD WINAPI my_thread(void* hModule)
 			}
 
 			cocos2d::CCEGLView::sharedOpenGLView()->showCursor(true);
+			opening = true;
 		}
 		else
 		{
@@ -2122,6 +2124,7 @@ DWORD WINAPI my_thread(void* hModule)
 			}
 
 			ExternData::show = true;
+			opening = false;
 		}
 
 		if (ac)
@@ -2129,6 +2132,7 @@ DWORD WINAPI my_thread(void* hModule)
 			CCDirector::sharedDirector()->getRunningScene()->stopActionByTag(4000);
 			ac->setTag(4000);
 			CCDirector::sharedDirector()->getRunningScene()->runAction(ac);
+			ExternData::animationAction = ac;
 		}
 
 		GetMacros();

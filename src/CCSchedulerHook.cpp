@@ -44,7 +44,11 @@ void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt)
 		if (hacks.frameStep)
 		{
 			if (!hacks.holdAdvance && ExternData::steps <= 0 || hacks.holdAdvance && !ExternData::holdingAdvance)
+			{
+				if (ExternData::animationAction)
+					ExternData::animationAction->step(dt);
 				return;
+			}
 
 			if (hacks.tpsBypassBool || rs.IsRecording() || rs.IsPlaying())
 			{

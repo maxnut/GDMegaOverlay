@@ -1,7 +1,8 @@
 #include "CustomAction.h"
 #include "Hacks.h"
 
-CustomAction* CustomAction::create(float duration, float from, float to, float* updateProperty, std::function<void()> callback)
+CustomAction* CustomAction::create(float duration, float from, float to, float* updateProperty,
+								   std::function<void()> callback)
 {
 	CustomAction* ret = new CustomAction();
 	if (ret->initWithDuration(duration, from, to, updateProperty, callback))
@@ -14,14 +15,15 @@ CustomAction* CustomAction::create(float duration, float from, float to, float* 
 	return nullptr;
 }
 
-bool CustomAction::initWithDuration(float duration, float from, float to, float* updateProperty, std::function<void()> callback)
+bool CustomAction::initWithDuration(float duration, float from, float to, float* updateProperty,
+									std::function<void()> callback)
 {
 	if (CCActionInterval::initWithDuration(duration))
 	{
 		_to = to;
 		_from = from;
-        _updateProperty = updateProperty;
-        _callback = callback;
+		_updateProperty = updateProperty;
+		_callback = callback;
 		return true;
 	}
 
@@ -37,5 +39,8 @@ void CustomAction::startWithTarget(CCNode* target)
 void CustomAction::update(float dt)
 {
 	*_updateProperty = _to - _delta * (1 - dt);
-    if(dt >= 1 && _callback) _callback();
+	if (dt >= 1 && _callback)
+	{
+		_callback();
+	}
 }

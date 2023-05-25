@@ -561,7 +561,8 @@ bool PlayLayer::IsCheating()
 
 	if (hacks.fps > 360.0f || hacks.screenFPS > 360.0f || hacks.tpsBypass > 360.0f || hacks.autoclicker ||
 		hacks.frameStep || scheduler->getTimeScale() != 1 || replayPlayer->IsPlaying() || hacks.layoutMode ||
-		hacks.enableHitboxMultiplier || hacks.showHitboxes && !hacks.onlyOnDeath)
+		hacks.enableHitboxMultiplier || hacks.showHitboxes && !hacks.onlyOnDeath || hacks.hidePause ||
+		hacks.twoPlayerOneKey || hacks.trajectory || hacks.waveSize > 2.1f)
 		return true;
 
 	return false;
@@ -1695,6 +1696,10 @@ void* __fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode* obj, void*, floa
 
 void PlayLayer::Quit()
 {
+	if (!std::filesystem::exists("GDMenu/dll/" + std::string(ExternData::replayName)))
+		replayPlayer->Save(strlen(ExternData::replayName) == 0
+							   ? playlayer->m_level->levelName + "_" + std::to_string(playlayer->m_level->levelID)
+							   : ExternData::replayName);
 	TrajectorySimulation::getInstance()->onQuitPlayLayer();
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;

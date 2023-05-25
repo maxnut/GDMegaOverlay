@@ -1,6 +1,6 @@
 #include "ExternData.h"
 
-float ExternData::screenSize = 0, ExternData::oldScreenSize;
+float ExternData::screenSizeX, ExternData::screenSizeY;
 
 std::vector<std::string> ExternData::musicPaths;
 std::filesystem::path ExternData::path;
@@ -10,7 +10,7 @@ json ExternData::bypass, ExternData::creator, ExternData::global, ExternData::le
 int ExternData::amountOfClicks, ExternData::amountOfReleases, ExternData::amountOfMediumClicks, ExternData::steps;
 float ExternData::tps, ExternData::screenFps;
 bool ExternData::show, ExternData::fake, ExternData::isCheating, ExternData::holdingAdvance;
-char ExternData::searchbar[30];
+char ExternData::searchbar[30], ExternData::replayName[30];
 std::string ExternData::hackName;
 
 bool ExternData::resetWindows = false, ExternData::repositionWindows = false;
@@ -21,5 +21,7 @@ std::map<std::string, nlohmann::json> ExternData::settingFiles;
 std::vector<std::string> ExternData::dllNames;
 
 bool ExternData::hasSaiModPack, ExternData::animationDone;
-
+CCAction* ExternData::animationAction;
 float ExternData::animation;
+
+int ExternData::randomDirection;

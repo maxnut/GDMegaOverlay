@@ -32,9 +32,9 @@ namespace Hacks
 
 static std::vector<bool> cheatCheck;
 static const std::vector<std::string> cheatVector = {
-	"0x60554",	"0x60753",	"0x207328", "0x206921", "0x20612C", "0x2062C2", "0x1F9971", "0x20456D", "0x20456D",
+	"0x60554",	"0x60753",	"0x207328", "0x206921", "0x20612C", "0x2062C2", "0x20456D", "0x20456D",
 	"0x204D08", "0x2061BC", "0x20A23C", "0x20A34F", "0x205347", "0x20456D", "0x20456D", "0x20CEA4", "0x254343",
-	"0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30"};
+	"0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30", "0x1FFF9C"};
 
 void RenderMain();
 
@@ -326,7 +326,7 @@ static void SaveSettings()
 	{
 		f.open("GDMenu/mod/bypass.json");
 		if (f)
-			f << ExternData::bypass;
+			f << ExternData::bypass.dump(4);
 		f.close();
 	}
 
@@ -334,7 +334,7 @@ static void SaveSettings()
 	{
 		f.open("GDMenu/mod/creator.json");
 		if (f)
-			f << ExternData::creator;
+			f << ExternData::creator.dump(4);
 		f.close();
 	}
 
@@ -342,7 +342,7 @@ static void SaveSettings()
 	{
 		f.open("GDMenu/mod/global.json");
 		if (f)
-			f << ExternData::global;
+			f << ExternData::global.dump(4);
 		f.close();
 	}
 
@@ -350,7 +350,7 @@ static void SaveSettings()
 	{
 		f.open("GDMenu/mod/level.json");
 		if (f)
-			f << ExternData::level;
+			f << ExternData::level.dump(4);
 		f.close();
 	}
 
@@ -358,18 +358,18 @@ static void SaveSettings()
 	{
 		f.open("GDMenu/mod/player.json");
 		if (f)
-			f << ExternData::player;
+			f << ExternData::player.dump(4);
 		f.close();
 	}
 
 	f.open("GDMenu/windows.json");
 	if (f)
-		f << ExternData::windowPositions;
+		f << ExternData::windowPositions.dump(4);
 	f.close();
 
 	f.open("GDMenu/dll/extensions.json");
 	if (f)
-		f << ExternData::dlls;
+		f << ExternData::dlls.dump(4);
 	f.close();
 
 	for (auto s : ExternData::settingFiles)
@@ -377,7 +377,7 @@ static void SaveSettings()
 		auto path = "GDMenu/extsettings/" + s.first + ".json";
 		f.open(path);
 		if (f)
-			f << s.second;
+			f << s.second.dump(4);
 		f.close();
 	}
 }
@@ -552,8 +552,6 @@ static void UpdateRichPresence(int state, gd::GJGameLevel* lvl = 0, std::string 
 
 			while (supportString.find("{stars}") != std::string::npos)
 				supportString.replace(supportString.find("{stars}"), 7, std::to_string(pl->m_level->stars));
-
-			debug.debugNumber = pl->m_level->levelID;
 
 			while (supportString.find("{id}") != std::string::npos)
 				supportString.replace(supportString.find("{id}"), 4, std::to_string(pl->m_level->levelID));

@@ -27,23 +27,28 @@ int roundInt(int n)
 	return (n - a > b - n) ? b : a;
 }
 
-void GDMO::ImBegin(const char* name, bool *open)
+void GDMO::ImBegin(const char* name, bool* open)
 {
 	const int windowWidth = 220;
-	const float size = ExternData::screenSize * hacks.menuSize;
+	const float size = ExternData::screenSizeX * hacks.menuSize;
 	const float windowSize = windowWidth * size;
 	ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
 	ImGui::Begin(name, open, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar);
-	ImGui::SetWindowFontScale(ExternData::screenSize * hacks.menuSize);
+	ImGui::SetWindowFontScale(ExternData::screenSizeX * hacks.menuSize);
+
+	if (!ExternData::windowPositions.contains(name))
+	{
+		auto pos = ImGui::GetWindowPos();
+		ExternData::windowPositions[name]["x"] = (int)pos.x;
+		ExternData::windowPositions[name]["y"] = (int)pos.y;
+	}
+
+	float winX = ExternData::windowPositions[name]["x"] * ExternData::screenSizeX;
+	float winY = ExternData::windowPositions[name]["y"] * ExternData::screenSizeY;
+
 	if (!ExternData::animationDone)
 	{
-		uint8_t animationType = strlen(name) % 4;
-		if (!ExternData::windowPositions.contains(name))
-		{
-			auto pos = ImGui::GetWindowPos();
-			ExternData::windowPositions[name]["x"] = (int)pos.x;
-			ExternData::windowPositions[name]["y"] = (int)pos.y;
-		}
+		uint8_t animationType = (strlen(name) + ExternData::randomDirection) % 4;
 		int xoff = 0, yoff = 0;
 		switch (animationType)
 		{
@@ -65,22 +70,13 @@ void GDMO::ImBegin(const char* name, bool *open)
 			break;
 		}
 		ImGui::SetWindowPos(
-			{ExternData::windowPositions[name]["x"] -
-				 (ExternData::animation * xoff) * (ExternData::screenSize / ExternData::oldScreenSize),
-			 ExternData::windowPositions[name]["y"] -
-				 (ExternData::animation * yoff) * (ExternData::screenSize / ExternData::oldScreenSize)});
+			{winX - (ExternData::animation * xoff),
+			 winY - (ExternData::animation * yoff)});
 	}
 	else
 	{
 		if (ExternData::resetWindows && ExternData::windowPositions.contains(name))
-			ImGui::SetWindowPos({ExternData::windowPositions[name]["x"] * ExternData::screenSize,
-								 ExternData::windowPositions[name]["y"] * ExternData::screenSize});
-		else if (ExternData::repositionWindows)
-		{
-			auto pos = ImGui::GetWindowPos();
-			ImGui::SetWindowPos({pos.x * (ExternData::screenSize / ExternData::oldScreenSize),
-								 pos.y * (ExternData::screenSize / ExternData::oldScreenSize)});
-		}
+			ImGui::SetWindowPos({winX, winY});
 
 		if (hacks.windowSnap > 1)
 		{
@@ -89,11 +85,12 @@ void GDMO::ImBegin(const char* name, bool *open)
 		}
 	}
 
-	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && ExternData::animationDone)
+	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && ExternData::animationDone &&
+		ExternData::animation <= 0)
 	{
 		auto pos = ImGui::GetWindowPos();
-		ExternData::windowPositions[name]["x"] = (int)pos.x * (ExternData::screenSize / ExternData::oldScreenSize);
-		ExternData::windowPositions[name]["y"] = (int)pos.y * (ExternData::screenSize / ExternData::oldScreenSize);
+		ExternData::windowPositions[name]["x"] = winX / ExternData::screenSizeX;
+		ExternData::windowPositions[name]["y"] = winY / ExternData::screenSizeY;
 	}
 }
 
@@ -600,7 +597,6 @@ void GDMO::writeOutput(double out)
 
 template <class T> void Save(const char* filename, const char* key, T value)
 {
-	Hacks::writeOutput(value);
 	ExternData::settingFiles.at(filename)[key] = value;
 }
 

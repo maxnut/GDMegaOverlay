@@ -8,7 +8,7 @@ using json = nlohmann::json;
 
 namespace ExternData
 {
-    extern float screenSize, oldScreenSize;
+    extern float screenSizeX, screenSizeY;
 
     extern std::vector<std::string> musicPaths;
     extern std::filesystem::path path;
@@ -24,7 +24,7 @@ namespace ExternData
     extern float tps, screenFps;
 
     extern bool show, fake, isCheating, holdingAdvance;
-    extern char searchbar[30];
+    extern char searchbar[30], replayName[30];
     extern std::string hackName;
 
     extern bool resetWindows, repositionWindows;
@@ -35,6 +35,8 @@ namespace ExternData
     extern std::vector<std::string> dllNames;
 
     extern bool hasSaiModPack, animationDone;
-
+    extern CCAction* animationAction;
     extern float animation;
+
+    extern int randomDirection;
 } // namespace ExternData
