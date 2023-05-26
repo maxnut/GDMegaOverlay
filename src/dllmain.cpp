@@ -520,7 +520,9 @@ void Hacks::RenderMain()
 		float s = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
 		if(s != ExternData::screenSizeX) ExternData::resetWindows = true;
 		ExternData::screenSizeX = s;
-		ExternData::screenSizeY = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().height / 1080.0f;
+		s = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().height / 1080.0f;
+		if(s != ExternData::screenSizeY) ExternData::resetWindows = true;
+		ExternData::screenSizeY = s;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
 
@@ -966,7 +968,7 @@ void Hacks::RenderMain()
 		{
 			GDMO::ImCheckbox("Rainbow Color 1", &hacks.rainbowPlayerC1);
 			GDMO::ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
-			GDMO::ImCheckbox("Rainbow Vehicle", &hacks.rainbowPlayerVehicle);
+			GDMO::ImCheckbox("Rainbow Wave Trail", &hacks.rainbowWaveTrail);
 			GDMO::ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
 
 			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
@@ -2082,7 +2084,7 @@ DWORD WINAPI my_thread(void* hModule)
 	ImGuiHook::setToggleCallback([]() {
 		ExternData::show = !ExternData::show;
 
-		CCAction* ac;
+		CCEaseRateAction* ac;
 
 		ExternData::animationDone = false;
 

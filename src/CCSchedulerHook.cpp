@@ -191,6 +191,19 @@ void __fastcall PlayLayer_updateVisibility_Hook(void* self)
 		PlayLayer_updateVisibility(self);
 }
 
+void(__thiscall* AppDelegate_willSwitchToScene)(void*, CCScene* scene);
+void __fastcall AppDelegate_willSwitchToScene_Hook(void* self, void*, CCScene* scene)
+{
+	if(ExternData::animationAction)
+	{
+		float elapsed = ExternData::animationAction->getElapsed();
+		scene->runAction(ExternData::animationAction);
+		ExternData::animationAction->step(0);
+		ExternData::animationAction->step(elapsed);
+	}
+	AppDelegate_willSwitchToScene(self, scene);
+}
+
 void Setup()
 {
 	MH_CreateHook((void*)(gd::base + 0x205460), PlayLayer_updateVisibility_Hook, (void**)&PlayLayer_updateVisibility);
@@ -200,4 +213,6 @@ void Setup()
 				  CCDirector_drawSceneHook, (void**)&CCDirector_drawScene);
 	MH_CreateHook(GetProcAddress((HMODULE)libcocosbase, "?step@CCActionInterval@cocos2d@@UAEXM@Z"), CCAction_stepHook,
 				  (void**)&CCAction_step);
+	MH_CreateHook((void*)(gd::base + 0x3D690), AppDelegate_willSwitchToScene_Hook,
+				  (void**)&AppDelegate_willSwitchToScene);
 }

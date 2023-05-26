@@ -66,7 +66,7 @@ struct HacksStr
 	bool hbmSolid = false, hmbHazard = true;
 
 	char codec[20], extraArgs[60], pitchId[10], menuSongId[10];
-	bool preventInput = false, rainbowPlayerC1 = false, rainbowPlayerC2 = false, rainbowPlayerVehicle = false;
+	bool preventInput = false, rainbowPlayerC1 = false, rainbowPlayerC2 = false, rainbowWaveTrail = false;
 	char extraArgsAfter[60];
 
 	bool safeModeEndscreen, practiceButtonEndscreen, cheatIndicatorEndscreen;

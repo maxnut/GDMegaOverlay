@@ -3,6 +3,7 @@
 #include "bools.h"
 #include "json.hpp"
 #include "pch.h"
+#include "CustomAction.h"
 
 using json = nlohmann::json;
 
@@ -35,7 +36,7 @@ namespace ExternData
     extern std::vector<std::string> dllNames;
 
     extern bool hasSaiModPack, animationDone;
-    extern CCAction* animationAction;
+    extern CCEaseRateAction* animationAction;
     extern float animation;
 
     extern int randomDirection;

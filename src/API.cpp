@@ -89,8 +89,8 @@ void GDMO::ImBegin(const char* name, bool* open)
 		ExternData::animation <= 0)
 	{
 		auto pos = ImGui::GetWindowPos();
-		ExternData::windowPositions[name]["x"] = winX / ExternData::screenSizeX;
-		ExternData::windowPositions[name]["y"] = winY / ExternData::screenSizeY;
+		ExternData::windowPositions[name]["x"] = pos.x / ExternData::screenSizeX;
+		ExternData::windowPositions[name]["y"] = pos.y / ExternData::screenSizeY;
 	}
 }
 

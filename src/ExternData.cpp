@@ -21,7 +21,7 @@ std::map<std::string, nlohmann::json> ExternData::settingFiles;
 std::vector<std::string> ExternData::dllNames;
 
 bool ExternData::hasSaiModPack, ExternData::animationDone;
-CCAction* ExternData::animationAction;
+CCEaseRateAction* ExternData::animationAction;
 float ExternData::animation;
 
 int ExternData::randomDirection;
