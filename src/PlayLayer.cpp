@@ -14,6 +14,7 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <regex>
 
 extern struct HacksStr hacks;
 extern struct Labels labels;
@@ -458,9 +459,7 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::Playe
 			bestRunRepeat++;
 			if (bestRunRepeat > 1)
 			{
-				for (size_t i = 0; i < 1 + bestRunRepeat / 10; i++)
-					bestRun.pop_back();
-				bestRun.pop_back();
+				bestRun = std::regex_replace(bestRun, std::regex("x" + std::to_string(bestRunRepeat)), "");
 			}
 			bestRun += "x" + std::to_string(bestRunRepeat + 1);
 		}
@@ -493,7 +492,7 @@ gd::GameSoundManager* __fastcall PlayLayer::levelCompleteHook(gd::PlayLayer* sel
 			bestRun.pop_back();
 			bestRun.pop_back();
 		}
-		bestRun += "x" + std::to_string(bestRunRepeat);
+		bestRun += "x" + std::to_string(bestRunRepeat + 1);
 	}
 
 	if (pressed)
@@ -1127,14 +1126,30 @@ void Update(gd::PlayLayer* self, float dt)
 		{
 			self->m_pPlayer1->setColor(col);
 			self->m_pPlayer2->setColor(col);
+			self->m_pPlayer1->m_spiderSprite->setColor(col);
+			self->m_pPlayer1->m_robotSprite->setColor(col);
+			self->m_pPlayer2->m_spiderSprite->setColor(col);
+			self->m_pPlayer2->m_robotSprite->setColor(col);
 		}
 		if (hacks.rainbowPlayerC2)
 		{
-			self->m_pPlayer1->setSecondColor(col);
-			self->m_pPlayer2->setSecondColor(col);
+			self->m_pPlayer1->m_iconSprite->setColor(col);
+			self->m_pPlayer2->m_iconSprite->setColor(col);
+			self->m_pPlayer1->m_iconSpriteSecondary->setColor(col);
+			self->m_pPlayer2->m_iconSpriteSecondary->setColor(col);
+			self->m_pPlayer1->m_iconSpriteWhitener->setColor(col);
+			self->m_pPlayer2->m_iconSpriteWhitener->setColor(col);
+			self->m_pPlayer1->m_unk500->setColor(col);
+			self->m_pPlayer2->m_unk500->setColor(col);
 		}
-		if (hacks.rainbowWaveTrail)
+		if (hacks.rainbowPlayerVehicle)
 		{
+			self->m_pPlayer1->m_vehicleSprite->setColor(col);
+			self->m_pPlayer2->m_vehicleSprite->setColor(col);
+			self->m_pPlayer1->m_vehicleSpriteWhitener->setColor(col);
+			self->m_pPlayer2->m_vehicleSpriteWhitener->setColor(col);
+			self->m_pPlayer1->m_vehicleSpriteSecondary->setColor(col);
+			self->m_pPlayer2->m_vehicleSpriteSecondary->setColor(col);
 			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
 			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 		}
@@ -1479,15 +1494,17 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	if (playlayer)
 	{
 		self->m_pPlayer1->setColor(iconCol);
+		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
+		self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
 		self->m_pPlayer2->setColor(secIconCol);
-		self->m_pPlayer1->setSecondColor(secIconCol);
-		self->m_pPlayer2->setSecondColor(iconCol);
+		self->m_pPlayer2->m_iconSprite->setColor(iconCol);
+		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
+		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
+		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
 		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(secIconCol);
-		self->m_pPlayer1->m_iconGlow->setColor(iconCol);
-		self->m_pPlayer2->m_iconGlow->setColor(secIconCol);
-		self->m_pPlayer1->m_vehicleGlow->setChildColor(iconCol);
-		self->m_pPlayer2->m_vehicleGlow->setChildColor(secIconCol);
+		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
 	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
