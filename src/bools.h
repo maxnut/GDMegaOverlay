@@ -95,7 +95,7 @@ struct HacksStr
 		ringHitboxColor[3] = {0, 1, 1}, collectibleHitboxColor[3] = {0.87f, 0.87f, 0.87f}, modifierHitboxColor[3] = {1, 1, 1}, playerHitboxColor[3] = {1, 0.247f, 0.247f},
 		rotatedHitboxColor[3] = {0.498f, 0, 0}, centerHitboxColor[3] = {0, 1, 0};
 
-	float backgroundColor[3] = { 0, 1, 1 }, blocksColor[3] = { 0, 1, 1 }, groundColor[3] = { 0, 1, 1 };
+	float backgroundColor[3] = { 0, 1, 1 }, blocksColor[3] = { 0, 1, 1 };
 
 	float menuAnimationLength = 0.25f;
 
