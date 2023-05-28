@@ -870,6 +870,21 @@ void Hacks::RenderMain()
 				ImGui::EndPopup();
 		}
 		GDMO::ImCheckbox("Layout Mode", &hacks.layoutMode);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
+		if (ImGui::ArrowButton("lay", 1))
+			ImGui::OpenPopup("Layout Mode Settings");
+
+		if (ImGui::BeginPopupModal("Layout Mode Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		{
+			GDMO::ImColorEdit3("Background Color", hacks.backgroundColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Blocks Color", hacks.blocksColor, ImGuiColorEditFlags_NoInputs);
+			if (GDMO::ImButton("Close", false))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			if (!ExternData::fake)
+				ImGui::EndPopup();
+		}
 		GDMO::ImCheckbox("Hide Attempts", &hacks.hideattempts);
 
 		DrawFromJSON(ExternData::level);

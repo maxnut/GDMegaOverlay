@@ -1192,9 +1192,22 @@ void Update(gd::PlayLayer* self, float dt)
 
 	if (hacks.layoutMode)
 	{
+		bool changeBlockColor = false;
 		auto p = self->getChildren()->objectAtIndex(0);
 		if (frames > 10)
-			static_cast<CCSprite*>(p)->setColor({50, 50, 255});
+		{
+			auto sprite = static_cast<CCSprite*>(p);
+			ccColor3B color = { (GLubyte)(hacks.backgroundColor[0] * 255), (GLubyte)(hacks.backgroundColor[1] * 255), (GLubyte)(hacks.backgroundColor[2] * 255) };
+			sprite->setColor(color);
+		}
+
+		if (hacks.blocksColor[0] != hacks.backgroundColor[0] ||
+			hacks.blocksColor[1] != hacks.backgroundColor[1] ||
+			hacks.blocksColor[2] != hacks.backgroundColor[2])
+		{
+			changeBlockColor = true;
+		}
+
 
 		for (int s = self->sectionForPos(xp) - 5; s < self->sectionForPos(xp) + 6; ++s)
 		{
@@ -1206,6 +1219,13 @@ void Update(gd::PlayLayer* self, float dt)
 			for (size_t i = 0; i < section->count(); ++i)
 			{
 				auto o = static_cast<gd::GameObject*>(section->objectAtIndex(i));
+
+				if (changeBlockColor && o->getType() == gd::GameObjectType::kGameObjectTypeSolid)
+				{
+					auto block = static_cast<gd::GameObject*>(o);
+					ccColor3B blockColor = { (GLubyte)(hacks.blocksColor[0] * 255), (GLubyte)(hacks.blocksColor[1] * 255), (GLubyte)(hacks.blocksColor[2] * 255) };
+					block->setColor(blockColor);
+				}
 
 				if (o->getType() == gd::GameObjectType::kGameObjectTypeDecoration && o->isVisible() &&
 					(o->m_nObjectID != 44 && o->m_nObjectID != 749 && o->m_nObjectID != 12 && o->m_nObjectID != 38 &&
