@@ -1410,6 +1410,20 @@ void Hacks::RenderMain()
 				PlayLayer::togglePracticeModeHook(playLayer, 0, !playLayer->m_isPracticeMode);
 		}
 
+
+		auto gm = gd::GameManager::sharedState();
+
+		if (GDMO::ImCheckbox("Vertical Sync", &hacks.verticalSync))
+		{
+			gm->setGameVariable("0030", hacks.verticalSync);
+			PlayLayer::CCApplication_toggleVerticalSync(CCApplication::sharedApplication(), hacks.verticalSync);
+		}
+
+		if (GDMO::ImCheckbox("Show Cursor", &hacks.showCursor))
+		{
+			CCEGLView::sharedOpenGLView()->showCursor(hacks.showCursor);
+		}
+
 		ImGui::End();
 
 		GDMO::ImBegin("Pitch Shift");
@@ -1840,6 +1854,7 @@ void Hacks::RenderMain()
 				}
 				std::ofstream file("GDMenu/macros/" + std::string(ExternData::replayName) + ".mcb.json");
 				file << tasmacro.dump(4);
+				file.close();
 			}
 			if (GDMO::ImButton("Import JSON"))
 			{

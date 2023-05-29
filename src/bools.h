@@ -79,6 +79,7 @@ struct HacksStr
 	float pastel;
 	bool holdAdvance, trajectory = false;
 	float musicSpeed = 1;
+	bool verticalSync, showCursor;
 
 	bool tpsBypassBool = false, drawDivideBool = false, lockCursor = false, coinTracker = false, speedhackBool = false,
 		 autoSafeMode = false, disableBotCorrection = false, experimentalFeatures = false, tieMusicToSpeed;

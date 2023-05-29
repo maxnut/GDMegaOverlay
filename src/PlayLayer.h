@@ -101,7 +101,11 @@ namespace PlayLayer
 	inline void(__thiscall* addPoint)(gd::HardStreak *self, CCPoint point);
 	void __fastcall addPointHook(gd::HardStreak *self, void*, CCPoint point);
 
-	
+
+	// https://github.com/CattoDev/IntegratedFPSBypass/blob/main/IntegratedFPSBypass/Other/ToggleVerticalSync.hpp thanks
+	typedef void* (__thiscall* fCCApplication_toggleVerticalSync)(void* instance, bool on);
+
+	extern fCCApplication_toggleVerticalSync CCApplication_toggleVerticalSync;
 
 
 	void SetHitboxSize(float size);
