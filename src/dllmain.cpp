@@ -1854,7 +1854,6 @@ void Hacks::RenderMain()
 				}
 				std::ofstream file("GDMenu/macros/" + std::string(ExternData::replayName) + ".mcb.json");
 				file << tasmacro.dump(4);
-				file.close();
 			}
 			if (GDMO::ImButton("Import JSON"))
 			{
