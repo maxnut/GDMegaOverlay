@@ -1454,20 +1454,29 @@ void Hacks::RenderMain()
 
 		GDMO::ImBegin("Internal Recorder");
 
-		if (GDMO::ImCheckbox("Record", &hacks.recording))
+		if (playLayer)
 		{
-			if (!playLayer)
-				return;
-
-			if (!hacks.recording)
+			if (!ReplayPlayer::getInstance().recorder.m_recording)
 			{
-				if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture)
-					ReplayPlayer::getInstance().recorder.stop();
+				if (GDMO::ImButton("Start Recording"))
+				{
+					ReplayPlayer::getInstance().recorder.start();
+				}
 			}
 			else
 			{
-				ReplayPlayer::getInstance().recorder.start();
+				if (GDMO::ImButton("Stop Recording"))
+				{
+					if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture)
+						ReplayPlayer::getInstance().recorder.stop();
+				}
 			}
+		}
+		else
+		{
+			ImGui::BeginDisabled();
+			GDMO::ImButton("Start Recording");
+			ImGui::EndDisabled();
 		}
 		GDMO::ImCheckbox("Include Clicks", &hacks.includeClicks);
 		ImGui::PushItemWidth(110 * ExternData::screenSizeX * hacks.menuSize);
@@ -1830,7 +1839,7 @@ void Hacks::RenderMain()
 					tasmacro["actions"].push_back(action);
 				}
 				std::ofstream file("GDMenu/macros/" + std::string(ExternData::replayName) + ".mcb.json");
-				file << tasmacro;
+				file << tasmacro.dump(4);
 			}
 			if (GDMO::ImButton("Import JSON"))
 			{
