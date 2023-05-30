@@ -870,6 +870,21 @@ void Hacks::RenderMain()
 				ImGui::EndPopup();
 		}
 		GDMO::ImCheckbox("Layout Mode", &hacks.layoutMode);
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
+		if (ImGui::ArrowButton("lay", 1))
+			ImGui::OpenPopup("Layout Mode Settings");
+
+		if (ImGui::BeginPopupModal("Layout Mode Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		{
+			GDMO::ImColorEdit3("Background Color", hacks.backgroundColor, ImGuiColorEditFlags_NoInputs);
+			GDMO::ImColorEdit3("Blocks Color", hacks.blocksColor, ImGuiColorEditFlags_NoInputs);
+			if (GDMO::ImButton("Close", false))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			if (!ExternData::fake)
+				ImGui::EndPopup();
+		}
 		GDMO::ImCheckbox("Hide Attempts", &hacks.hideattempts);
 
 		DrawFromJSON(ExternData::level);
@@ -905,7 +920,7 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("sei", 1))
 			ImGui::OpenPopup("Endscreen Settings");
 
-		if (ImGui::BeginPopupModal("Endscreen Settings", NULL))
+		if (ImGui::BeginPopupModal("Endscreen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			GDMO::ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
 			GDMO::ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
@@ -924,7 +939,7 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("hbm", 1))
 			ImGui::OpenPopup("Hitbox Multiplier Settings");
 
-		if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL))
+		if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			GDMO::ImInputFloat("Harards", &hacks.hitboxMultiplier);
 			GDMO::ImInputFloat("Solids", &hacks.hitboxSolids);
@@ -954,7 +969,7 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
 		GDMO::ImCheckbox("Show Trajectory", &hacks.trajectory);
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
+			ImGui::SetTooltip("Shows the way for you helps with difficult moments");
 
 		GDMO::ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
 
@@ -1395,6 +1410,20 @@ void Hacks::RenderMain()
 				PlayLayer::togglePracticeModeHook(playLayer, 0, !playLayer->m_isPracticeMode);
 		}
 
+
+		auto gm = gd::GameManager::sharedState();
+
+		if (GDMO::ImCheckbox("Vertical Sync", &hacks.verticalSync))
+		{
+			gm->setGameVariable("0030", hacks.verticalSync);
+			PlayLayer::CCApplication_toggleVerticalSync(CCApplication::sharedApplication(), hacks.verticalSync);
+		}
+
+		if (GDMO::ImCheckbox("Show Cursor", &hacks.showCursor))
+		{
+			CCEGLView::sharedOpenGLView()->showCursor(hacks.showCursor);
+		}
+
 		ImGui::End();
 
 		GDMO::ImBegin("Pitch Shift");
@@ -1439,20 +1468,29 @@ void Hacks::RenderMain()
 
 		GDMO::ImBegin("Internal Recorder");
 
-		if (GDMO::ImCheckbox("Record", &hacks.recording))
+		if (playLayer)
 		{
-			if (!playLayer)
-				return;
-
-			if (!hacks.recording)
+			if (!ReplayPlayer::getInstance().recorder.m_recording)
 			{
-				if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture)
-					ReplayPlayer::getInstance().recorder.stop();
+				if (GDMO::ImButton("Start Recording"))
+				{
+					ReplayPlayer::getInstance().recorder.start();
+				}
 			}
 			else
 			{
-				ReplayPlayer::getInstance().recorder.start();
+				if (GDMO::ImButton("Stop Recording"))
+				{
+					if (ReplayPlayer::getInstance().recorder.m_renderer.m_texture)
+						ReplayPlayer::getInstance().recorder.stop();
+				}
 			}
+		}
+		else
+		{
+			ImGui::BeginDisabled();
+			GDMO::ImButton("Start Recording");
+			ImGui::EndDisabled();
 		}
 		GDMO::ImCheckbox("Include Clicks", &hacks.includeClicks);
 		ImGui::PushItemWidth(110 * ExternData::screenSizeX * hacks.menuSize);
@@ -1815,7 +1853,7 @@ void Hacks::RenderMain()
 					tasmacro["actions"].push_back(action);
 				}
 				std::ofstream file("GDMenu/macros/" + std::string(ExternData::replayName) + ".mcb.json");
-				file << tasmacro;
+				file << tasmacro.dump(4);
 			}
 			if (GDMO::ImButton("Import JSON"))
 			{
