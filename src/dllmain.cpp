@@ -920,7 +920,7 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("sei", 1))
 			ImGui::OpenPopup("Endscreen Settings");
 
-		if (ImGui::BeginPopupModal("Endscreen Settings", NULL))
+		if (ImGui::BeginPopupModal("Endscreen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			GDMO::ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
 			GDMO::ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
@@ -939,7 +939,7 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("hbm", 1))
 			ImGui::OpenPopup("Hitbox Multiplier Settings");
 
-		if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL))
+		if (ImGui::BeginPopupModal("Hitbox Multiplier Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			GDMO::ImInputFloat("Harards", &hacks.hitboxMultiplier);
 			GDMO::ImInputFloat("Solids", &hacks.hitboxSolids);
@@ -969,7 +969,7 @@ void Hacks::RenderMain()
 		GDMO::ImCheckbox("2P One Key", &hacks.twoPlayerOneKey);
 		GDMO::ImCheckbox("Show Trajectory", &hacks.trajectory);
 		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip("Feature not complete, does not work with portals or rings.");
+			ImGui::SetTooltip("Shows the way for you helps with difficult moments");
 
 		GDMO::ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
 
