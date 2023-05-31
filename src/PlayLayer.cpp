@@ -20,8 +20,7 @@ extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
 
-PlayLayer::fCCApplication_toggleVerticalSync
-PlayLayer::CCApplication_toggleVerticalSync = (PlayLayer::fCCApplication_toggleVerticalSync)GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?toggleVerticalSync@CCApplication@cocos2d@@QAEX_N@Z");
+PlayLayer::fCCApplication_toggleVerticalSync PlayLayer::CCApplication_toggleVerticalSync = (PlayLayer::fCCApplication_toggleVerticalSync)GetProcAddress(GetModuleHandleA("libcocos2d.dll"), "?toggleVerticalSync@CCApplication@cocos2d@@QAEX_N@Z");
 
 ExitAlert a;
 

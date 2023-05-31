@@ -985,6 +985,7 @@ void Hacks::RenderMain()
 			GDMO::ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
 			GDMO::ImCheckbox("Rainbow Wave Trail", &hacks.rainbowWaveTrail);
 			GDMO::ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
+			GDMO::ImCheckbox("Rainbow Player Vehicle", &hacks.rainbowPlayerVehicle);
 
 			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
