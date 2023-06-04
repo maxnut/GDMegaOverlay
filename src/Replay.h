@@ -82,5 +82,7 @@ class Replay
 
 	void Load(std::string name);
 
+	void Merge(std::string name);
+
 	void Save(std::string name);
 };

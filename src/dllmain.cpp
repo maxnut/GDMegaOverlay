@@ -1805,6 +1805,9 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().Delete(ri.name);
 						GetMacros();
 					}
+					ImGui::SameLine((arrowButtonPosition - 130) * ExternData::screenSizeX * hacks.menuSize);
+					if (GDMO::ImButton((std::string("Merge##") + ri.name).c_str()))
+						ReplayPlayer::getInstance().Merge(ri.name);
 				}
 				ImGui::EndTable();
 			}

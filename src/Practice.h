@@ -9,6 +9,7 @@ struct CheckpointData
     size_t touchRing;
     gd::Gamemode gamemode;
     float rotationElapsed;
+    gd::GameObject* objSnap;
     static CheckpointData fromPlayer(gd::PlayerObject *p);
 
     int Apply(gd::PlayerObject *p, bool tp);
