@@ -590,6 +590,8 @@ void Hacks::RenderMain()
 				io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
 		}
 
+		GDMO::ImCheckbox("Show Potential Cheats", &hacks.showPotentialCheats);
+
 		if (GDMO::ImButton("Load Windows"))
 			ExternData::resetWindows = true;
 

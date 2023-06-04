@@ -33,8 +33,46 @@ namespace Hacks
 static std::vector<bool> cheatCheck;
 static const std::vector<std::string> cheatVector = {
 	"0x60554",	"0x60753",	"0x207328", "0x206921", "0x20612C", "0x2062C2", "0x20456D", "0x20456D",
-	"0x204D08", "0x2061BC", "0x20A23C", "0x20A34F", "0x205347", "0x20456D", "0x20456D", "0x20CEA4", "0x254343",
-	"0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30", "0x1FFF9C"};
+	"0x204D08", "0x2061BC", "0x20A23C", "0x20A34F", "0x205347", "0x20456D", "0x20456D", "0x20CEA4",
+	"0x254343", "0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30"};
+
+static const std::vector<std::string> cheatNames = {"No Rotation",
+													"Force Visibility",
+													"Camera V2",
+													"Force Don't Enter",
+													"Force Don't Fade",
+													"No Shade Blocks Effect",
+													"Force Block Type",
+													"Everything Hurts",
+													"No Mirror",
+													"Force Objects Invisible",
+													"No-clip",
+													"No-clip Legacy",
+													"No Spikes",
+													"No Hitbox",
+													"No Solids",
+													"No Ghost Trail Trigger",
+													"No Hide Trigger",
+													"No Blocks",
+													"Freeze Player",
+													"Jump Hack",
+													"High FPS Rotation Fix",
+													"No Rotation Cube",
+													"No Rotation Ball",
+													"Suicide",
+													"FPS Bypass",
+													"TPS Bypass",
+													"Draw Divide",
+													"Autoclicker",
+													"Speedhack",
+													"Toggle Playing",
+													"Layout Mode",
+													"Hitbox Multiplier",
+													"Show Hitboxes",
+													"Hide Pause Menu",
+													"2P One Key",
+													"Show Trajectory",
+													"Wave Trail Size"};
 
 void RenderMain();
 

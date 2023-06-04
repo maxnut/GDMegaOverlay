@@ -103,6 +103,7 @@ struct HacksStr
 	float windowBgColor[3] = { 0.06f, 0.05f, 0.07f };
 
 	int replayMode = 1;
+	bool showPotentialCheats;
 };
 
 enum position

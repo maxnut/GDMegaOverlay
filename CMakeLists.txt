@@ -32,5 +32,6 @@ target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d) # OpenGL32
 target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/fmod/lib/x86/fmod_vc.lib
   ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib
+  ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
 )

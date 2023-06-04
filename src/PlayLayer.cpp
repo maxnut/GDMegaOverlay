@@ -1457,7 +1457,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	PlayLayer::player2RotRate = 0;
 	TrajectorySimulation::getInstance()->m_pDieInSimulation = false;
 	TrajectorySimulation::getInstance()->m_pIsSimulation = false;
-	Hacks::ToggleJSONHack(ExternData::player, 0, false);
+	// Hacks::ToggleJSONHack(ExternData::player, 0, false);
 	clicksArr.clear();
 
 	if (hacks.autoUpdateRespawn)
@@ -1499,20 +1499,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	PlayLayer::resetLevel(self);
 
 	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
-
-	if (playlayer)
-	{
-		self->m_pPlayer1->setColor(iconCol);
-		self->m_pPlayer2->setColor(secIconCol);
-		self->m_pPlayer1->setSecondColor(secIconCol);
-		self->m_pPlayer2->setSecondColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(secIconCol);
-		self->m_pPlayer1->m_iconGlow->setColor(iconCol);
-		self->m_pPlayer2->m_iconGlow->setColor(secIconCol);
-		self->m_pPlayer1->m_vehicleGlow->setChildColor(iconCol);
-		self->m_pPlayer2->m_vehicleGlow->setChildColor(secIconCol);
-	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
 	{

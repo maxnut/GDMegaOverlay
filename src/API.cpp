@@ -69,9 +69,7 @@ void GDMO::ImBegin(const char* name, bool* open)
 			yoff = -1400;
 			break;
 		}
-		ImGui::SetWindowPos(
-			{winX - (ExternData::animation * xoff),
-			 winY - (ExternData::animation * yoff)});
+		ImGui::SetWindowPos({winX - (ExternData::animation * xoff), winY - (ExternData::animation * yoff)});
 	}
 	else
 	{
@@ -237,10 +235,10 @@ bool GDMO::ImHotkey(const char* label, int* k)
 {
 	const ImVec2& size_arg = {0, 0};
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = Hotkey(label, k, size_arg);
@@ -261,10 +259,10 @@ bool GDMO::ImHotkey(const char* label, int* k)
 bool GDMO::ImCheckbox(const char* label, bool* v, bool canMakeShortcut)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::Checkbox(label, v);
@@ -340,10 +338,10 @@ bool GDMO::ImCheckbox(const char* label, bool* v, bool canMakeShortcut)
 bool GDMO::ImButton(const char* label, bool canMakeShortcut)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::Button(label);
@@ -417,10 +415,10 @@ bool GDMO::ImButton(const char* label, bool canMakeShortcut)
 bool GDMO::ImInputFloat(const char* label, float* v)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::InputFloat(label, v);
@@ -441,10 +439,10 @@ bool GDMO::ImInputFloat(const char* label, float* v)
 bool GDMO::ImInputInt(const char* label, int* v, int step)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::InputInt(label, v, step);
@@ -465,10 +463,10 @@ bool GDMO::ImInputInt(const char* label, int* v, int step)
 bool GDMO::ImInputInt2(const char* label, int* v)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::InputInt2(label, v);
@@ -489,10 +487,10 @@ bool GDMO::ImInputInt2(const char* label, int* v)
 bool GDMO::ImInputText(const char* label, char* buf, size_t buf_size)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::InputText(label, buf, buf_size);
@@ -513,10 +511,10 @@ bool GDMO::ImInputText(const char* label, char* buf, size_t buf_size)
 bool GDMO::ImCombo(const char* label, int* current_item, const char* const* items, int items_count)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::Combo(label, current_item, items, items_count);
@@ -537,10 +535,10 @@ bool GDMO::ImCombo(const char* label, int* current_item, const char* const* item
 bool GDMO::ImColorEdit3(const char* label, float* col, int flags)
 {
 	bool res = false;
-	if (strlen(ExternData::searchbar) > 0)
+	if (strlen(ExternData::searchbar) > 0 || hacks.showPotentialCheats)
 	{
 		std::string s = label;
-		if (findStringIC(s, ExternData::searchbar))
+		if (!hacks.showPotentialCheats && findStringIC(s, ExternData::searchbar) || std::count(Hacks::cheatNames.begin(), Hacks::cheatNames.end(), s) > 0)
 		{
 			ImGui::PushStyleColor(0, {1.0f, 0.4f, 0.4f, 1.0f});
 			res = ImGui::ColorEdit3(label, col, flags);
