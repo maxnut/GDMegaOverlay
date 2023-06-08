@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "PlayLayer.h"
+#include <imgui.h>
 
 namespace EndLevelLayer
 {
@@ -15,7 +16,6 @@ namespace EndLevelLayer
 
 	inline bool(__thiscall *customSetup)(CCLayer *self);
 	bool __fastcall customSetupHook(CCLayer *self, void *);
-
 }
 
 class ButtonsClass final : public gd::FLAlertLayer, public cocos2d::CCTextFieldDelegate, public gd::FLAlertLayerProtocol
@@ -104,5 +104,10 @@ public:
 			layerEndScreen->runAction(cocos2d::CCSequence::create((cocos2d::CCFiniteTimeAction *)cocos2d::CCDelayTime::create(1.f), cocos2d::CCFadeTo::create(0.5f, (GLubyte)100), nullptr, nullptr));
 			buttonModItemUni->setEnabled(true);
 		}
+	}
+
+	void onCopySongCallback(CCObject* sender)
+	{
+		ImGui::SetClipboardText(std::to_string(gd::GameManager::sharedState()->getPlayLayer()->m_level->audioTrack).c_str());
 	}
 };

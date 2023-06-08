@@ -38,6 +38,7 @@ struct HacksStr
 	float clickColor[3] = { 1.0f, 0.0f, 0.0f };
 	bool rainbowOutline = false, replaceMenuMusic = false, randomMusic = false;
 	int musicIndex, randomMusicIndex;
+	bool playSongButton = false, copySongButton = false;
 
 	bool recording = false;
 	int videoDimenstions[2] = { 1280, 720 };
@@ -129,7 +130,7 @@ struct Labels
 
 struct Debug
 {
-	bool enabled = false;
+	bool enabled = true;
 	float debugNumber;
 	std::string debugString;
 };
