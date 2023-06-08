@@ -2280,12 +2280,12 @@ DWORD WINAPI my_thread(void* hModule)
 			reinterpret_cast<void**>(&MenuLayer::init));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x17DA60), LevelSearchLayer::hook,
-					  reinterpret_cast<void**>(&LevelSearchLayer::init));
+			reinterpret_cast<void**>(&LevelSearchLayer::init));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook,
-					  reinterpret_cast<void**>(&LevelSearchLayer::http));
+			reinterpret_cast<void**>(&LevelSearchLayer::http));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x685B0), CustomSongWidget::initHook,
-					  reinterpret_cast<void**>(&CustomSongWidget::init));
+			reinterpret_cast<void**>(&CustomSongWidget::init));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20DDD0), CustomCheckpoint::createHook,
 			reinterpret_cast<void**>(&CustomCheckpoint::create));
