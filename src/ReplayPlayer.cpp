@@ -15,7 +15,7 @@ int amountOfClicks = 0;
 int amountOfMediumClicks = 0;
 int amountOfReleases = 0;
 
-bool oldClick = false;
+bool oldClick1 = false, oldClick2 = false;
 
 double oldTime = 0, oldTimeP2 = 0;
 
@@ -125,7 +125,8 @@ void ReplayPlayer::Reset(gd::PlayLayer* playLayer)
 	oldTime = 0;
 
 	bool addedAction = false;
-	oldClick = false;
+	oldClick1 = false;
+	oldClick2 = false;
 
 	bool hasCheckpoint = playLayer->m_checkpoints->count() > 0;
 
@@ -254,6 +255,11 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 	for (size_t i = 0; i < limit; i++)
 	{
 		auto ac = actions[actionIndex];
+		if (actionIndex + 1 < actions.size() && ac.px > actions[actionIndex + 1].px)
+		{
+			actionIndex++;
+			continue;
+		}
 		if (/* (ac.frame >= 0 && GetFrame() >= ac.frame) ||  */ playLayer->m_pPlayer1->m_position.x >= ac.px)
 		{
 			if (debug.enabled && playLayer->m_pPlayer1->m_position.x != ac.px/*  || playLayer->m_pPlayer1->m_yAccel != ac.yAccel ||
@@ -298,7 +304,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			}
 			if (ac.press)
 			{
-				if (hacks.clickbot && t > hacks.minTimeDifference && amountOfClicks > 0 && ac.press != oldClick)
+				if (hacks.clickbot && t > hacks.minTimeDifference && amountOfClicks > 0 && ac.press != (oldClick1 && !ac.player2 || oldClick2 && ac.player2))
 				{
 					sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && amountOfMediumClicks > 0
 									   ? mediumclicks[rmc]
@@ -324,7 +330,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			}
 			else
 			{
-				if (hacks.clickbot && amountOfReleases > 0 && ac.press != oldClick)
+				if (hacks.clickbot && amountOfReleases > 0 && ac.press != (oldClick1 && !ac.player2 || oldClick2 && ac.player2))
 				{
 					sys->playSound(releases[rr], nullptr, false, &channel);
 					channel2->setPitch(p);
@@ -346,7 +352,8 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 				PlayLayer::isBot = false;
 			}
 
-			oldClick = ac.press;
+			if(ac.player2) oldClick2 = ac.press;
+			else oldClick1 = ac.press;
 
 			actionIndex++;
 		}

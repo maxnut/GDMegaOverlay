@@ -150,6 +150,7 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 	cd.isDropping = p->m_isDropping;
 	cd.touchRing = p->m_touchingRings->count();
 	cd.gamemode = GetGamemode(p);
+	cd.objSnap = p->m_objectSnappedTo;
 	auto ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(1));
 	if (p->m_isBall && !p->m_isOnGround && ac)
 	{
@@ -217,6 +218,7 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 	p->m_isOnSlope = isOnSlope;
 	p->m_wasOnSlope = wasOnSlope;
 	p->m_isDropping = isDropping;
+	p->m_objectSnappedTo = objSnap;
 
 	SetGamemode(p, gamemode);
 

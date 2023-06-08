@@ -37,6 +37,7 @@ class ReplayPlayer
     void Save(std::string name) {replay.Save(name);}
     void Load(std::string name);
     void Delete(std::string name);
+    void Merge(std::string name) {replay.Merge("GDMenu/macros/" + name + ".macro");}
 
     void RecordAction(bool press, gd::PlayerObject* pl, bool player1);
     void HandleActivatedObjects(bool a, bool b, gd::GameObject* object);

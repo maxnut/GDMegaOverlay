@@ -67,7 +67,7 @@ struct HacksStr
 	bool hbmSolid = false, hmbHazard = true;
 
 	char codec[20], extraArgs[60], pitchId[10], menuSongId[10];
-	bool preventInput = false, rainbowPlayerC1 = false, rainbowPlayerC2 = false, rainbowWaveTrail = false, rainbowPlayerVehicle = false;
+	bool preventInput = false, rainbowPlayerC1 = false, rainbowPlayerC2 = false, rainbowWaveTrail = false;
 	char extraArgsAfter[60];
 
 	bool safeModeEndscreen, practiceButtonEndscreen, cheatIndicatorEndscreen;
@@ -104,6 +104,7 @@ struct HacksStr
 	float windowBgColor[3] = { 0.06f, 0.05f, 0.07f };
 
 	int replayMode = 1;
+	bool showPotentialCheats;
 };
 
 enum position

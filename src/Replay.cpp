@@ -45,6 +45,72 @@ void Replay::Load(std::string path)
 	}
 }
 
+void Replay::Merge(std::string path)
+{
+	std::ifstream file(path, std::ios::in | std::ios::binary);
+	if (!file.is_open())
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr, ("Could not find macro"))->show();
+		return;
+	}
+
+	size_t acSize;
+	size_t fcSize;
+
+	file.read((char*)&fps, sizeof(float));
+
+	file.read((char*)&acSize, sizeof(size_t));
+	file.read((char*)&fcSize, sizeof(size_t));
+
+	bool frameCapture = fcSize > 0;
+
+	std::vector<Action> _actions;
+	std::vector<FrameCapture> _captures;
+
+	_actions.resize(acSize);
+	_captures.resize(fcSize);
+
+	file.read((char*)&_actions[0], sizeof(Action) * acSize);
+	if (frameCapture)
+		file.read((char*)&_captures[0], sizeof(FrameCapture) * fcSize);
+
+	file.close();
+
+	for (size_t i = 0; i < actions.size(); i++)
+		if (actions[i].px >= _actions[0].px)
+		{
+			actions.erase(actions.begin() + i, actions.end());
+			break;
+		}
+
+	for (size_t i = 0; i < frameCaptures.size(); i++)
+		if (frameCaptures[i].px >= _captures[0].px)
+		{
+			frameCaptures.erase(frameCaptures.begin() + 1, frameCaptures.end());
+			break;
+		}
+
+	for (auto ac : _actions)
+		actions.push_back(ac);
+
+	for (auto fc : _captures)
+		frameCaptures.push_back(fc);
+
+	if (frameCapture)
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+								 ("Macro merged with " + std::to_string(actions.size()) + " actions and " +
+								  std::to_string(frameCaptures.size()) + " frame captures."))
+			->show();
+	}
+	else
+	{
+		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+								 ("Macro merged with " + std::to_string(actions.size()) + " actions."))
+			->show();
+	}
+}
+
 void Replay::Save(std::string name)
 {
 	if (GetActionsSize() <= 0)
@@ -75,8 +141,9 @@ void Replay::Save(std::string name)
 
 	if (frameCapture)
 	{
-		gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-								 ("Macro saved with " + std::to_string(acSize) + " actions and " + std::to_string(fcSize) + " captures."))
+		gd::FLAlertLayer::create(
+			nullptr, "Info", "Ok", nullptr,
+			("Macro saved with " + std::to_string(acSize) + " actions and " + std::to_string(fcSize) + " captures."))
 			->show();
 	}
 	else

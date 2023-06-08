@@ -60,7 +60,7 @@ void GetMacros()
 	{
 		fileCount = fileCountNow;
 		replays.clear();
-		for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu/macros"})
+		for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{ "GDMenu/macros" })
 		{
 			if (loop.path().extension().string() == ".replay" || loop.path().extension().string() == ".macro")
 			{
@@ -94,7 +94,7 @@ void DrawFromJSON(json& js)
 void TextSettings(int index, bool font)
 {
 	if (GDMO::ImCombo(("Position##" + std::to_string(index)).c_str(), (int*)&labels.positions[index], positions,
-					  IM_ARRAYSIZE(positions)))
+		IM_ARRAYSIZE(positions)))
 		for (size_t i = 0; i < STATUSSIZE; i++)
 			PlayLayer::UpdatePositions(i);
 	if (GDMO::ImInputFloat(("Scale##" + std::to_string(index)).c_str(), &labels.scale[index]))
@@ -144,7 +144,7 @@ void SetStyle()
 
 	float r, g, b;
 	ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * hacks.menuRainbowSpeed, hacks.menuRainbowBrightness,
-								hacks.menuRainbowBrightness, r, g, b);
+		hacks.menuRainbowBrightness, r, g, b);
 
 	style->Colors[ImGuiCol_Text] = ImVec4(0.80f, 0.80f, 0.83f, 1.00f);
 	style->Colors[ImGuiCol_TextDisabled] = ImVec4(1.0f, 0.03f, 0.03f, 1.00f);
@@ -279,7 +279,7 @@ void Init()
 		isDecember = true;
 	}
 
-	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{Hacks::GetSongFolder()})
+	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{ Hacks::GetSongFolder() })
 	{
 		if (loop.path().extension().string() == ".mp3")
 		{
@@ -425,7 +425,7 @@ void Init()
 		if (file.path().filename().string().find("Sai") != std::string::npos)
 		{
 			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-									 ("Sai Mod Pack is not compatible with this menu and will not be loaded"))
+				("Sai Mod Pack is not compatible with this menu and will not be loaded"))
 				->show();
 			continue;
 		}
@@ -490,7 +490,7 @@ void Hacks::RenderMain()
 
 	if (debug.enabled)
 	{
-		ImGui::PushStyleColor(0, {1, 1, 1, 1});
+		ImGui::PushStyleColor(0, { 1, 1, 1, 1 });
 		// ImGui::SetNextWindowSizeConstraints({windowSize, 1}, {windowSize, 10000});
 		ImGui::Begin("Debug");
 
@@ -519,10 +519,10 @@ void Hacks::RenderMain()
 	if (ExternData::show)
 	{
 		float s = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
-		if(s != ExternData::screenSizeX) ExternData::resetWindows = true;
+		if (s != ExternData::screenSizeX) ExternData::resetWindows = true;
 		ExternData::screenSizeX = s;
 		s = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().height / 1080.0f;
-		if(s != ExternData::screenSizeY) ExternData::resetWindows = true;
+		if (s != ExternData::screenSizeY) ExternData::resetWindows = true;
 		ExternData::screenSizeY = s;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, hacks.windowRounding);
@@ -591,6 +591,8 @@ void Hacks::RenderMain()
 				io.ConfigFlags &= ~ImGuiConfigFlags_DockingEnable;
 		}
 
+		GDMO::ImCheckbox("Show Potential Cheats", &hacks.showPotentialCheats);
+
 		if (GDMO::ImButton("Load Windows"))
 			ExternData::resetWindows = true;
 
@@ -626,7 +628,7 @@ void Hacks::RenderMain()
 		GDMO::ImInputFloat("##Draw Divide", &hacks.screenFPS);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("Changes how many frames of the game will actually be rendered, otherwise they will be "
-							  "only processed.");
+				"only processed.");
 		if (ImGui::IsItemDeactivatedAfterEdit())
 		{
 			ExternData::screenFps = hacks.screenFPS;
@@ -646,7 +648,7 @@ void Hacks::RenderMain()
 
 			if (hacks.autoUpdateRespawn)
 				Hacks::WriteRef(gd::base + 0x20A677,
-								hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
+					hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
 		}
 		ImGui::SameLine();
 		if (GDMO::ImCheckbox("Speedhack", &hacks.speedhackBool))
@@ -657,7 +659,7 @@ void Hacks::RenderMain()
 
 			if (hacks.autoUpdateRespawn)
 				Hacks::WriteRef(gd::base + 0x20A677,
-								hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
+					hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
 		}
 		if (hacks.tieMusicToSpeed)
 		{
@@ -780,8 +782,8 @@ void Hacks::RenderMain()
 			if (GDMO::ImButton("Select Song"))
 			{
 				auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
-												{"Audio File", "*.mp3"}, pfd::opt::none)
-									 .result();
+					{ "Audio File", "*.mp3" }, pfd::opt::none)
+					.result();
 				for (auto const& filename : selection)
 				{
 					std::filesystem::path p = filename;
@@ -794,7 +796,7 @@ void Hacks::RenderMain()
 			GDMO::ImCheckbox("Random Menu Music", &hacks.randomMusic);
 			if (ExternData::path.empty())
 				ExternData::path =
-					ExternData::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
+				ExternData::musicPaths[hacks.randomMusic ? hacks.randomMusicIndex : hacks.musicIndex];
 
 			std::string diobono = hacks.menuSongId;
 			if (hacks.randomMusic)
@@ -995,7 +997,6 @@ void Hacks::RenderMain()
 			GDMO::ImCheckbox("Rainbow Color 2", &hacks.rainbowPlayerC2);
 			GDMO::ImCheckbox("Rainbow Wave Trail", &hacks.rainbowWaveTrail);
 			GDMO::ImCheckbox("Rainbow Glow", &hacks.rainbowOutline);
-			GDMO::ImCheckbox("Rainbow Player Vehicle", &hacks.rainbowPlayerVehicle);
 
 			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			GDMO::ImInputFloat("Rainbow Speed Interval", &hacks.rainbowSpeed);
@@ -1021,9 +1022,9 @@ void Hacks::RenderMain()
 			Hacks::Write<float>(gd::base + 0x2E63A0, hacks.waveSize);
 		if (GDMO::ImInputFloat("Respawn Time", &hacks.respawnTime))
 			Hacks::WriteRef(gd::base + 0x20A677,
-							hacks.respawnTime * (hacks.autoUpdateRespawn
-													 ? CCDirector::sharedDirector()->getScheduler()->getTimeScale()
-													 : 1));
+				hacks.respawnTime * (hacks.autoUpdateRespawn
+					? CCDirector::sharedDirector()->getScheduler()->getTimeScale()
+					: 1));
 		ImGui::PopItemWidth();
 
 		ImGui::End();
@@ -1399,8 +1400,8 @@ void Hacks::RenderMain()
 		if (GDMO::ImButton("Inject DLL"))
 		{
 			auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath2(),
-											{"DLL File", "*.dll"}, pfd::opt::multiselect)
-								 .result();
+				{ "DLL File", "*.dll" }, pfd::opt::multiselect)
+				.result();
 			for (auto const& filename : selection)
 			{
 				LoadLibrary(filename.c_str());
@@ -1443,8 +1444,8 @@ void Hacks::RenderMain()
 		if (GDMO::ImButton("Select Song##pitch"))
 		{
 			auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
-											{"Audio File", "*.mp3"}, pfd::opt::none)
-								 .result();
+				{ "Audio File", "*.mp3" }, pfd::opt::none)
+				.result();
 			for (auto const& filename : selection)
 			{
 				std::filesystem::path p = filename;
@@ -1518,19 +1519,19 @@ void Hacks::RenderMain()
 		GDMO::ImInputInt("Click Chunk Size", &hacks.clickSoundChunkSize, 0);
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("How many actions does a click chunk file contains? A click chunk file is a part of the "
-							  "whole rendered clicks, i have to split them to bypass the command character limit.\nTry "
-							  "increasing this if the clicks do not render.");
+				"whole rendered clicks, i have to split them to bypass the command character limit.\nTry "
+				"increasing this if the clicks do not render.");
 		GDMO::ImInputFloat("Show End For", &hacks.afterEndDuration);
 		ImGui::PopItemWidth();
 
 		GDMO::Marker("Usage",
-					 "Hit record in a level and let a macro play. The rendered video will be in "
-					 "GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on "
-					 "default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: "
-					 "-hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using "
-					 "an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
+			"Hit record in a level and let a macro play. The rendered video will be in "
+			"GDmenu/renders/level - levelid. If you're unsure of what a setting does, leave it on "
+			"default.\n If you're using an NVIDIA GPU i reccomend settings your extra args before -i to: "
+			"-hwaccel cuda -hwaccel_output_format cuda and the encoder to: h264_nvenc.\n If you're using "
+			"an AMD GPU i reccomend setting the encoder to either: h264_amf or hevc_amf.");
 		GDMO::Marker("Credits", "All the credits for the recording side goes to matcool's replaybot implementation, i "
-								"integrated my clickbot into it");
+			"integrated my clickbot into it");
 
 		ImGui::End();
 
@@ -1595,7 +1596,7 @@ void Hacks::RenderMain()
 					}
 					auto addr = GetPointerAddress(addrs);
 					arr["data"][variableIndex].contains("is_reference") ? Hacks::WriteRef<float>(addr, input)
-																		: Hacks::Write<float>(addr, input);
+						: Hacks::Write<float>(addr, input);
 				}
 			}
 		}
@@ -1613,7 +1614,7 @@ void Hacks::RenderMain()
 					}
 					auto addr = GetPointerAddress(addrs);
 					arr["data"][variableIndex].contains("is_reference") ? Hacks::WriteRef<int>(addr, input)
-																		: Hacks::Write<int>(addr, input);
+						: Hacks::Write<int>(addr, input);
 				}
 			}
 		}
@@ -1632,7 +1633,7 @@ void Hacks::RenderMain()
 
 		if (ImGui::IsPopupOpen("DLL List"))
 		{
-			ImGui::SetNextWindowSizeConstraints({windowSize, windowSize}, {windowSize * 2, 1000});
+			ImGui::SetNextWindowSizeConstraints({ windowSize, windowSize }, { windowSize * 2, 1000 });
 		}
 		if (ImGui::BeginPopupModal("DLL List"))
 		{
@@ -1779,13 +1780,13 @@ void Hacks::RenderMain()
 		bool cool = true;
 		if (showSelector)
 		{
-			ImGui::SetNextWindowSizeConstraints({windowSize * 4, windowSize * 4}, {windowSize * 4, windowSize * 4});
+			ImGui::SetNextWindowSizeConstraints({ windowSize * 4, windowSize * 4 }, { windowSize * 4, windowSize * 4 });
 			ImGui::Begin("Selector", &showSelector);
 			GDMO::ImInputText("Search", macroName, 100);
-			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {10, 10});
+			ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, { 10, 10 });
 			if (ImGui::BeginTable("table1", 4,
-								  ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable |
-									  ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
+				ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable |
+				ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 			{
 				ImGui::TableSetupColumn("Macro Name");
 				ImGui::TableSetupColumn("FPS");
@@ -1814,6 +1815,9 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().Delete(ri.name);
 						GetMacros();
 					}
+					ImGui::SameLine((arrowButtonPosition - 130) * ExternData::screenSizeX * hacks.menuSize);
+					if (GDMO::ImButton((std::string("Merge##") + ri.name).c_str()))
+						ReplayPlayer::getInstance().Merge(ri.name);
 				}
 				ImGui::EndTable();
 			}
@@ -1829,7 +1833,7 @@ void Hacks::RenderMain()
 		if (GDMO::ImButton("Select File"))
 		{
 			auto selection =
-				pfd::open_file("Select a macro", "GDMenu/macros", {"*.macro", "*.replay"}, pfd::opt::none).result();
+				pfd::open_file("Select a macro", "GDMenu/macros", { "*.macro", "*.replay" }, pfd::opt::none).result();
 			if (selection.size() > 0)
 			{
 				std::filesystem::path p = selection[0];
@@ -1869,7 +1873,7 @@ void Hacks::RenderMain()
 			if (GDMO::ImButton("Import JSON"))
 			{
 				auto selection =
-					pfd::open_file("Select a macro", "", {"JSON File", "*.mcb.json"}, pfd::opt::none).result();
+					pfd::open_file("Select a macro", "", { "JSON File", "*.mcb.json" }, pfd::opt::none).result();
 				for (auto const& filename : selection)
 				{
 					ReplayPlayer::getInstance().ClearActions();
@@ -1889,15 +1893,15 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Macro loaded with " +
-											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
-											  " actions."))
+						("Macro loaded with " +
+							std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
+							" actions."))
 						->show();
 				}
 			}
 			if (GDMO::ImButton("From TASBOT"))
 			{
-				auto selection = pfd::open_file("Select a macro", "", {"JSON File", "*.json"}, pfd::opt::none).result();
+				auto selection = pfd::open_file("Select a macro", "", { "JSON File", "*.json" }, pfd::opt::none).result();
 				for (auto const& filename : selection)
 				{
 					ReplayPlayer::getInstance().ClearActions();
@@ -1924,16 +1928,16 @@ void Hacks::RenderMain()
 						}
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Macro loaded with " +
-											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
-											  " actions."))
+						("Macro loaded with " +
+							std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
+							" actions."))
 						->show();
 				}
 			}
 			if (GDMO::ImButton("From zBot"))
 			{
 				auto selection =
-					pfd::open_file("Select a macro", "", {"zBot file", "*.zbot, *.zbf"}, pfd::opt::none).result();
+					pfd::open_file("Select a macro", "", { "zBot file", "*.zbot, *.zbf" }, pfd::opt::none).result();
 				for (auto const& filename : selection)
 				{
 					std::filesystem::path path = filename;
@@ -1948,8 +1952,8 @@ void Hacks::RenderMain()
 					stream.read((char*)&speed, sizeof(float));
 					ReplayPlayer::getInstance().GetReplay()->fps = 1 / delta / speed;
 					for (int i = 0; i < size / ((path.extension() == ".zbot" ? sizeof(float) : sizeof(uint32_t)) +
-												sizeof(bool) + sizeof(bool));
-						 i++)
+						sizeof(bool) + sizeof(bool));
+						i++)
 					{
 						Action action;
 						action.px = -1;
@@ -1967,15 +1971,15 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(action);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Macro loaded with " +
-											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
-											  " actions."))
+						("Macro loaded with " +
+							std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
+							" actions."))
 						->show();
 				}
 			}
 			if (GDMO::ImButton("From xBot"))
 			{
-				auto selection = pfd::open_file("Select a macro", "", {"xBot file", "*.xbot"}, pfd::opt::none).result();
+				auto selection = pfd::open_file("Select a macro", "", { "xBot file", "*.xbot" }, pfd::opt::none).result();
 				for (auto const& filename : selection)
 				{
 					ReplayPlayer::getInstance().ClearActions();
@@ -2015,15 +2019,15 @@ void Hacks::RenderMain()
 						}
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Macro loaded with " +
-											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
-											  " actions."))
+						("Macro loaded with " +
+							std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
+							" actions."))
 						->show();
 				}
 			}
 			if (GDMO::ImButton("From ECHO"))
 			{
-				auto selection = pfd::open_file("Select a macro", "", {"ECHO File", "*.echo"}, pfd::opt::none).result();
+				auto selection = pfd::open_file("Select a macro", "", { "ECHO File", "*.echo" }, pfd::opt::none).result();
 				for (auto const& filename : selection)
 				{
 					ReplayPlayer::getInstance().ClearActions();
@@ -2045,16 +2049,16 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Macro loaded with " +
-											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
-											  " actions."))
+						("Macro loaded with " +
+							std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
+							" actions."))
 						->show();
 				}
 			}
 			if (GDMO::ImButton("From MHREPLAY"))
 			{
 				auto selection =
-					pfd::open_file("Select a macro", "", {"MHR File", "*.mhr.json"}, pfd::opt::none).result();
+					pfd::open_file("Select a macro", "", { "MHR File", "*.mhr.json" }, pfd::opt::none).result();
 				for (auto const& filename : selection)
 				{
 					ReplayPlayer::getInstance().ClearActions();
@@ -2081,9 +2085,9 @@ void Hacks::RenderMain()
 						ReplayPlayer::getInstance().GetReplay()->AddAction(ac);
 					}
 					gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-											 ("Macro loaded with " +
-											  std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
-											  " actions."))
+						("Macro loaded with " +
+							std::to_string(ReplayPlayer::getInstance().GetActionsSize()) +
+							" actions."))
 						->show();
 				}
 			}
@@ -2142,9 +2146,9 @@ DWORD WINAPI my_thread(void* hModule)
 		if (ExternData::show)
 		{
 			ac = CCEaseIn::create(CustomAction::create(hacks.menuAnimationLength *
-														   CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
-													   1, 0, &ExternData::animation, nullptr),
-								  0.5f);
+				CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
+				1, 0, &ExternData::animation, nullptr),
+				0.5f);
 			for (auto func : ExternData::openFuncs)
 			{
 				if (func)
@@ -2153,7 +2157,7 @@ DWORD WINAPI my_thread(void* hModule)
 			if (ExternData::hasSaiModPack)
 			{
 				gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-										 ("Sai Mod Pack is not compatible with this menu, remove it!"))
+					("Sai Mod Pack is not compatible with this menu, remove it!"))
 					->show();
 			}
 
@@ -2164,9 +2168,9 @@ DWORD WINAPI my_thread(void* hModule)
 		{
 			ac =
 				CCEaseOut::create(CustomAction::create(hacks.menuAnimationLength *
-														   CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
-													   0, 1, &ExternData::animation, AnimationIsDone),
-								  0.5f);
+					CCDirector::sharedDirector()->getScheduler()->getTimeScale(),
+					0, 1, &ExternData::animation, AnimationIsDone),
+					0.5f);
 
 			for (auto func : ExternData::closeFuncs)
 			{
@@ -2187,7 +2191,7 @@ DWORD WINAPI my_thread(void* hModule)
 		}
 
 		GetMacros();
-	});
+		});
 	if (MH_Initialize() == MH_OK)
 	{
 		ImGuiHook::setupHooks(
@@ -2198,96 +2202,96 @@ DWORD WINAPI my_thread(void* hModule)
 			GetProcAddress(cocos, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N@Z");
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x01FB780), PlayLayer::initHook,
-					  reinterpret_cast<void**>(&PlayLayer::init));
+			reinterpret_cast<void**>(&PlayLayer::init));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x2029C0), PlayLayer::updateHook,
-					  reinterpret_cast<void**>(&PlayLayer::update));
+			reinterpret_cast<void**>(&PlayLayer::update));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20D0D0), PlayLayer::togglePracticeModeHook,
-					  reinterpret_cast<void**>(&PlayLayer::togglePracticeMode));
+			reinterpret_cast<void**>(&PlayLayer::togglePracticeMode));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20a1a0), PlayLayer::destroyPlayer_H,
-					  reinterpret_cast<void**>(&PlayLayer::destroyPlayer));
+			reinterpret_cast<void**>(&PlayLayer::destroyPlayer));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F4E40), PlayLayer::pushButtonHook,
-					  reinterpret_cast<void**>(&PlayLayer::pushButton));
+			reinterpret_cast<void**>(&PlayLayer::pushButton));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20D810), PlayLayer::onQuitHook,
-					  reinterpret_cast<void**>(&PlayLayer::onQuit));
+			reinterpret_cast<void**>(&PlayLayer::onQuit));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x15EE00), PlayLayer::editorInitHook,
-					  reinterpret_cast<void**>(&PlayLayer::editorInit));
+			reinterpret_cast<void**>(&PlayLayer::editorInit));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F4F70), PlayLayer::releaseButtonHook,
-					  reinterpret_cast<void**>(&PlayLayer::releaseButton));
+			reinterpret_cast<void**>(&PlayLayer::releaseButton));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20BF00), PlayLayer::resetLevelHook,
-					  reinterpret_cast<void**>(&PlayLayer::resetLevel));
+			reinterpret_cast<void**>(&PlayLayer::resetLevel));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20A1A0), PlayLayer::hkDeath,
-					  reinterpret_cast<void**>(&PlayLayer::death));
+			reinterpret_cast<void**>(&PlayLayer::death));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1FD3D0), PlayLayer::levelCompleteHook,
-					  reinterpret_cast<void**>(&PlayLayer::levelComplete));
+			reinterpret_cast<void**>(&PlayLayer::levelComplete));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x253D60), PlayLayer::triggerObjectHook,
-					  reinterpret_cast<void**>(&PlayLayer::triggerObject));
+			reinterpret_cast<void**>(&PlayLayer::triggerObject));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1FFD80), PlayLayer::lightningFlashHook,
-					  reinterpret_cast<void**>(&PlayLayer::lightningFlash));
+			reinterpret_cast<void**>(&PlayLayer::lightningFlash));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x25FAD0), PlayLayer::uiOnPauseHook,
-					  reinterpret_cast<void**>(&PlayLayer::uiOnPause));
+			reinterpret_cast<void**>(&PlayLayer::uiOnPause));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x25FD20), PlayLayer::uiTouchBeganHook,
-					  reinterpret_cast<void**>(&PlayLayer::uiTouchBegan));
+			reinterpret_cast<void**>(&PlayLayer::uiTouchBegan));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F9640), PlayLayer::togglePlayerScaleHook,
-					  reinterpret_cast<void**>(&PlayLayer::togglePlayerScale));
+			reinterpret_cast<void**>(&PlayLayer::togglePlayerScale));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f4ff0), PlayLayer::ringJumpHook,
-					  reinterpret_cast<void**>(&PlayLayer::ringJump));
+			reinterpret_cast<void**>(&PlayLayer::ringJump));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xef0e0), PlayLayer::activateObjectHook,
-					  reinterpret_cast<void**>(&PlayLayer::activateObject));
+			reinterpret_cast<void**>(&PlayLayer::activateObject));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x10ed50), PlayLayer::bumpHook,
-					  reinterpret_cast<void**>(&PlayLayer::bump));
+			reinterpret_cast<void**>(&PlayLayer::bump));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1FE3A0), PlayLayer::newBestHook,
-					  reinterpret_cast<void**>(&PlayLayer::newBest));
+			reinterpret_cast<void**>(&PlayLayer::newBest));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xE4A70), PlayLayer::getObjectRectHook,
-					  reinterpret_cast<void**>(&PlayLayer::getObjectRect));
+			reinterpret_cast<void**>(&PlayLayer::getObjectRect));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xE4B90), PlayLayer::getObjectRectHook2,
-					  reinterpret_cast<void**>(&PlayLayer::getObjectRect2));
+			reinterpret_cast<void**>(&PlayLayer::getObjectRect2));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xEF110), PlayLayer::hasBeenActivatedByPlayerHook,
-					  reinterpret_cast<void**>(&PlayLayer::hasBeenActivatedByPlayer));
+			reinterpret_cast<void**>(&PlayLayer::hasBeenActivatedByPlayer));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x14ebc0), PlayLayer::addPointHook,
-					  reinterpret_cast<void**>(&PlayLayer::addPoint));
+			reinterpret_cast<void**>(&PlayLayer::addPoint));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xE5D60), PlayLayer::powerOffObjectHook,
-					  reinterpret_cast<void**>(&PlayLayer::powerOffObject));
+			reinterpret_cast<void**>(&PlayLayer::powerOffObject));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xEAB20), PlayLayer::playShineEffectHook,
-					  reinterpret_cast<void**>(&PlayLayer::playShineEffect));
+			reinterpret_cast<void**>(&PlayLayer::playShineEffect));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x207D30), PlayLayer::flipGravityHook,
-					  reinterpret_cast<void**>(&PlayLayer::flipGravity));
+			reinterpret_cast<void**>(&PlayLayer::flipGravity));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x207e00), PlayLayer::playGravityEffectHook,
-					  reinterpret_cast<void**>(&PlayLayer::playGravityEffect));
+			reinterpret_cast<void**>(&PlayLayer::playGravityEffect));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f62c0), PlayLayer::toggleDartModeHook,
-					  reinterpret_cast<void**>(&PlayLayer::toggleDartMode));
+			reinterpret_cast<void**>(&PlayLayer::toggleDartMode));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook,
-					  reinterpret_cast<void**>(&LevelEditorLayer::draw));
+			reinterpret_cast<void**>(&LevelEditorLayer::draw));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x75660), LevelEditorLayer::exitHook,
-					  reinterpret_cast<void**>(&LevelEditorLayer::exit));
+			reinterpret_cast<void**>(&LevelEditorLayer::exit));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xC4BD0), LevelEditorLayer::fadeMusicHook,
-					  reinterpret_cast<void**>(&LevelEditorLayer::fadeMusic));
+			reinterpret_cast<void**>(&LevelEditorLayer::fadeMusic));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1695A0), LevelEditorLayer::onPlaytestHook,
-					  reinterpret_cast<void**>(&LevelEditorLayer::onPlaytest));
+			reinterpret_cast<void**>(&LevelEditorLayer::onPlaytest));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x94CB0), EndLevelLayer::customSetupHook,
-					  reinterpret_cast<void**>(&EndLevelLayer::customSetup));
+			reinterpret_cast<void**>(&EndLevelLayer::customSetup));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x12ADF0), MenuLayer::onBackHook,
-					  reinterpret_cast<void**>(&MenuLayer::onBack));
+			reinterpret_cast<void**>(&MenuLayer::onBack));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x18CF40), MenuLayer::loadingStringHook,
-					  reinterpret_cast<void**>(&MenuLayer::loadingString));
+			reinterpret_cast<void**>(&MenuLayer::loadingString));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1907B0), MenuLayer::hook,
-					  reinterpret_cast<void**>(&MenuLayer::init));
+			reinterpret_cast<void**>(&MenuLayer::init));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x17DA60), LevelSearchLayer::hook,
 					  reinterpret_cast<void**>(&LevelSearchLayer::init));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9F8E0), LevelSearchLayer::httpHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook,
 					  reinterpret_cast<void**>(&LevelSearchLayer::http));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x685B0), CustomSongWidget::initHook,
 					  reinterpret_cast<void**>(&CustomSongWidget::init));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20DDD0), CustomCheckpoint::createHook,
-					  reinterpret_cast<void**>(&CustomCheckpoint::create));
+			reinterpret_cast<void**>(&CustomCheckpoint::create));
 
 		MH_CreateHook(addr, PlayLayer::dispatchKeyboardMSGHook,
-					  reinterpret_cast<void**>(&PlayLayer::dispatchKeyboardMSG));
+			reinterpret_cast<void**>(&PlayLayer::dispatchKeyboardMSG));
 		Setup();
 		// Speedhack::Setup();
 

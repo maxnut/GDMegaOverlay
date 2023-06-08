@@ -20,7 +20,7 @@ extern struct HacksStr hacks;
 extern struct Labels labels;
 extern struct Debug debug;
 
-PlayLayer::fCCApplication_toggleVerticalSync PlayLayer::CCApplication_toggleVerticalSync =
+PlayLayer::fCCApplication_toggleVerticalSync PlayLayer::CCApplication_toggleVerticalSync = 
 	(PlayLayer::fCCApplication_toggleVerticalSync)GetProcAddress(
 		GetModuleHandleA("libcocos2d.dll"), "?toggleVerticalSync@CCApplication@cocos2d@@QAEX_N@Z"
 	);
@@ -35,7 +35,7 @@ HitboxNode* drawer;
 gd::PlayLayer* playlayer;
 
 float percent, startPercent = 0, endPercent = 0, maxRun = 0, delta = -1, prevP = 0, pressTimer = 0, releaseTimer = 0,
-			   opacity = 0, p = 1;
+opacity = 0, p = 1;
 
 std::string bestRun = "Best Run: none", text;
 
@@ -53,7 +53,7 @@ unsigned int songLength;
 int hackAmts[5];
 
 CCNode* statuses[STATUSSIZE];
-CCLabelBMFont *startPosText, *macroText;
+CCLabelBMFont* startPosText, * macroText;
 CCScheduler* scheduler;
 CCSize size, pixelSize;
 CCSprite* noclipRed;
@@ -191,7 +191,7 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 	auto director = CCDirector::sharedDirector();
 	size = director->getWinSize();
 	gd::FMODAudioEngine::sharedEngine()->m_pSystem->createSound("Resources/counter003.ogg", FMOD_LOOP_OFF, 0,
-																&accuracySound);
+		&accuracySound);
 
 	TrajectorySimulation::getInstance()->createSimulation();
 
@@ -212,35 +212,35 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 	{
 		Hacks::cheatCheck.push_back(
 			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-					   ExternData::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+				ExternData::bypass["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::creator["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(
 			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-					   ExternData::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+				ExternData::creator["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::global["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(
 			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-					   ExternData::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+				ExternData::global["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::level["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(
 			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-					   ExternData::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+				ExternData::level["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	for (size_t i = 0; i < ExternData::player["mods"].size(); i++)
 	{
 		Hacks::cheatCheck.push_back(
 			std::count(Hacks::cheatVector.begin(), Hacks::cheatVector.end(),
-					   ExternData::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
+				ExternData::player["mods"][i]["opcodes"][0]["address"].get<std::string>()));
 	}
 
 	CCARRAY_FOREACH(self->m_pObjects, obje)
@@ -318,9 +318,9 @@ bool __fastcall PlayLayer::initHook(gd::PlayLayer* self, void*, gd::GJGameLevel*
 	pressTimer = 0;
 	releaseTimer = hacks.releaseTime;
 
-	const ccColor3B noclipColor = {hacks.noclipColor[0] * 255, hacks.noclipColor[1] * 255, hacks.noclipColor[2] * 255};
+	const ccColor3B noclipColor = { hacks.noclipColor[0] * 255, hacks.noclipColor[1] * 255, hacks.noclipColor[2] * 255 };
 	noclipRed = CCSprite::createWithSpriteFrameName("block005b_05_001.png");
-	noclipRed->setPosition({size.width / 2, size.height / 2});
+	noclipRed->setPosition({ size.width / 2, size.height / 2 });
 	noclipRed->setScale(1000.0f);
 	noclipRed->setColor(noclipColor);
 	noclipRed->setOpacity(0);
@@ -411,7 +411,7 @@ bool __fastcall PlayLayer::releaseButtonHook(gd::PlayerObject* self, void*, int 
 	if (playlayer && !playlayer->m_hasCompletedLevel && replayPlayer && replayPlayer->IsRecording())
 	{
 		if (self == playlayer->m_pPlayer2 && delta > 0 && playlayer->m_bIsDualMode &&
-				playlayer->m_pLevelSettings->m_twoPlayerMode ||
+			playlayer->m_pLevelSettings->m_twoPlayerMode ||
 			self == playlayer->m_pPlayer1)
 		{
 			replayPlayer->RecordAction(false, self, self == playlayer->m_pPlayer1);
@@ -446,8 +446,8 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::Playe
 		float run = ((player->getPositionX() / self->m_levelLength) * 100.0f) - startPercent;
 		endPercent = (player->getPositionX() / self->m_levelLength) * 100.0f;
 		std::string runStr = (int)startPercent != 0 ? "Best Run: " + std::to_string((int)startPercent) + "-" +
-														  std::to_string((int)endPercent)
-													: "Best Run: " + std::to_string((int)endPercent) + "%";
+			std::to_string((int)endPercent)
+			: "Best Run: " + std::to_string((int)endPercent) + "%";
 		if ((int)startPercent != (int)endPercent && run > maxRun)
 		{
 			bestRunRepeat = 0;
@@ -457,7 +457,7 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::Playe
 			bestRun = runStr;
 			oldRun = runStr;
 			Hacks::UpdateRichPresence(0, 0,
-									  (std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
+				(std::to_string((int)startPercent)) + "-" + std::to_string((int)endPercent));
 		}
 		else if (runStr == oldRun && hacks.accumulateRuns)
 		{
@@ -477,8 +477,8 @@ gd::GameSoundManager* __fastcall PlayLayer::levelCompleteHook(gd::PlayLayer* sel
 	float run = 100.0f - startPercent;
 	endPercent = 100.0f;
 	std::string runStr = (int)startPercent != 0
-							 ? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent)
-							 : "Best Run: " + std::to_string((int)endPercent) + "%";
+		? "Best Run: " + std::to_string((int)startPercent) + "-" + std::to_string((int)endPercent)
+		: "Best Run: " + std::to_string((int)endPercent) + "%";
 	if (run > maxRun)
 	{
 		bestRunRepeat = 0;
@@ -582,17 +582,17 @@ void UpdateLabels(gd::PlayLayer* self)
 	}
 	self->m_uiLayer->setVisible(true);
 
-	const ccColor3B red = {255, 0, 0};
-	const ccColor3B white = {255, 255, 255};
-	const ccColor3B green = {0, 255, 0};
-	const ccColor3B yellow = {255, 165, 0};
+	const ccColor3B red = { 255, 0, 0 };
+	const ccColor3B white = { 255, 255, 255 };
+	const ccColor3B green = { 0, 255, 0 };
+	const ccColor3B yellow = { 255, 165, 0 };
 
 	auto fontPtr = static_cast<CCLabelBMFont*>(statuses[0]);
 
 	float r, g, b;
 	if (labels.rainbowLabels)
 		ImGui::ColorConvertHSVtoRGB(ImGui::GetTime() * labels.rainbowSpeed, 1, 1, r, g, b);
-	const ccColor3B rainbow = {r * 255, g * 255, b * 255};
+	const ccColor3B rainbow = { r * 255, g * 255, b * 255 };
 
 	if (labels.statuses[0] && scheduler)
 	{
@@ -656,7 +656,7 @@ void UpdateLabels(gd::PlayLayer* self)
 		}
 
 		fontPtr->setString(CCString::createWithFormat(labels.styles[1], clicksArr.size(), totalClicks)->getCString());
-		const ccColor3B pressed = {hacks.clickColor[0] * 255, hacks.clickColor[1] * 255, hacks.clickColor[2] * 255};
+		const ccColor3B pressed = { hacks.clickColor[0] * 255, hacks.clickColor[1] * 255, hacks.clickColor[2] * 255 };
 		fontPtr->setColor(pressing ? pressed : labels.rainbowLabels ? rainbow : white);
 	}
 	else
@@ -840,20 +840,20 @@ void UpdateLabels(gd::PlayLayer* self)
 				macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize())).c_str());
 			else
 				macroText->setString(("Recording: " + std::to_string(replayPlayer->GetActionsSize()) + " | " +
-									  std::to_string(replayPlayer->GetFrameCapturesSize()))
-										 .c_str());
+					std::to_string(replayPlayer->GetFrameCapturesSize()))
+					.c_str());
 		}
 		else if (replayPlayer->IsPlaying())
 			if (hacks.replayMode < 2)
 				macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" +
-									  std::to_string(replayPlayer->GetActionsSize()))
-										 .c_str());
+					std::to_string(replayPlayer->GetActionsSize()))
+					.c_str());
 			else
 				macroText->setString(("Playing: " + std::to_string(replayPlayer->GetActionIndex()) + "/" +
-									  std::to_string(replayPlayer->GetActionsSize()) + " | " +
-									  std::to_string(replayPlayer->GetCapturesIndex()) + "/" +
-									  std::to_string(replayPlayer->GetFrameCapturesSize()))
-										 .c_str());
+					std::to_string(replayPlayer->GetActionsSize()) + " | " +
+					std::to_string(replayPlayer->GetCapturesIndex()) + "/" +
+					std::to_string(replayPlayer->GetFrameCapturesSize()))
+					.c_str());
 		else
 			macroText->setString("");
 	}
@@ -868,9 +868,9 @@ void UpdateLabels(gd::PlayLayer* self)
 		startPosText->setString("");
 }
 
-const char* actualFonts[] = {"bigFont.fnt",	 "chatFont.fnt", "gjFont01.fnt", "gjFont02.fnt", "gjFont03.fnt",
+const char* actualFonts[] = { "bigFont.fnt",	 "chatFont.fnt", "gjFont01.fnt", "gjFont02.fnt", "gjFont03.fnt",
 							 "gjFont04.fnt", "gjFont05.fnt", "gjFont06.fnt", "gjFont07.fnt", "gjFont08.fnt",
-							 "gjFont09.fnt", "gjFont10.fnt", "gjFont11.fnt", "goldFont.fnt"};
+							 "gjFont09.fnt", "gjFont10.fnt", "gjFont11.fnt", "goldFont.fnt" };
 
 void PlayLayer::UpdatePositions(int index)
 {
@@ -971,8 +971,8 @@ void PlayLayer::UpdatePositions(int index)
 	else if (labels.opacity[index] > 255)
 		labels.opacity[index] = 255;
 	statuses[index]->setAnchorPoint(statuses[index]->getPositionX() > 284.5f
-										? CCPointMake(1.0f, statuses[index]->getAnchorPoint().y)
-										: CCPointMake(0.0f, statuses[index]->getAnchorPoint().y));
+		? CCPointMake(1.0f, statuses[index]->getAnchorPoint().y)
+		: CCPointMake(0.0f, statuses[index]->getAnchorPoint().y));
 }
 
 void PlayLayer::SyncMusic()
@@ -1115,8 +1115,8 @@ void Update(gd::PlayLayer* self, float dt)
 
 	if (hacks.enableWaveTrailColor)
 	{
-		const ccColor3B col = {hacks.waveTrailColor[0] * 255.f, hacks.waveTrailColor[1] * 255.f,
-							   hacks.waveTrailColor[2] * 255.f};
+		const ccColor3B col = { hacks.waveTrailColor[0] * 255.f, hacks.waveTrailColor[1] * 255.f,
+							   hacks.waveTrailColor[2] * 255.f };
 		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
 		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 	}
@@ -1125,36 +1125,20 @@ void Update(gd::PlayLayer* self, float dt)
 	{
 		float r, g, b;
 		ImGui::ColorConvertHSVtoRGB(self->m_totalTime * hacks.rainbowSpeed, hacks.pastel, 1, r, g, b);
-		const ccColor3B col = {(GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f)};
+		const ccColor3B col = { (GLubyte)(r * 255.0f), (GLubyte)(g * 255.0f), (GLubyte)(b * 255.0f) };
 
 		if (hacks.rainbowPlayerC1)
 		{
 			self->m_pPlayer1->setColor(col);
 			self->m_pPlayer2->setColor(col);
-			self->m_pPlayer1->m_spiderSprite->setColor(col);
-			self->m_pPlayer1->m_robotSprite->setColor(col);
-			self->m_pPlayer2->m_spiderSprite->setColor(col);
-			self->m_pPlayer2->m_robotSprite->setColor(col);
 		}
 		if (hacks.rainbowPlayerC2)
 		{
-			self->m_pPlayer1->m_iconSprite->setColor(col);
-			self->m_pPlayer2->m_iconSprite->setColor(col);
-			self->m_pPlayer1->m_iconSpriteSecondary->setColor(col);
-			self->m_pPlayer2->m_iconSpriteSecondary->setColor(col);
-			self->m_pPlayer1->m_iconSpriteWhitener->setColor(col);
-			self->m_pPlayer2->m_iconSpriteWhitener->setColor(col);
-			self->m_pPlayer1->m_unk500->setColor(col);
-			self->m_pPlayer2->m_unk500->setColor(col);
+			self->m_pPlayer1->setSecondColor(col);
+			self->m_pPlayer2->setSecondColor(col);
 		}
-		if (hacks.rainbowPlayerVehicle)
+		if (hacks.rainbowWaveTrail)
 		{
-			self->m_pPlayer1->m_vehicleSprite->setColor(col);
-			self->m_pPlayer2->m_vehicleSprite->setColor(col);
-			self->m_pPlayer1->m_vehicleSpriteWhitener->setColor(col);
-			self->m_pPlayer2->m_vehicleSpriteWhitener->setColor(col);
-			self->m_pPlayer1->m_vehicleSpriteSecondary->setColor(col);
-			self->m_pPlayer2->m_vehicleSpriteSecondary->setColor(col);
 			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(col);
 			reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(col);
 		}
@@ -1249,9 +1233,9 @@ void Update(gd::PlayLayer* self, float dt)
 
 				if (o->getType() == gd::GameObjectType::kGameObjectTypeDecoration && o->isVisible() &&
 					(o->m_nObjectID != 44 && o->m_nObjectID != 749 && o->m_nObjectID != 12 && o->m_nObjectID != 38 &&
-					 o->m_nObjectID != 47 && o->m_nObjectID != 111 && o->m_nObjectID != 8 && o->m_nObjectID != 13 &&
-					 o->m_nObjectID != 660 && o->m_nObjectID != 745 && o->m_nObjectID != 101 && o->m_nObjectID != 99 &&
-					 o->m_nObjectID != 1331))
+						o->m_nObjectID != 47 && o->m_nObjectID != 111 && o->m_nObjectID != 8 && o->m_nObjectID != 13 &&
+						o->m_nObjectID != 660 && o->m_nObjectID != 745 && o->m_nObjectID != 101 && o->m_nObjectID != 99 &&
+						o->m_nObjectID != 1331))
 				{
 					o->setVisible(false);
 				}
@@ -1270,14 +1254,14 @@ void Update(gd::PlayLayer* self, float dt)
 			{
 				if (coinPos[i] && self->m_pPlayer1->getPositionX() <= coinPos[i]->getPositionX())
 					drawer->drawSegment(self->m_pPlayer1->getPosition(), coinPos[i]->getPosition(), 0.5f,
-										ccc4f(0, 1, 0, 1));
+						ccc4f(0, 1, 0, 1));
 			}
 		}
 
 		if (replayPlayer && replayPlayer->GetActionsSize() > 0)
-			drawer->drawCircleHitbox({replayPlayer->GetReplay()->getActions()[replayPlayer->GetActionIndex()].px,
-									  replayPlayer->GetReplay()->getActions()[replayPlayer->GetActionIndex()].py},
-									 5.0f, {255, 255, 0, 0});
+			drawer->drawCircleHitbox({ replayPlayer->GetReplay()->getActions()[replayPlayer->GetActionIndex()].px,
+									  replayPlayer->GetReplay()->getActions()[replayPlayer->GetActionIndex()].py },
+				5.0f, { 255, 255, 0, 0 });
 
 		if (self->m_pPlayer1)
 		{
@@ -1409,7 +1393,7 @@ void __fastcall PlayLayer::triggerObjectHook(gd::EffectGameObject* self, void*, 
 		return;
 	auto id = self->m_nObjectID;
 	if (hacks.layoutMode && (id == 899 || id == 1006 || id == 1007 || id == 105 || id == 29 || id == 56 || id == 915 ||
-							 id == 30 || id == 58))
+		id == 30 || id == 58))
 		return;
 	PlayLayer::triggerObject(self, idk);
 }
@@ -1473,12 +1457,12 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	PlayLayer::player2RotRate = 0;
 	TrajectorySimulation::getInstance()->m_pDieInSimulation = false;
 	TrajectorySimulation::getInstance()->m_pIsSimulation = false;
-	Hacks::ToggleJSONHack(ExternData::player, 0, false);
+	// Hacks::ToggleJSONHack(ExternData::player, 0, false);
 	clicksArr.clear();
 
 	if (hacks.autoUpdateRespawn)
 		Hacks::WriteRef(gd::base + 0x20A677,
-						hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
+			hacks.respawnTime * CCDirector::sharedDirector()->getScheduler()->getTimeScale());
 
 	if (drawer)
 	{
@@ -1515,22 +1499,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	PlayLayer::resetLevel(self);
 
 	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
-
-	if (playlayer)
-	{
-		self->m_pPlayer1->setColor(iconCol);
-		self->m_pPlayer1->m_iconSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_vehicleSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_spiderSprite->setColor(secIconCol);
-		self->m_pPlayer1->m_robotSprite->setColor(secIconCol);
-		self->m_pPlayer2->setColor(secIconCol);
-		self->m_pPlayer2->m_iconSprite->setColor(iconCol);
-		self->m_pPlayer2->m_vehicleSprite->setColor(iconCol);
-		self->m_pPlayer2->m_spiderSprite->setColor(iconCol);
-		self->m_pPlayer2->m_robotSprite->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer1->m_waveTrail)->setColor(iconCol);
-		reinterpret_cast<CCNodeRGBA*>(self->m_pPlayer2->m_waveTrail)->setColor(iconCol);
-	}
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
 	{
@@ -1722,8 +1690,8 @@ void PlayLayer::Quit()
 {
 	if (!std::filesystem::exists("GDMenu/dll/" + std::string(ExternData::replayName)))
 		replayPlayer->Save(strlen(ExternData::replayName) == 0
-							   ? playlayer->m_level->levelName + "_" + std::to_string(playlayer->m_level->levelID)
-							   : ExternData::replayName);
+			? playlayer->m_level->levelName + "_" + std::to_string(playlayer->m_level->levelID)
+			: ExternData::replayName);
 	TrajectorySimulation::getInstance()->onQuitPlayLayer();
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
@@ -1767,9 +1735,9 @@ void __fastcall PlayLayer::toggleDartModeHook(gd::PlayerObject* self, void*, boo
 	{
 		TrajectorySimulation::getInstance()->m_pIsSimulation = true;
 		PlayLayer::toggleDartMode(self == playlayer->m_pPlayer1
-									  ? TrajectorySimulation::getInstance()->m_pPlayer1ForSimulation
-									  : TrajectorySimulation::getInstance()->m_pPlayer2ForSimulation,
-								  toggle);
+			? TrajectorySimulation::getInstance()->m_pPlayer1ForSimulation
+			: TrajectorySimulation::getInstance()->m_pPlayer2ForSimulation,
+			toggle);
 		TrajectorySimulation::getInstance()->m_pIsSimulation = false;
 	}
 	PlayLayer::toggleDartMode(self, toggle);
