@@ -10,13 +10,10 @@ bool __fastcall CustomSongWidget::initHook(
 
 	CCMenu* menu = reinterpret_cast<CCMenu*>(self->getChildren()->objectAtIndex(1));
 
-	if (hacks.playSongButton)
-		reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(4))->setVisible(true);
-
-	auto& moreButtonPosition = reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(5))->getPosition();
-
 	if (hacks.copySongButton)
 	{
+		auto& moreButtonPosition = reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(5))->getPosition();
+
 		auto buttonSprite = gd::ButtonSprite::create("Copy", 30, true, "bigFont.fnt", "GJ_button_02.png", 20, 1.0f);
 		auto copyButton = gd::CCMenuItemSpriteExtra::create(
 			buttonSprite,
@@ -29,4 +26,16 @@ bool __fastcall CustomSongWidget::initHook(
 	}
 
 	return true;
+}
+
+void __fastcall CustomSongWidget::onPlaySongButtonHook(gd::CustomSongWidget* self)
+{
+	if (hacks.playSongButton)
+	{
+		CCMenu* menu = reinterpret_cast<CCMenu*>(self->getChildren()->objectAtIndex(1));
+
+		reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(4))->setVisible(true);
+	}
+
+	CustomSongWidget::onPlaySongButton(self);
 }

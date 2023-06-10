@@ -2286,6 +2286,8 @@ DWORD WINAPI my_thread(void* hModule)
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x685B0), CustomSongWidget::initHook,
 			reinterpret_cast<void**>(&CustomSongWidget::init));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x69970), CustomSongWidget::onPlaySongButtonHook,
+			reinterpret_cast<void**>(&CustomSongWidget::onPlaySongButton));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20DDD0), CustomCheckpoint::createHook,
 			reinterpret_cast<void**>(&CustomCheckpoint::create));
