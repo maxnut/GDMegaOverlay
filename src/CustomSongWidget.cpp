@@ -34,7 +34,8 @@ void __fastcall CustomSongWidget::onPlaySongButtonHook(gd::CustomSongWidget* sel
 	{
 		CCMenu* menu = reinterpret_cast<CCMenu*>(self->getChildren()->objectAtIndex(1));
 
-		reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(4))->setVisible(true);
+		if (!reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(0))->isVisible())
+			reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(4))->setVisible(true);
 	}
 
 	CustomSongWidget::onPlaySongButton(self);
