@@ -12,17 +12,23 @@ bool __fastcall CustomSongWidget::initHook(
 
 	if (hacks.copySongButton)
 	{
-		auto& moreButtonPosition = reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(5))->getPosition();
+		if (
+			reinterpret_cast<cocos2d::CCSprite*>(
+				reinterpret_cast<CCLabelBMFont*>(self->getChildren()->objectAtIndex(4))->getChildren()->objectAtIndex(0)
+			)->isVisible()
+		) {
+			auto& moreButtonPosition = reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(5))->getPosition();
 
-		auto buttonSprite = gd::ButtonSprite::create("Copy", 30, true, "bigFont.fnt", "GJ_button_02.png", 20, 1.0f);
-		auto copyButton = gd::CCMenuItemSpriteExtra::create(
-			buttonSprite,
-			self,
-			menu_selector(ButtonsClass::onCopySongCallback)
-		);
-		copyButton->setSizeMult(1.f);
-		copyButton->setPosition({ moreButtonPosition.x + 50.f, -157.000 });
-		menu->addChild(copyButton);
+			auto buttonSprite = gd::ButtonSprite::create("Copy", 30, true, "bigFont.fnt", "GJ_button_02.png", 20, 1.0f);
+			auto copyButton = gd::CCMenuItemSpriteExtra::create(
+				buttonSprite,
+				self,
+				menu_selector(ButtonsClass::onCopySongCallback)
+			);
+			copyButton->setSizeMult(1.f);
+			copyButton->setPosition({ moreButtonPosition.x + 50.f, moreButtonPosition.y });
+			menu->addChild(copyButton);
+		}
 	}
 
 	return true;
