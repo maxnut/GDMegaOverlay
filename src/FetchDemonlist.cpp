@@ -1,6 +1,6 @@
 #include "FetchDemonlist.h"
-#include <curl.h>
 #include "Hacks.h"
+
 /*#include "json.hpp"
 using json = nlohmann::json;
 

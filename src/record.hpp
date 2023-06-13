@@ -46,4 +46,6 @@ public:
     void capture_frame();
     void handle_recording(gd::PlayLayer*, float dt);
     void update_song_offset(gd::PlayLayer*);
+
+    void generate_clicks();
 };

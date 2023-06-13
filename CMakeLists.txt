@@ -16,9 +16,10 @@ target_include_directories(${PROJECT} PRIVATE
   libs/minhook/include
   libs/gd.h/include
   libs/gd.h/
+  libs/portaudio/include
   libs/imgui-hook
   libs/imgui-hook/imgui
-  libs/cocos-headers/cocos2dx/platform/third_party/win32/curl
+  libs/libsndfile/include
   libs/fmod/inc
   libs/discord_game_sdk/cpp
 )
@@ -34,4 +35,6 @@ target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib
   ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
+  ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
+  ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
 )

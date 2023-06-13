@@ -11,10 +11,6 @@ FMOD::System* sys;
 std::vector<FMOD::Sound*> clicks, releases, mediumclicks;
 FMOD::Channel *channel = 0, *channel2 = 0;
 
-int amountOfClicks = 0;
-int amountOfMediumClicks = 0;
-int amountOfReleases = 0;
-
 bool oldClick1 = false, oldClick2 = false;
 
 double oldTime = 0, oldTimeP2 = 0;
@@ -58,7 +54,7 @@ ReplayPlayer::ReplayPlayer()
 		filestr = "GDMenu/clicks/clicks/" + std::to_string(i) + ".wav";
 		exist = std::filesystem::exists(filestr);
 	}
-	amountOfClicks = clicks.size();
+	ExternData::amountOfClicks = clicks.size();
 
 	exist = std::filesystem::exists("GDMenu/clicks/releases/1.wav");
 	i = 1;
@@ -73,7 +69,7 @@ ReplayPlayer::ReplayPlayer()
 		filestr = "GDMenu/clicks/releases/" + std::to_string(i) + ".wav";
 		exist = std::filesystem::exists(filestr);
 	}
-	amountOfReleases = releases.size();
+	ExternData::amountOfReleases = releases.size();
 
 	exist = std::filesystem::exists("GDMenu/clicks/mediumclicks/1.wav");
 	i = 1;
@@ -88,7 +84,7 @@ ReplayPlayer::ReplayPlayer()
 		filestr = "GDMenu/clicks/mediumclicks/" + std::to_string(i) + ".wav";
 		exist = std::filesystem::exists(filestr);
 	}
-	amountOfMediumClicks = mediumclicks.size();
+	ExternData::amountOfMediumClicks = mediumclicks.size();
 }
 
 void ReplayPlayer::ToggleRecording()
@@ -123,6 +119,8 @@ void ReplayPlayer::TogglePlaying()
 void ReplayPlayer::Reset(gd::PlayLayer* playLayer)
 {
 	oldTime = 0;
+
+	if(recording) recorder.update_song_offset(playLayer);
 
 	bool addedAction = false;
 	oldClick1 = false;
@@ -255,25 +253,25 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 	for (size_t i = 0; i < limit; i++)
 	{
 		auto ac = actions[actionIndex];
-		if (actionIndex + 1 < actions.size() && ac.px > actions[actionIndex + 1].px)
+		if (playLayer->m_pLevelSettings->m_twoPlayerMode && actionIndex + 1 < actions.size() && ac.px > actions[actionIndex + 1].px)
 		{
 			actionIndex++;
 			continue;
 		}
-		if (/* (ac.frame >= 0 && GetFrame() >= ac.frame) ||  */ playLayer->m_pPlayer1->m_position.x >= ac.px)
+		if (!ac.player2 && playLayer->m_pPlayer1->m_position.x >= ac.px || ac.player2 && playLayer->m_pPlayer2->m_position.x >= ac.px)
 		{
-			if (debug.enabled && playLayer->m_pPlayer1->m_position.x != ac.px/*  || playLayer->m_pPlayer1->m_yAccel != ac.yAccel ||
-				playLayer->m_pPlayer1->m_position.y != ac.py */)
-			{
-				hacks.frameStep = true;
-			}
+			// if (debug.enabled && playLayer->m_pPlayer1->m_position.x != ac.px/*  || playLayer->m_pPlayer1->m_yAccel != ac.yAccel ||
+			// 	playLayer->m_pPlayer1->m_position.y != ac.py */)
+			// {
+			// 	hacks.frameStep = true;
+			// }
 			if (!ac.player2 && hacks.replayMode == 1)
 			{
 				playLayer->m_pPlayer1->m_position.x = ac.px;
 				playLayer->m_pPlayer1->m_yAccel = ac.yAccel;
 				playLayer->m_pPlayer1->m_position.y = ac.py;
 			}
-			else if (hacks.replayMode == 1)
+			else if (ac.player2 && hacks.replayMode == 1)
 			{
 				playLayer->m_pPlayer2->m_position.x = ac.px;
 				playLayer->m_pPlayer2->m_yAccel = ac.yAccel;
@@ -294,7 +292,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			{
 				rc = rand() % clicks.size();
 				rr = rand() % releases.size();
-				if (amountOfMediumClicks > 0)
+				if (ExternData::amountOfMediumClicks > 0)
 					rmc = rand() % mediumclicks.size();
 				p = hacks.minPitch +
 					static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (hacks.maxPitch - hacks.minPitch)));
@@ -304,9 +302,9 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			}
 			if (ac.press)
 			{
-				if (hacks.clickbot && t > hacks.minTimeDifference && amountOfClicks > 0 && ac.press != (oldClick1 && !ac.player2 || oldClick2 && ac.player2))
+				if (hacks.clickbot && t > hacks.minTimeDifference && ExternData::amountOfClicks > 0 && ac.press != (oldClick1 && !ac.player2 || oldClick2 && ac.player2))
 				{
-					sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && amountOfMediumClicks > 0
+					sys->playSound(t > 0.0 && t < hacks.playMediumClicksAt && ExternData::amountOfMediumClicks > 0
 									   ? mediumclicks[rmc]
 									   : clicks[rc],
 								   nullptr, false, &channel);
@@ -330,7 +328,7 @@ float ReplayPlayer::Update(gd::PlayLayer* playLayer)
 			}
 			else
 			{
-				if (hacks.clickbot && amountOfReleases > 0 && ac.press != (oldClick1 && !ac.player2 || oldClick2 && ac.player2))
+				if (hacks.clickbot && ExternData::amountOfReleases > 0 && ac.press != (oldClick1 && !ac.player2 || oldClick2 && ac.player2))
 				{
 					sys->playSound(releases[rr], nullptr, false, &channel);
 					channel2->setPitch(p);

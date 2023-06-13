@@ -505,6 +505,11 @@ void Hacks::RenderMain()
 				ImGui::SetClipboardText(playLayer->m_level->levelString.c_str());
 		}
 
+		if (GDMO::ImButton("Generate clicks"))
+		{
+			ReplayPlayer::getInstance().recorder.generate_clicks();
+		}
+
 		ImGui::End();
 
 		ImGui::Begin("CocosExplorer by Mat", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
@@ -1699,6 +1704,9 @@ void Hacks::RenderMain()
 				ImGui::EndPopup();
 		}
 		GDMO::ImCheckbox("Prevent inputs", &hacks.preventInput);
+		GDMO::ImCheckbox("Record Action For Player 2", &hacks.recordPosForPlayer2);
+		if (ImGui::IsItemHovered())
+				ImGui::SetTooltip("Enable this option ONLY if the level uses the dual glitch where one icon shifts forwards, this will make sure that both icon x positions are getting saved instead of only player 1.");
 
 		ImGui::PushItemWidth(80 * ExternData::screenSizeX * hacks.menuSize);
 		if (ReplayPlayer::getInstance().IsRecording())
