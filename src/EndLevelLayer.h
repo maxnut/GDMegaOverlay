@@ -15,7 +15,6 @@ namespace EndLevelLayer
 
 	inline bool(__thiscall *customSetup)(CCLayer *self);
 	bool __fastcall customSetupHook(CCLayer *self, void *);
-
 }
 
 class ButtonsClass final : public gd::FLAlertLayer, public cocos2d::CCTextFieldDelegate, public gd::FLAlertLayerProtocol

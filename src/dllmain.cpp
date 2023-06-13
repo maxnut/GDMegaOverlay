@@ -7,14 +7,15 @@
 #include "ConstData.h"
 #include "CustomAction.h"
 #include "EndLevelLayer.h"
-#include "ExternData.h"
-#include "Hacks.h"
-#include "ImgUtil.h"
 #include "LevelEditorLayer.h"
 #include "LevelSearchLayer.h"
 #include "MenuLayer.h"
 #include "PlayLayer.h"
 #include "ReplayPlayer.h"
+#include "CustomSongWidget.h"
+#include "ExternData.h"
+#include "Hacks.h"
+#include "ImgUtil.h"
 #include "Shortcuts.h"
 #include "explorer.hpp"
 #include "imgui_internal.h"
@@ -809,6 +810,15 @@ void Hacks::RenderMain()
 			if (!ExternData::fake)
 				ImGui::EndPopup();
 		}
+
+		GDMO::ImCheckbox("Show Play Song Button", &hacks.playSongButton);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Shows a Play Song button when in the main page of a level.");
+		GDMO::ImCheckbox("Show Copy Song Button", &hacks.copySongButton);
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(
+				"Adds a Copy button that copies the song's ID.");
 
 		DrawFromJSON(ExternData::global);
 
@@ -2273,6 +2283,11 @@ DWORD WINAPI my_thread(void* hModule)
 			reinterpret_cast<void**>(&LevelSearchLayer::init));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook,
 			reinterpret_cast<void**>(&LevelSearchLayer::http));
+
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x685B0), CustomSongWidget::initHook,
+			reinterpret_cast<void**>(&CustomSongWidget::init));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x69970), CustomSongWidget::onPlaySongButtonHook,
+			reinterpret_cast<void**>(&CustomSongWidget::onPlaySongButton));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20DDD0), CustomCheckpoint::createHook,
 			reinterpret_cast<void**>(&CustomCheckpoint::create));
