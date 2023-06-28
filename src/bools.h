@@ -131,7 +131,7 @@ struct Labels
 
 struct Debug
 {
-	bool enabled = false;
+	bool enabled = true;
 	float debugNumber;
 	std::string debugString;
 };
