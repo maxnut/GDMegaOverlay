@@ -19,7 +19,7 @@ bool __fastcall CustomSongWidget::initHook(
 		) {
 			auto& moreButtonPosition = reinterpret_cast<gd::CCMenuItemSpriteExtra*>(menu->getChildren()->objectAtIndex(5))->getPosition();
 
-			auto buttonSprite = gd::ButtonSprite::create("Copy", 30, true, "bigFont.fnt", "GJ_button_02.png", 20, 1.0f);
+			auto buttonSprite = gd::ButtonSprite::create("Copy", 30, true, "bigFont.fnt", "GJ_button_02.png", 20.f, 1.f);
 			auto copyButton = gd::CCMenuItemSpriteExtra::create(
 				buttonSprite,
 				self,

@@ -8,3 +8,9 @@
 	path = libs/gd.h
 	url = https://github.com/maxnut/gd.h
 	branch = main
+[submodule "libs/curl"]
+	path = libs/curl
+	url = https://github.com/curl/curl
+[submodule "libs/libcurl"]
+	path = libs/libcurl
+	url = https://github.com/SpaghettDev/libcurl

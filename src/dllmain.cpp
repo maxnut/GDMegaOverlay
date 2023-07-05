@@ -9,9 +9,11 @@
 #include "EndLevelLayer.h"
 #include "LevelEditorLayer.h"
 #include "LevelSearchLayer.h"
+#include "LevelInfoLayer.h"
 #include "MenuLayer.h"
 #include "PlayLayer.h"
 #include "ReplayPlayer.h"
+#include "CreatorLayer.h"
 #include "CustomSongWidget.h"
 #include "ExternData.h"
 #include "Hacks.h"
@@ -2215,7 +2217,7 @@ DWORD WINAPI my_thread(void* hModule)
 			reinterpret_cast<void**>(&PlayLayer::update));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20D0D0), PlayLayer::togglePracticeModeHook,
 			reinterpret_cast<void**>(&PlayLayer::togglePracticeMode));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20a1a0), PlayLayer::destroyPlayer_H,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20A1A0), PlayLayer::destroyPlayer_H,
 			reinterpret_cast<void**>(&PlayLayer::destroyPlayer));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F4E40), PlayLayer::pushButtonHook,
 			reinterpret_cast<void**>(&PlayLayer::pushButton));
@@ -2241,11 +2243,11 @@ DWORD WINAPI my_thread(void* hModule)
 			reinterpret_cast<void**>(&PlayLayer::uiTouchBegan));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F9640), PlayLayer::togglePlayerScaleHook,
 			reinterpret_cast<void**>(&PlayLayer::togglePlayerScale));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f4ff0), PlayLayer::ringJumpHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F4FF0), PlayLayer::ringJumpHook,
 			reinterpret_cast<void**>(&PlayLayer::ringJump));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xef0e0), PlayLayer::activateObjectHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xEF0E0), PlayLayer::activateObjectHook,
 			reinterpret_cast<void**>(&PlayLayer::activateObject));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x10ed50), PlayLayer::bumpHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x10ED50), PlayLayer::bumpHook,
 			reinterpret_cast<void**>(&PlayLayer::bump));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1FE3A0), PlayLayer::newBestHook,
 			reinterpret_cast<void**>(&PlayLayer::newBest));
@@ -2255,7 +2257,7 @@ DWORD WINAPI my_thread(void* hModule)
 			reinterpret_cast<void**>(&PlayLayer::getObjectRect2));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xEF110), PlayLayer::hasBeenActivatedByPlayerHook,
 			reinterpret_cast<void**>(&PlayLayer::hasBeenActivatedByPlayer));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x14ebc0), PlayLayer::addPointHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x14EBC0), PlayLayer::addPointHook,
 			reinterpret_cast<void**>(&PlayLayer::addPoint));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0xE5D60), PlayLayer::powerOffObjectHook,
 			reinterpret_cast<void**>(&PlayLayer::powerOffObject));
@@ -2263,9 +2265,9 @@ DWORD WINAPI my_thread(void* hModule)
 			reinterpret_cast<void**>(&PlayLayer::playShineEffect));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x207D30), PlayLayer::flipGravityHook,
 			reinterpret_cast<void**>(&PlayLayer::flipGravity));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x207e00), PlayLayer::playGravityEffectHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x207E00), PlayLayer::playGravityEffectHook,
 			reinterpret_cast<void**>(&PlayLayer::playGravityEffect));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f62c0), PlayLayer::toggleDartModeHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1F62C0), PlayLayer::toggleDartModeHook,
 			reinterpret_cast<void**>(&PlayLayer::toggleDartMode));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook,
@@ -2289,13 +2291,19 @@ DWORD WINAPI my_thread(void* hModule)
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x17DA60), LevelSearchLayer::hook,
 			reinterpret_cast<void**>(&LevelSearchLayer::init));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9f8e0), LevelSearchLayer::httpHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9F8E0), LevelSearchLayer::httpHook,
 			reinterpret_cast<void**>(&LevelSearchLayer::http));
 
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x17C110), LevelInfoLayer::onBackHook,
+			reinterpret_cast<void**>(&LevelInfoLayer::onBack));
+		
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x685B0), CustomSongWidget::initHook,
 			reinterpret_cast<void**>(&CustomSongWidget::init));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x69970), CustomSongWidget::onPlaySongButtonHook,
 			reinterpret_cast<void**>(&CustomSongWidget::onPlaySongButton));
+
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x4DE40), CreatorLayer::initHook,
+			reinterpret_cast<void**>(&CreatorLayer::init));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20DDD0), CustomCheckpoint::createHook,
 			reinterpret_cast<void**>(&CustomCheckpoint::create));
@@ -2322,6 +2330,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
 	{
 	case DLL_PROCESS_ATTACH:
 		CreateThread(0, 0x1000, my_thread, hModule, 0, 0);
+		break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
 	case DLL_PROCESS_DETACH:
