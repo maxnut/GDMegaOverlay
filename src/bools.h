@@ -105,6 +105,8 @@ struct HacksStr
 
 	int replayMode = 1;
 	bool showPotentialCheats;
+
+	bool recordPosForPlayer2;
 };
 
 enum position
