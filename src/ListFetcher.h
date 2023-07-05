@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.h"
+#include "json.hpp"
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
