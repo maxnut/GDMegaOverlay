@@ -1,7 +1,6 @@
 #pragma once
 #include "pch.h"
 #include <thread>
-#include <nlohmann/json.hpp>
 
 
 struct RouletteManagerStruct

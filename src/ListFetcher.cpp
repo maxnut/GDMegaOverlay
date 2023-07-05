@@ -1,6 +1,5 @@
 #include "ListFetcher.h"
 #include "Hacks.h"
-#include <nlohmann/json.hpp>
 
 std::size_t curlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* s)
 {

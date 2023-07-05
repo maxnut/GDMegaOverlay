@@ -2294,16 +2294,16 @@ DWORD WINAPI my_thread(void* hModule)
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x9F8E0), LevelSearchLayer::httpHook,
 			reinterpret_cast<void**>(&LevelSearchLayer::http));
 
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x17C110), LevelInfoLayer::onBackHook,
-			reinterpret_cast<void**>(&LevelInfoLayer::onBack));
+		/*MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x17C110), LevelInfoLayer::onBackHook,
+			reinterpret_cast<void**>(&LevelInfoLayer::onBack));*/
 		
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x685B0), CustomSongWidget::initHook,
 			reinterpret_cast<void**>(&CustomSongWidget::init));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x69970), CustomSongWidget::onPlaySongButtonHook,
 			reinterpret_cast<void**>(&CustomSongWidget::onPlaySongButton));
 
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x4DE40), CreatorLayer::initHook,
-			reinterpret_cast<void**>(&CreatorLayer::init));
+		/*MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x4DE40), CreatorLayer::initHook,
+			reinterpret_cast<void**>(&CreatorLayer::init));*/
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20DDD0), CustomCheckpoint::createHook,
 			reinterpret_cast<void**>(&CustomCheckpoint::create));

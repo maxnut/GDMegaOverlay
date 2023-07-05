@@ -1,4 +1,3 @@
-#include <nlohmann/json.hpp>
 #include <thread>
 #include <imgui.h>
 #include "RouletteLayer.h"
