@@ -48,6 +48,8 @@ class ReplayPlayer
     void TogglePlaying();
     void ClearActions(){replay.ClearActions();};
 
+    void ChangeClickpack();
+
     void UpdateFrameOffset();
     void StartPlaying(gd::PlayLayer* playLayer);
     void Reset(gd::PlayLayer* playLayer);

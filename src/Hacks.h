@@ -17,6 +17,7 @@
 #include <functional>
 #include <random>
 #include <shellapi.h>
+#include "ConstData.h"
 
 #define STATUSSIZE 14
 
@@ -34,7 +35,7 @@ static std::vector<bool> cheatCheck;
 static const std::vector<std::string> cheatVector = {
 	"0x60554",	"0x60753",	"0x207328", "0x206921", "0x20612C", "0x2062C2", "0x20456D", "0x20456D",
 	"0x204D08", "0x2061BC", "0x20A23C", "0x20A34F", "0x205347", "0x20456D", "0x20456D", "0x20CEA4",
-	"0x254343", "0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30"};
+	"0x254343", "0x205161", "0x203519", "0x1E9141", "0x1EBAE8", "0x203DA2", "0x1E9C50", "0x1E9E30", "0x1E9F6B"};
 
 static const std::vector<std::string> cheatNames = {"No Rotation",
 													"Force Visibility",
@@ -108,6 +109,17 @@ static void writeOutput(int out)
 	file.close();
 }
 
+static void writeOutput(size_t out)
+{
+	std::ofstream file("output.log", std::fstream::app);
+	auto t = std::time(nullptr);
+	auto tm = *std::localtime(&t);
+	std::ostringstream s;
+	s << std::put_time(&tm, "%H:%M:%S");
+	file << "\n" << s.str() << " " << out;
+	file.close();
+}
+
 static void writeOutput(float out)
 {
 	std::ofstream file("output.log", std::fstream::app);
@@ -120,6 +132,18 @@ static void writeOutput(float out)
 }
 
 static void writeOutput(double out)
+{
+	std::ofstream file("output.log", std::fstream::app);
+	auto t = std::time(nullptr);
+	auto tm = *std::localtime(&t);
+	std::ostringstream s;
+	s << std::put_time(&tm, "%H:%M:%S");
+	file << "\n" << s.str() << " " << out;
+	file.close();
+}
+
+template <class T>
+static void writeOutput(T out)
 {
 	std::ofstream file("output.log", std::fstream::app);
 	auto t = std::time(nullptr);

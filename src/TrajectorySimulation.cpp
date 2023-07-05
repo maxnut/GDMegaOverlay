@@ -1,8 +1,8 @@
 #include "TrajectorySimulation.h"
 #include "Hacks.h"
 #include "HitboxNode.hpp"
-#include "Practice.h"
 #include "PlayLayer.h"
+#include "Practice.h"
 
 void TrajectorySimulation::createPlayersForSimulation()
 {
@@ -30,31 +30,103 @@ void TrajectorySimulation::createSimulation()
 	this->createPlayersForSimulation();
 }
 
+void playerupdateSpecial(gd::PlayerObject* player, float dt)
+{
+	__asm movss xmm1, dt;
+	reinterpret_cast<void(__thiscall*)(gd::PlayerObject*)>(gd::base + 0x1e8ab0)(player);
+}
+
+void playerupdate(gd::PlayerObject* player, float dt)
+{
+	reinterpret_cast<void(__thiscall*)(gd::PlayerObject*, float dt)>(gd::base + 0x1e8200)(player, dt);
+}
+
+void playerupdateRotation(gd::PlayerObject* player, float dt)
+{
+	__asm movss xmm1, dt;
+	reinterpret_cast<void(__thiscall*)(gd::PlayerObject*)>(gd::base + 0x1ebc00)(player);
+}
+
+bool playercheckCollisions(gd::PlayLayer* self, gd::PlayerObject* player, float dt)
+{
+	__asm movss xmm2, dt;
+	return reinterpret_cast<bool(__thiscall*)(gd::PlayLayer*, gd::PlayerObject*)>(gd::base + 0x203CD0)(self, player);
+}
+
 void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::PlayerObject* playerBase, float dt)
 {
+	if (playerBase->m_position.x <= 0.1f)
+		return;
 	auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
 	auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
 	auto res = CheckpointData::fromPlayer(playerBase);
+
+	if(playLayer->m_isDead) return;
+
+	bool isp1 = playLayer->m_pPlayer1 == player;
 
 	res.Apply(player, false);
 	PlayLayer::pushButton(player, 0);
 
 	auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
-	if(playerBase->m_vehicleSize < 1)
+	if (playerBase->m_vehicleSize < 1)
 	{
 		PlayLayer::togglePlayerScaleHook(player, 0, true);
 		player->m_vehicleSize = 0.6f;
 	}
 
-	for (size_t i = 0; i < static_cast<int>(winSize.width); i++)
+	float ratio = (1.0f / 60.0f) / (dt);
+	float accuracyValue = (float)hacks.trajectoryAccuracy / 1000.0f;
+
+	float endDt = dt / accuracyValue;
+
+	rotateAction = nullptr;
+	float elapsed = 0.0f;
+
+	if (!playerBase->m_isOnGround && res.gamemode == gd::Gamemode::kGamemodeCube)
+	{
+		auto ac = static_cast<CCRotateBy*>(playerBase->getActionByTag(0));
+		if (ac)
+		{
+			rotateAction = runNormalRotation(player, isp1 ? PlayLayer::player1RotRate : PlayLayer::player2RotRate);
+			player->setRotation(isp1 ? ExternData::lastJumpRotP1 : ExternData::lastJumpRotP2);
+			rotateAction->startWithTarget(player);
+			elapsed = ac->getElapsed();
+			rotateAction->step(0);
+			rotateAction->step(elapsed);
+		}
+	}
+
+	const double delta60 = endDt * 60.0;
+
+	const double delta240 = delta60 * 4.0;
+	const float newStepCount = delta240 < 0.0 ? ceil(delta240 - 0.5) : floor(delta240 + 0.5);
+	int subStepCount = 4;
+	if (newStepCount >= 4.0)
+	{
+		subStepCount = static_cast<int>(newStepCount);
+	}
+
+	const float stepDelta60 = delta60 / (float)subStepCount;
+	const double stepDelta = endDt / (float)subStepCount;
+
+	while (player->getPositionX() < playerBase->getPositionX() + 390)
 	{
 		auto prevPos = player->getPosition();
 		player->m_collisionLog->removeAllObjects();
 		player->m_collisionLog1->removeAllObjects();
-		player->update(0.2f);
-		player->updateSpecial();
-		playLayer->checkCollisions(player);
+		for (int curStep = 0; curStep < subStepCount; curStep++)
+		{
+			if (m_pDieInSimulation)
+				break;
+			playerupdate(player, stepDelta60);
+			playercheckCollisions(playLayer, player, stepDelta60);
+			playerupdateSpecial(player, stepDelta);
+		}
+		if (rotateAction && !player->m_isOnGround)
+			rotateAction->step(endDt);
+		playerupdateRotation(player, delta60);
 		HitboxNode::getInstance()->drawSegment(prevPos, player->getPosition(), 0.65f, cocos2d::ccc4f(0, 1, 0.1, 1));
 		if (m_pDieInSimulation)
 			break;
@@ -65,14 +137,28 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 	PlayLayer::releaseButton(player, 0);
 	m_pDieInSimulation = false;
 
-	for (size_t i = 0; i < static_cast<int>(winSize.width); i++)
+	if (rotateAction)
+	{
+		rotateAction->step(-rotateAction->getElapsed());
+		rotateAction->step(elapsed);
+	}
+
+	while (player->getPositionX() < playerBase->getPositionX() + 390)
 	{
 		auto prevPos = player->getPosition();
-		player->m_collisionLog->removeAllObjects();
-		player->m_collisionLog1->removeAllObjects();
-		player->update(0.2f);
-		player->updateSpecial();
-		playLayer->checkCollisions(player);
+		for (int curStep = 0; curStep < subStepCount; curStep++)
+		{
+			if (m_pDieInSimulation)
+				break;
+			player->m_collisionLog->removeAllObjects();
+			player->m_collisionLog1->removeAllObjects();
+			playerupdate(player, stepDelta60);
+			playercheckCollisions(playLayer, player, stepDelta60);
+			playerupdateSpecial(player, stepDelta);
+		}
+		if (rotateAction && !player->m_isOnGround)
+			rotateAction->step(endDt);
+		playerupdateRotation(player, delta60);
 		HitboxNode::getInstance()->drawSegment(prevPos, player->getPosition(), 0.65f, cocos2d::ccc4f(0, 1, 0.1, 1));
 		if (m_pDieInSimulation)
 			break;
@@ -80,6 +166,7 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 
 	HitboxNode::getInstance()->drawForPlayer1(player);
 	res.Apply(player, true);
+	player->stopAction(rotateAction);
 }
 
 void TrajectorySimulation::processMainSimulation(float dt)
@@ -237,6 +324,8 @@ void TrajectorySimulation::activateObjectsOnPlayerSimulations(gd::GameObject* ob
 	player->toggleDartMode(false);
 	player->toggleRobotMode(false);
 	player->toggleSpiderMode(false);
+
+	debug.debugNumber = typeObj;
 
 	if (typeObj == gd::kGameObjectTypeBallPortal)
 	{

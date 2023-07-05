@@ -200,7 +200,7 @@ std::vector<CCPoint> HitboxNode::quadrilateralForObject(gd::GameObject* obj)
 	return points;
 }
 
-void HitboxNode::drawCircleHitbox(cocos2d::CCPoint const& center, float radius, cocos2d::ccColor4B col)
+std::vector<cocos2d::CCPoint> HitboxNode::drawCircleHitbox(cocos2d::CCPoint const& center, float radius, cocos2d::ccColor4B col)
 {
 	constexpr size_t N = 64;
 	constexpr double PI = 3.1415926535;
@@ -210,6 +210,7 @@ void HitboxNode::drawCircleHitbox(cocos2d::CCPoint const& center, float radius, 
 		points[i] = center + CCPointMake(std::cos(2 * PI * i / N), std::sin(2 * PI * i / N)) * radius;
 	}
 	this->drawPolygonHitbox(points, col);
+	return points;
 }
 
 extern struct HacksStr hacks;
@@ -319,6 +320,7 @@ void HitboxNode::drawForObject(gd::GameObject* obj)
 		if (!hacks.showDecorations)
 			return;
 	}
+
 	if (obj->getObjectRadius() > 0)
 	{
 		this->drawCircleHitbox(obj->getPosition(), obj->getObjectRadius(), color);

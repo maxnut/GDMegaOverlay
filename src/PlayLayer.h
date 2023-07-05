@@ -50,6 +50,9 @@ namespace PlayLayer
 	inline void(__thiscall* togglePracticeMode)(gd::PlayLayer* self, bool on);
 	void __fastcall togglePracticeModeHook(gd::PlayLayer* self, void* edx, bool on);
 
+	inline void(__thiscall* loadFromCheckpoint)(gd::PlayLayer* self, gd::CheckpointObject* obj);
+	void __fastcall loadFromCheckpointHook(gd::PlayLayer* self, void* edx, gd::CheckpointObject* obj);
+
 	inline gd::GameSoundManager*(__thiscall* levelComplete)(gd::PlayLayer* self);
 	gd::GameSoundManager* __fastcall levelCompleteHook(gd::PlayLayer* self);
 
@@ -64,6 +67,9 @@ namespace PlayLayer
 
 	inline void(__thiscall* toggleDartMode)(gd::PlayerObject* self, bool toggle);
 	void __fastcall toggleDartModeHook(gd::PlayerObject* self, void*, bool toggle);
+
+	inline void(__thiscall* incrementJumps)(gd::PlayerObject* self);
+	void __fastcall incrementJumpsHook(gd::PlayerObject* self, void*);
 
 	inline void(__thiscall* uiTouchBegan)(gd::UILayer* self, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);
 	void __fastcall uiTouchBeganHook(gd::UILayer* self, void*, cocos2d::CCTouch* touch, cocos2d::CCEvent* evnt);

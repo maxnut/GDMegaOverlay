@@ -11,7 +11,7 @@ public:
 
 	static HitboxNode *getInstance();
 
-	virtual void drawCircleHitbox(cocos2d::CCPoint const &center, float radius, cocos2d::ccColor4B col);
+	virtual std::vector<cocos2d::CCPoint> drawCircleHitbox(cocos2d::CCPoint const &center, float radius, cocos2d::ccColor4B col);
 
 	virtual void drawPolygonHitbox(std::vector<cocos2d::CCPoint> const &points, cocos2d::ccColor4B col);
 

@@ -32,7 +32,7 @@ struct HacksStr
 	float rainbowSpeed;
 	bool clickbot = false;
 	float baseVolume = 1.0f, minPitch = 0.97f, maxPitch = 1.03f, minTimeDifference = 0.03f;
-	double playMediumClicksAt = 0.07;
+	double playSoftClicksAt = 0.07;
 	bool confirmQuit, autoSyncMusic, hidePause = false;
 	int musicMaxDesync = 80, hitboxOpacity = 200, borderOpacity = 255, hitboxKeyIndex;
 	float clickColor[3] = { 1.0f, 0.0f, 0.0f };
@@ -107,6 +107,22 @@ struct HacksStr
 	bool showPotentialCheats;
 
 	bool recordPosForPlayer2;
+	int trajectoryAccuracy = 10;
+
+	int customJumpKey;
+	int customJumpKey2;
+
+	int currentClickpack = 0;
+
+	bool includeNoise;
+	float renderNoiseVolume = 0.7f;
+
+	int stepBackKey;
+
+	int backStepMax;
+
+	bool realPercentage;
+	float levelEndPercent;
 };
 
 enum position

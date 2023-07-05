@@ -20,7 +20,7 @@ namespace ExternData
 
     extern json bypass, creator, global, level, player, variables, dlls;
 
-    extern int amountOfClicks, amountOfReleases, amountOfMediumClicks, steps;
+    extern int amountOfClicks, amountOfReleases, amountOfSoftClicks, steps;
 
     extern float tps, screenFps;
 
@@ -40,4 +40,10 @@ namespace ExternData
     extern float animation;
 
     extern int randomDirection;
+
+    extern bool finishedFirstLoop;
+
+    extern std::vector<std::string> clickpacks;
+
+    extern float lastJumpRotP1, lastJumpRotP2;
 } // namespace ExternData

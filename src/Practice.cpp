@@ -9,12 +9,13 @@ void CustomCheckpoint::GetCheckpoint()
 	c = ReplayPlayer::getInstance().GetPractice().CreateCheckpoint();
 }
 
-void runNormalRotation(gd::PlayerObject* player, float rate)
+CCRotateBy* runNormalRotation(gd::PlayerObject* player, float rate)
 {
 	cocos2d::CCRotateBy* rotateBy;
-	cocos2d::CCAction* action;
+	cocos2d::CCRotateBy* action;
 
-	if (!player->m_isShip && !*((bool*)player + 1532) && !*((bool*)player + 1533) && !*((bool*)player + 1537))
+	if (!player->m_isShip && !player->m_isBird && !player->m_isDart && !player->m_isSpider && !player->m_isRobot &&
+		!player->m_isDashing)
 	{
 		if (*((float*)player + 385) == 1.0)
 			rotateBy = (cocos2d::CCRotateBy*)1054727646;
@@ -26,8 +27,8 @@ void runNormalRotation(gd::PlayerObject* player, float rate)
 		action = rotateBy->create(0.421, (float)(180 * flipMod));
 
 		action->setTag(0);
-		player->runAction(action);
 	}
+	return action;
 }
 
 void runBallRotation2(gd::PlayerObject* pl, CheckpointData c)
@@ -106,6 +107,7 @@ CustomCheckpoint* CustomCheckpoint::createHook()
 	{
 		CC_SAFE_DELETE(cc);
 	}
+
 	if (PlayLayer::hadAction)
 	{
 		PlayLayer::respawnAction = cc->c.p1.isHolding + 1;
@@ -115,6 +117,263 @@ CustomCheckpoint* CustomCheckpoint::createHook()
 	else
 		PlayLayer::respawnAction = 0;
 	return cc;
+}
+
+ImGuiKey ConvertKeyEnum(int key)
+{
+	switch (key)
+	{
+	case KEY_None:
+		return ImGuiKey_None;
+	case KEY_Backspace:
+		return ImGuiKey_Backspace;
+	case KEY_Tab:
+		return ImGuiKey_Tab;
+	case KEY_Clear:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_Enter:
+		return ImGuiKey_Enter;
+	case KEY_Shift:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_Control:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_Alt:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_Pause:
+		return ImGuiKey_Pause;
+	case KEY_CapsLock:
+		return ImGuiKey_CapsLock;
+	case KEY_Escape:
+		return ImGuiKey_Escape;
+	case KEY_Space:
+		return ImGuiKey_Space;
+	case KEY_PageUp:
+		return ImGuiKey_PageUp;
+	case KEY_PageDown:
+		return ImGuiKey_PageDown;
+	case KEY_End:
+		return ImGuiKey_End;
+	case KEY_Home:
+		return ImGuiKey_Home;
+	case KEY_Left:
+		return ImGuiKey_LeftArrow;
+	case KEY_Up:
+		return ImGuiKey_UpArrow;
+	case KEY_Right:
+		return ImGuiKey_RightArrow;
+	case KEY_Down:
+		return ImGuiKey_DownArrow;
+	case KEY_Select:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_Print:
+		return ImGuiKey_PrintScreen;
+	case KEY_Execute:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_PrintScreen:
+		return ImGuiKey_PrintScreen;
+	case KEY_Insert:
+		return ImGuiKey_Insert;
+	case KEY_Delete:
+		return ImGuiKey_Delete;
+	case KEY_Help:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_Zero:
+		return ImGuiKey_0;
+	case KEY_One:
+		return ImGuiKey_1;
+	case KEY_Two:
+		return ImGuiKey_2;
+	case KEY_Three:
+		return ImGuiKey_3;
+	case KEY_Four:
+		return ImGuiKey_4;
+	case KEY_Five:
+		return ImGuiKey_5;
+	case KEY_Six:
+		return ImGuiKey_6;
+	case KEY_Seven:
+		return ImGuiKey_7;
+	case KEY_Eight:
+		return ImGuiKey_8;
+	case KEY_Nine:
+		return ImGuiKey_9;
+	case KEY_A:
+		return ImGuiKey_A;
+	case KEY_B:
+		return ImGuiKey_B;
+	case KEY_C:
+		return ImGuiKey_C;
+	case KEY_D:
+		return ImGuiKey_D;
+	case KEY_E:
+		return ImGuiKey_E;
+	case KEY_F:
+		return ImGuiKey_F;
+	case KEY_G:
+		return ImGuiKey_G;
+	case KEY_H:
+		return ImGuiKey_H;
+	case KEY_I:
+		return ImGuiKey_I;
+	case KEY_J:
+		return ImGuiKey_J;
+	case KEY_K:
+		return ImGuiKey_K;
+	case KEY_L:
+		return ImGuiKey_L;
+	case KEY_M:
+		return ImGuiKey_M;
+	case KEY_N:
+		return ImGuiKey_N;
+	case KEY_O:
+		return ImGuiKey_O;
+	case KEY_P:
+		return ImGuiKey_P;
+	case KEY_Q:
+		return ImGuiKey_Q;
+	case KEY_R:
+		return ImGuiKey_R;
+	case KEY_S:
+		return ImGuiKey_S;
+	case KEY_T:
+		return ImGuiKey_T;
+	case KEY_U:
+		return ImGuiKey_U;
+	case KEY_V:
+		return ImGuiKey_V;
+	case KEY_W:
+		return ImGuiKey_W;
+	case KEY_X:
+		return ImGuiKey_X;
+	case KEY_Y:
+		return ImGuiKey_Y;
+	case KEY_Z:
+		return ImGuiKey_Z;
+	case KEY_LeftWindowsKey:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_RightWindowsKey:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_ApplicationsKey:
+		return ImGuiKey_None; // No equivalent key
+	case KEY_NumPad0:
+		return ImGuiKey_Keypad0;
+	case KEY_NumPad1:
+		return ImGuiKey_Keypad1;
+	case KEY_NumPad2:
+		return ImGuiKey_Keypad2;
+	case KEY_NumPad3:
+		return ImGuiKey_Keypad3;
+	case KEY_NumPad4:
+		return ImGuiKey_Keypad4;
+	case KEY_NumPad5:
+		return ImGuiKey_Keypad5;
+	case KEY_NumPad6:
+		return ImGuiKey_Keypad6;
+	case KEY_NumPad7:
+		return ImGuiKey_Keypad7;
+	case KEY_NumPad8:
+		return ImGuiKey_Keypad8;
+	case KEY_NumPad9:
+		return ImGuiKey_Keypad9;
+	case KEY_Multiply:
+		return ImGuiKey_KeypadMultiply;
+	case KEY_Add:
+		return ImGuiKey_KeypadAdd;
+	case KEY_Seperator:
+		return ImGuiKey_KeypadEnter;
+	case KEY_Subtract:
+		return ImGuiKey_KeypadSubtract;
+	case KEY_Decimal:
+		return ImGuiKey_KeypadDecimal;
+	case KEY_Divide:
+		return ImGuiKey_KeypadDivide;
+	case KEY_F1:
+		return ImGuiKey_F1;
+	case KEY_F2:
+		return ImGuiKey_F2;
+	case KEY_F3:
+		return ImGuiKey_F3;
+	case KEY_F4:
+		return ImGuiKey_F4;
+	case KEY_F5:
+		return ImGuiKey_F5;
+	case KEY_F6:
+		return ImGuiKey_F6;
+	case KEY_F7:
+		return ImGuiKey_F7;
+	case KEY_F8:
+		return ImGuiKey_F8;
+	case KEY_F9:
+		return ImGuiKey_F9;
+	case KEY_F10:
+		return ImGuiKey_F10;
+	case KEY_F11:
+		return ImGuiKey_F11;
+	case KEY_F12:
+		return ImGuiKey_F12;
+	case KEY_Numlock:
+		return ImGuiKey_NumLock;
+	case KEY_ScrollLock:
+		return ImGuiKey_ScrollLock;
+	case KEY_LeftShift:
+		return ImGuiKey_LeftShift;
+	case KEY_RightShift:
+		return ImGuiKey_RightShift;
+	case KEY_LeftControl:
+		return ImGuiKey_LeftCtrl;
+	case KEY_RightContol:
+		return ImGuiKey_RightCtrl;
+	case KEY_LeftMenu:
+		return ImGuiKey_LeftAlt;
+	case KEY_RightMenu:
+		return ImGuiKey_RightAlt;
+	default:
+		return ImGuiKey_COUNT; // Invalid key
+	}
+}
+
+bool isKeyPressed(gd::PlayLayer* pl, bool player1)
+{
+	const auto& io = ImGui::GetIO();
+
+	if (!pl->m_pLevelSettings->m_twoPlayerMode)
+	{
+		if (io.MouseDown[0] || io.KeysDown[ImGuiKey_UpArrow] || io.KeysDown[ImGuiKey_Space] ||
+			io.KeysDown[ConvertKeyEnum(hacks.customJumpKey)] || io.KeysDown[ConvertKeyEnum(hacks.customJumpKey2)])
+			return true;
+	}
+	else
+	{
+		if (!pl->m_bIsDualMode)
+		{
+			if (player1)
+			{
+				if (io.MouseDown[0] || io.KeysDown[ImGuiKey_Space] || io.KeysDown[ConvertKeyEnum(hacks.customJumpKey)])
+					return true;
+			}
+			else
+			{
+				if (io.KeysDown[ImGuiKey_UpArrow] || io.KeysDown[ConvertKeyEnum(hacks.customJumpKey2)])
+					return true;
+			}
+		}
+		else
+		{
+			if (player1)
+			{
+				if (io.KeysDown[ImGuiKey_Space] || io.KeysDown[ConvertKeyEnum(hacks.customJumpKey)])
+					return true;
+			}
+			else
+			{
+				if (io.MouseDown[0] || io.KeysDown[ImGuiKey_UpArrow] ||
+					io.KeysDown[ConvertKeyEnum(hacks.customJumpKey2)])
+					return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
@@ -135,8 +394,7 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 	cd.decelerationRate = p->m_decelerationRate;
 	cd.isHolding = p->m_isHolding;
 	cd.lastJumpTime = p->m_lastJumpTime;
-	cd.mouseDown = ImGui::GetIO().MouseDown[0] || ImGui::GetIO().KeysDown[ImGuiKey_UpArrow] ||
-				   ImGui::GetIO().KeysDown[ImGuiKey_Space];
+	cd.mouseDown = isKeyPressed(pl, isp1);
 	cd.isHolding2 = p->m_isHolding2;
 	cd.canRobotJump = p->m_canRobotJump;
 	cd.isUpsideDown = p->m_isUpsideDown;
@@ -151,14 +409,24 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 	cd.touchRing = p->m_touchingRings->count();
 	cd.gamemode = GetGamemode(p);
 	cd.objSnap = p->m_objectSnappedTo;
-	auto ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(1));
-	if (p->m_isBall && !p->m_isOnGround && ac)
+	cd.ballRotationElapsed = 0;
+	if (p->m_isBall)
 	{
-		float el = ac->getElapsed();
-		cd.ballRotationElapsed = el;
-		ac->step(-el);
-		cd.rotationElapsed = p->getRotation();
-		ac->step(el);
+		auto ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(1));
+		if (!ac)
+			ac = static_cast<cocos2d::CCRotateBy*>(p->getActionByTag(0));
+
+		if (ac)
+		{
+			float el = ac->getElapsed();
+			cd.ballRotationElapsed = el;
+			if (!p->m_isOnGround)
+			{
+				ac->step(-el);
+				cd.rotationElapsed = p->getRotation();
+				ac->step(el);
+			}
+		}
 	}
 	return cd;
 }
@@ -171,27 +439,20 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 	p->m_yAccel = yAccel;
 	p->m_jumpAccel = jumpAccel;
 
-	if (mouseDown != (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().KeysDown[ImGuiKey_UpArrow] ||
-					  ImGui::GetIO().KeysDown[ImGuiKey_Space]))
+	bool isp1 = p == pl->m_pPlayer1;
+
+	if (mouseDown != isKeyPressed(pl, isp1))
 	{
-		out = ImGui::GetIO().MouseDown[0] || ImGui::GetIO().KeysDown[ImGuiKey_UpArrow] ||
-					  ImGui::GetIO().KeysDown[ImGuiKey_Space]
-				  ? 2
-				  : 1; // 2 == press, 1 == release
+		out = isKeyPressed(pl, isp1) ? 2 : 1; // 2 == press, 1 == release
 	}
 	else if (touchRing > 0)
 	{
 		out = 1;
 	}
 
-	bool isp1 = p == pl->m_pPlayer1;
-
-	if (tp && isHolding2 == p->m_isHolding2)
-		out = p->m_isHolding2 ? 2 : 1;
-
 	if (out == 0 && isp1 && PlayLayer::respawnAction > 0)
 		out = PlayLayer::respawnAction;
-	if (out == 0 && !isp1 && PlayLayer::respawnAction2 > 0)
+	else if (out == 0 && !isp1 && PlayLayer::respawnAction2 > 0)
 		out = PlayLayer::respawnAction2;
 
 	p->setPosition({xPos, yPos});
@@ -224,7 +485,7 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 
 	if (gamemode == gd::kGamemodeCube && !p->m_isOnGround)
 	{
-		runNormalRotation(p, rotRate);
+		p->runAction(runNormalRotation(p, rotRate));
 	}
 	if (p->m_isBall && !p->m_isOnGround)
 	{
@@ -301,5 +562,135 @@ void Practice::ApplyCheckpoint()
 			else
 				PlayLayer::releaseButton(playLayer->m_pPlayer2, 0);
 		}
+	}
+}
+
+json jsonFromPlayerCheckpoint(gd::PlayerCheckpoint* pc)
+{
+	json playerObject = json::object();
+	playerObject["m_position"]["x"] = pc->m_position.x;
+	playerObject["m_position"]["y"] = pc->m_position.y;
+	playerObject["m_yAccel"] = pc->m_yAccel;
+	playerObject["m_isUpsideDown"] = pc->m_isUpsideDown;
+	playerObject["m_isShip"] = pc->m_isShip;
+	playerObject["m_isBall"] = pc->m_isBall;
+	playerObject["m_isUFO"] = pc->m_isUFO;
+	playerObject["m_isWave"] = pc->m_isWave;
+	playerObject["m_isRobot"] = pc->m_isRobot;
+	playerObject["m_isSpider"] = pc->m_isSpider;
+	playerObject["m_isOnGround"] = pc->m_isOnGround;
+	playerObject["m_hasGhostTrail"] = pc->m_hasGhostTrail;
+	playerObject["m_small"] = pc->m_small;
+	playerObject["m_speed"] = pc->m_speed;
+	playerObject["m_hidden"] = false; // pc->m_hidden;
+	return playerObject;
+}
+
+gd::PlayerCheckpoint* playerCheckpointFromJson(json playerObject)
+{
+	gd::PlayerCheckpoint* pc = static_cast<gd::PlayerCheckpoint*>(gd::PlayerCheckpoint::create());
+	pc->retain();
+	pc->m_position.x = playerObject["m_position"]["x"];
+	pc->m_position.y = playerObject["m_position"]["y"];
+	pc->m_yAccel = playerObject["m_yAccel"];
+	pc->m_isUpsideDown = playerObject["m_isUpsideDown"];
+	pc->m_isShip = playerObject["m_isShip"];
+	pc->m_isBall = playerObject["m_isBall"];
+	pc->m_isUFO = playerObject["m_isUFO"];
+	pc->m_isWave = playerObject["m_isWave"];
+	pc->m_isRobot = playerObject["m_isRobot"];
+	pc->m_isSpider = playerObject["m_isSpider"];
+	pc->m_isOnGround = playerObject["m_isOnGround"];
+	pc->m_hasGhostTrail = playerObject["m_hasGhostTrail"];
+	pc->m_small = playerObject["m_small"];
+	pc->m_speed = playerObject["m_speed"];
+	pc->m_hidden = playerObject["m_hidden"];
+	return pc;
+}
+
+void Practice::SaveCheckpoints()
+{
+	auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
+	std::string path = "GDMenu/checkpoints/" + playLayer->m_level->levelName + " " +
+					   std::to_string(playLayer->m_level->levelID) + ".json";
+	std::ofstream file(path);
+
+	auto practiceJsonArray = json::array();
+	CCObject* checkpointCCObject;
+	CCARRAY_FOREACH(playLayer->m_checkpoints, checkpointCCObject)
+	{
+		auto checkpointObj = dynamic_cast<CustomCheckpoint*>(checkpointCCObject);
+		if (checkpointObj)
+		{
+			auto practiceJsonObject = json::object();
+
+			practiceJsonObject["m_player1"] = jsonFromPlayerCheckpoint(checkpointObj->m_player1);
+			if (checkpointObj->m_player2)
+				practiceJsonObject["m_player2"] = jsonFromPlayerCheckpoint(checkpointObj->m_player2);
+
+			practiceJsonObject["m_isDual"] = checkpointObj->m_isDual;
+			practiceJsonObject["m_isFlipped"] = checkpointObj->m_isFlipped;
+			practiceJsonObject["m_cameraPos"]["x"] = checkpointObj->m_cameraPos.x;
+			practiceJsonObject["m_cameraPos"]["y"] = checkpointObj->m_cameraPos.y;
+			practiceJsonObject["unk104"] = checkpointObj->unk104;
+			practiceJsonObject["unk110"] = checkpointObj->unk110;
+			practiceJsonObject["m_currentStateString"] = checkpointObj->m_currentStateString;
+			practiceJsonObject["m_objectsStateString"] = checkpointObj->m_objectsStateString;
+			practiceJsonArray.push_back(practiceJsonObject);
+		}
+	}
+
+	file << practiceJsonArray.dump(4);
+
+	file.close();
+}
+
+void Practice::LoadCheckpoints()
+{
+	auto playLayer = gd::GameManager::sharedState()->getPlayLayer();
+	std::string path = "GDMenu/checkpoints/" + playLayer->m_level->levelName + " " +
+					   std::to_string(playLayer->m_level->levelID) + ".json";
+
+	if (!std::filesystem::exists(path))
+		return;
+
+	std::ifstream file(path);
+	std::stringstream buffer;
+
+	buffer << file.rdbuf();
+	json practiceJsonArray = json::parse(buffer.str());
+	file.close();
+	buffer.str("");
+	buffer.clear();
+
+	for (const json& practiceJsonObject : practiceJsonArray)
+	{
+		CustomCheckpoint* checkpointObj = CustomCheckpoint::createHook();
+		// checkpointObj->retain();
+
+		checkpointObj->m_player1 = playerCheckpointFromJson(practiceJsonObject["m_player1"]);
+		if (practiceJsonObject.contains("m_player2"))
+			checkpointObj->m_player2 = playerCheckpointFromJson(practiceJsonObject["m_player2"]);
+
+		checkpointObj->m_isDual = practiceJsonObject["m_isDual"];
+		checkpointObj->m_isFlipped = practiceJsonObject["m_isFlipped"];
+		checkpointObj->m_cameraPos.x = practiceJsonObject["m_cameraPos"]["x"];
+		checkpointObj->m_cameraPos.y = practiceJsonObject["m_cameraPos"]["y"];
+		checkpointObj->unk104 = practiceJsonObject["unk104"];
+		checkpointObj->unk110 = practiceJsonObject["unk110"];
+		checkpointObj->m_currentStateString = practiceJsonObject["m_currentStateString"];
+		checkpointObj->m_objectsStateString = practiceJsonObject["m_objectsStateString"];
+
+		auto checkpointGameObject = gd::GameObject::createWithFrame("checkpoint_01_001.png");
+		checkpointGameObject->retain();
+		checkpointGameObject->m_nObjectID = 44;
+
+		checkpointObj->m_gameObject = checkpointGameObject;
+
+		checkpointGameObject->setPosition(
+			{checkpointObj->m_player1->m_position.x, checkpointObj->m_player1->m_position.y});
+
+		reinterpret_cast<void(__thiscall*)(gd::PlayLayer*, gd::CheckpointObject*)>(gd::base + 0x20b420)(playLayer,
+																										checkpointObj);
 	}
 }

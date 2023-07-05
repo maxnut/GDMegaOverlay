@@ -85,8 +85,12 @@ void Recorder::start()
 						  std::to_string(play_layer->m_level->levelID) + "/" + play_layer->m_level->levelName + ".mp4");
 		auto notfinalpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " +
 							 std::to_string(play_layer->m_level->levelID) + "/" + "rendered_video.mp4");
+		auto notfinalpath2 = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " +
+							  std::to_string(play_layer->m_level->levelID) + "/" + "rendered_video_noise.mp4");
 		auto clickpath = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " +
 						  std::to_string(play_layer->m_level->levelID) + "/" + "rendered_clicks.wav");
+
+		auto noisepath = gdpath + "/GDMenu/clickpacks/" + ExternData::clickpacks[hacks.currentClickpack] + "/noise.wav";
 
 		{
 			std::stringstream stream;
@@ -129,12 +133,10 @@ void Recorder::start()
 			}
 			catch (const std::exception& e)
 			{
-				std::cerr << e.what() << '\n';
+				std::cout << e.what() << '\n';
 			}
 		}
 
-		if (!m_include_audio || !std::filesystem::exists(song_file))
-			return;
 		wchar_t buffer[MAX_PATH];
 		if (!GetTempFileNameW(Hacks::widen(std::filesystem::temp_directory_path().string()).c_str(), L"rec", 0, buffer))
 		{
@@ -144,6 +146,7 @@ void Recorder::start()
 		std::filesystem::rename(buffer, temp_path);
 		auto total_time = m_last_frame_t; // 1 frame too short?
 
+		if (m_include_audio && std::filesystem::exists(song_file))
 		{
 			std::stringstream stream;
 			stream << '"' << m_ffmpeg_path << '"' << " -y -ss " << song_offset << " -i \"" << song_file << "\" -i \""
@@ -165,12 +168,36 @@ void Recorder::start()
 			}
 			catch (const std::exception& e)
 			{
-				std::cerr << e.what() << '\n';
+				std::cout << e.what() << '\n';
 			}
 		}
 
 		std::filesystem::remove(Hacks::widen(notfinalpath));
 		std::filesystem::rename(temp_path, Hacks::widen(notfinalpath));
+
+		if (hacks.includeNoise)
+		{
+			std::stringstream f;
+			f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -stream_loop -1 -i " << '"'
+			  << noisepath << '"' << " -filter_complex "
+			  << "\"[0:a]volume=1.0[a0];[1:a]volume=" << hacks.renderNoiseVolume * 10.0f
+			  << "[a1];[a0][a1]amix=inputs=2:duration=shortest\""
+			  << " -map 0:v -c:v copy -b:a 192k " << '"' << notfinalpath2 << '"';
+			auto process = subprocess::Popen(f.str());
+			try
+			{
+				process.close();
+			}
+			catch (const std::exception& e)
+			{
+				std::cout << e.what() << '\n';
+			}
+			std::filesystem::remove(Hacks::widen(notfinalpath));
+			std::filesystem::rename(notfinalpath2, Hacks::widen(notfinalpath));
+		}
+
+		if (!hacks.includeClicks)
+			return;
 
 		generate_clicks();
 
@@ -179,7 +206,7 @@ void Recorder::start()
 			f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -i " << '"' << clickpath
 			  << '"' << " -filter_complex "
 			  << "\"[0:a]volume=1.0[a0];[1:a]volume=" << hacks.renderClickVolume
-			  << "[a1];[a0][a1]amix=inputs=2:duration=longest:weights=1 " << hacks.renderClickVolume << "\""
+			  << "[a1];[a0][a1]amix=inputs=2:duration=longest\""
 			  << " -map 0:v -c:v copy -b:a 192k " << '"' << finalpath << '"';
 			auto process = subprocess::Popen(f.str());
 			try
@@ -188,7 +215,7 @@ void Recorder::start()
 			}
 			catch (const std::exception& e)
 			{
-				std::cerr << e.what() << '\n';
+				std::cout << e.what() << '\n';
 			}
 		}
 	}).detach();
@@ -300,39 +327,6 @@ void Recorder::update_song_offset(gd::PlayLayer* play_layer)
 		play_layer->m_pLevelSettings->m_songStartOffset + play_layer->timeForXPos(play_layer->m_pPlayer1->m_position.x);
 }
 
-// Structure to hold the audio data
-struct AudioData
-{
-	const char* filename;
-	int16_t* samples;
-	size_t numSamples;
-};
-
-// Callback function to fill the output buffer with audio data
-int paCallback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
-			   const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
-{
-
-	AudioData* audioData = (AudioData*)userData;
-	int16_t* out = (int16_t*)outputBuffer;
-
-	// Check if all samples have been played
-	if (audioData->numSamples == 0)
-		return paComplete;
-
-	// Copy audio samples to the output buffer
-	size_t samplesToCopy =
-		(size_t)framesPerBuffer < audioData->numSamples ? (size_t)framesPerBuffer : audioData->numSamples;
-	std::memcpy(out, audioData->samples, samplesToCopy * sizeof(int16_t));
-
-	// Update the sample pointer and remaining sample count
-	audioData->samples += samplesToCopy;
-	audioData->numSamples -= samplesToCopy;
-
-	return paContinue;
-}
-
-//i love you chatgpt
 void Recorder::generate_clicks()
 {
 	ReplayPlayer* rp = &ReplayPlayer::getInstance();
@@ -345,35 +339,155 @@ void Recorder::generate_clicks()
 
 	auto gdpath = p.string();
 
-	std::string path = gdpath + "\\GDmenu\\clicks\\";
+	std::string path = gdpath + "/GDMenu/clickpacks/" + ExternData::clickpacks[hacks.currentClickpack];
 
-	// Initialize PortAudio
 	Pa_Initialize();
 
-	// List of input .wav files
-	std::vector<std::string> clicks, mediumclicks, releases;
+	int sampleRate = 0;
+	int numChannels = 0;
+	PaSampleFormat sampleFormat = 0;
 
-	for (size_t i = 0; i < ExternData::amountOfClicks; i++)
-		clicks.push_back(path + "clicks\\" + std::to_string(i) + ".wav");
+	for (size_t i = 1; i <= ExternData::amountOfClicks; i++)
+	{
+		const char* filenameDummy = (path + "\\clicks\\" + std::to_string(i) + ".wav").c_str();
 
-	for (size_t i = 0; i < ExternData::amountOfMediumClicks; i++)
-		mediumclicks.push_back(path + "mediumclicks\\" + std::to_string(i) + ".wav");
+		SF_INFO inputSfInfoDummy;
+		SNDFILE* inputSndFileDummy = sf_open(filenameDummy, SFM_READ, &inputSfInfoDummy);
 
-	for (size_t i = 0; i < ExternData::amountOfReleases; i++)
-		releases.push_back(path + "releases\\" + std::to_string(i) + ".wav");
+		if (sampleRate != 0 && inputSfInfoDummy.samplerate != sampleRate)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same sample rate! clicks/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
 
-	// Assume common audio format for all input files
-	int sampleRate = 44100;
-	int numChannels = 2;
-	PaSampleFormat sampleFormat = paInt16;
+		if (numChannels != 0 && inputSfInfoDummy.channels != numChannels)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same channel number! clicks/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		if (sampleFormat != 0 && inputSfInfoDummy.format != sampleFormat)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same sample format! clicks/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		sampleRate = inputSfInfoDummy.samplerate;
+		numChannels = inputSfInfoDummy.channels;
+		sampleFormat = inputSfInfoDummy.format;
+
+		sf_close(inputSndFileDummy);
+	}
+
+	for (size_t i = 1; i <= ExternData::amountOfSoftClicks; i++)
+	{
+		const char* filenameDummy = (path + "\\softclicks\\" + std::to_string(i) + ".wav").c_str();
+
+		SF_INFO inputSfInfoDummy;
+		SNDFILE* inputSndFileDummy = sf_open(filenameDummy, SFM_READ, &inputSfInfoDummy);
+
+		if (sampleRate != 0 && inputSfInfoDummy.samplerate != sampleRate)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same sample rate! softclicks/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		if (numChannels != 0 && inputSfInfoDummy.channels != numChannels)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same channel number! softclicks/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		if (sampleFormat != 0 && inputSfInfoDummy.format != sampleFormat)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same sample format! softclicks/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		sampleRate = inputSfInfoDummy.samplerate;
+		numChannels = inputSfInfoDummy.channels;
+		sampleFormat = inputSfInfoDummy.format;
+
+		sf_close(inputSndFileDummy);
+	}
+
+	for (size_t i = 1; i <= ExternData::amountOfReleases; i++)
+	{
+		const char* filenameDummy = (path + "\\releases\\" + std::to_string(i) + ".wav").c_str();
+
+		SF_INFO inputSfInfoDummy;
+		SNDFILE* inputSndFileDummy = sf_open(filenameDummy, SFM_READ, &inputSfInfoDummy);
+
+		if (sampleRate != 0 && inputSfInfoDummy.samplerate != sampleRate)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same sample rate! releases/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		if (numChannels != 0 && inputSfInfoDummy.channels != numChannels)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same channel number! releases/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		if (sampleFormat != 0 && inputSfInfoDummy.format != sampleFormat)
+		{
+			gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
+									 "Make sure all of your files have the same sample format! releases/" +
+										 std::to_string(i) + ".wav")
+				->show();
+			sf_close(inputSndFileDummy);
+			return;
+		}
+
+		sampleRate = inputSfInfoDummy.samplerate;
+		numChannels = inputSfInfoDummy.channels;
+		sampleFormat = inputSfInfoDummy.format;
+
+		sf_close(inputSndFileDummy);
+	}
 
 	auto gm = gd::GameManager::sharedState();
 	auto play_layer = gm->getPlayLayer();
 
-	// Open the output file using libsndfile
 	const char* outputFile = (gdpath + "/GDMenu/renders/" + play_layer->m_level->levelName + " - " +
 							  std::to_string(play_layer->m_level->levelID) + "/" + "rendered_clicks.wav")
 								 .c_str();
+
+	std::filesystem::create_directories(std::filesystem::path(outputFile).parent_path());
+
 	SF_INFO sfInfo;
 	sfInfo.samplerate = sampleRate;
 	sfInfo.channels = numChannels;
@@ -385,19 +499,24 @@ void Recorder::generate_clicks()
 		return;
 	}
 
-	// Concatenate the input files and write to the output file
 	double previousTimestamp = 0.0;
+
+	std::vector<int16_t> mixedBuffer;
 
 	for (const Action& ac : rp->GetReplay()->getActions())
 	{
-		// Open the input file using libsndfile
-		AudioData audioData;
+		double timestamp = ac.frame / rp->GetReplay()->fps;
 
-		const char* filename = (path + (ac.press ? "clicks\\" : "releases\\") +
-								std::to_string(rand() % ExternData::amountOfClicks + 1) + ".wav")
-								   .c_str();
+		int amt = ac.press ? (timestamp - previousTimestamp <= hacks.playSoftClicksAt ? ExternData::amountOfSoftClicks
+																					  : ExternData::amountOfClicks)
+						   : ExternData::amountOfReleases;
 
-		audioData.filename = filename;
+		const char* filename =
+			(path +
+			 (ac.press ? (timestamp - previousTimestamp <= hacks.playSoftClicksAt ? "\\softclicks\\" : "\\clicks\\")
+					   : "\\releases\\") +
+			 std::to_string(rand() % amt + 1) + ".wav")
+				.c_str();
 
 		SF_INFO inputSfInfo;
 		SNDFILE* inputSndFile = sf_open(filename, SFM_READ, &inputSfInfo);
@@ -407,52 +526,38 @@ void Recorder::generate_clicks()
 			continue;
 		}
 
-		// Calculate the new duration of the audio file
 		double duration = inputSfInfo.frames / static_cast<double>(sampleRate);
 
-		// Calculate the new timestamp for the audio file
-		double timestamp = ac.frame / rp->GetReplay()->fps;
-
-		// Calculate the number of silent frames to insert between files
 		double timeDiff = timestamp - previousTimestamp - duration;
 
 		if (timeDiff < 0)
 			timeDiff = 0;
 
-		size_t numSilenceFrames = static_cast<size_t>(std::round(timeDiff * sampleRate));
-
-		// Calculate the number of silent samples based on the total number of channels
-		size_t numSilenceSamples = numSilenceFrames * numChannels;
-
-		// Write silent samples to the output file
-		int16_t* silenceSamples = new int16_t[numSilenceSamples];
-		std::memset(silenceSamples, 0, numSilenceSamples * sizeof(int16_t));
-		sf_writef_short(sndFile, silenceSamples, numSilenceFrames);
-		delete[] silenceSamples;
-
-		// Update the previous timestamp and the total time
 		previousTimestamp = timestamp;
 
-		// Update the sample rate of the input file to match the output file
 		inputSfInfo.samplerate = sampleRate;
 
-		// Create a temporary output buffer
 		int16_t* outputBuffer = new int16_t[inputSfInfo.frames * inputSfInfo.channels];
 
-		// Read audio samples into memory
 		sf_readf_short(inputSndFile, outputBuffer, inputSfInfo.frames);
 
 		sf_close(inputSndFile);
 
-		sf_count_t frameTime = static_cast<sf_count_t>(timestamp * sampleRate);
-		sf_seek(sndFile, frameTime, SEEK_SET);
+		long long frameTime = static_cast<long long>(timestamp * sampleRate * numChannels);
 
-		// Write audio samples to the output file
-		sf_writef_short(sndFile, outputBuffer, inputSfInfo.frames);
+		if (mixedBuffer.size() < frameTime + (inputSfInfo.frames * inputSfInfo.channels))
+			mixedBuffer.resize(frameTime + (inputSfInfo.frames * inputSfInfo.channels), 0);
+
+		for (long long i = 0; i < inputSfInfo.frames * inputSfInfo.channels; ++i)
+		{
+			mixedBuffer[frameTime + i] += outputBuffer[i];
+		}
+
 		delete[] outputBuffer;
 	}
 
-	// Cleanup and close the output file
+	sf_writef_short(sndFile, mixedBuffer.data(), mixedBuffer.size() / numChannels);
+
 	sf_close(sndFile);
 	Pa_Terminate();
 }

@@ -1,11 +1,11 @@
 #define WIN32_LEAN_AND_MEAN
-#include <sstream>
-#include <string_view>
-#include <filesystem>
-#include "explorerUtils.hpp"
 #include "explorer.hpp"
 #include "Hacks.h"
+#include "explorerUtils.hpp"
 #include "json.hpp"
+#include <filesystem>
+#include <sstream>
+#include <string_view>
 
 using namespace cocos2d;
 using json = nlohmann::json;
@@ -14,55 +14,193 @@ json j;
 size_t index = 0;
 std::vector<int> ids;
 
-void GenerateJsonTextures(cocos2d::CCArray *children, bool isAGObject, json currentChild)
+const char* get_node_name(CCNode* node)
+{
+	// works because msvc's typeid().name() returns undecorated name
+	// typeid(CCNode).name() == "class cocos2d::CCNode"
+	// the + 6 gets rid of the class prefix
+	// "class cocos2d::CCNode" + 6 == "cocos2d::CCNode"
+	return typeid(*node).name() + 6;
+}
+
+const char* get_frame_name(CCSprite* sprite_node)
+{
+	auto* texture = sprite_node->getTexture();
+
+	CCDictElement* el;
+
+	auto* frame_cache = CCSpriteFrameCache::sharedSpriteFrameCache();
+	auto* cached_frames = public_cast(frame_cache, m_pSpriteFrames);
+	const auto rect = sprite_node->getTextureRect();
+	CCDICT_FOREACH(cached_frames, el)
+	{
+		auto* frame = static_cast<CCSpriteFrame*>(el->getObject());
+		if (frame->getTexture() == texture && frame->getRect() == rect)
+		{
+			return el->getStrKey();
+		}
+	};
+	return "none";
+}
+
+void traverse_gameobject(CCNode* node, const CCSize& parent_content_size, json& json_object)
+{
+	const auto children_count = node->getChildrenCount();
+	if (auto sprite_node = dynamic_cast<CCSprite*>(node);
+		sprite_node && std::string(get_frame_name(sprite_node)) != std::string("none"))
+	{
+		std::cout << "Has sub-sprite " << get_frame_name(sprite_node) << std::endl;
+		auto object = json::object();
+		object["texture_name"] = get_frame_name(sprite_node);
+		object["x"] = sprite_node->getPositionX();
+		object["y"] = sprite_node->getPositionY();
+		object["z"] = sprite_node->getZOrder();
+		object["rot"] = -sprite_node->getRotation();
+		object["anchor_x"] = sprite_node->getAnchorPoint().x;
+		object["anchor_y"] = sprite_node->getAnchorPoint().y;
+		object["content_x"] = sprite_node->getContentSize().width;
+		object["content_y"] = sprite_node->getContentSize().height;
+		object["scale_x"] = sprite_node->getScaleX();
+		object["scale_y"] = sprite_node->getScaleY();
+		object["flip_x"] = sprite_node->isFlipX();
+		object["flip_y"] = sprite_node->isFlipY();
+		object["r"] = sprite_node->getColor().r;
+		object["g"] = sprite_node->getColor().g;
+		object["b"] = sprite_node->getColor().b;
+		if (sprite_node->getColor().r == 0 && sprite_node->getColor().g == 0 && sprite_node->getColor().b == 0)
+			object["color_channel"] = "black";
+		else if (sprite_node->getColor().r == 255 && sprite_node->getColor().g == 255 &&
+				 sprite_node->getColor().b == 150)
+		{
+			object["color_channel"] = "base";
+		}
+		else if (sprite_node->getColor().r == 150 && sprite_node->getColor().g == 255 &&
+				 sprite_node->getColor().b == 255)
+		{
+			object["color_channel"] = "detail";
+		}
+
+		auto children = node->getChildren();
+		for (unsigned int i = 0; i < children_count; ++i)
+		{
+			auto child = children->objectAtIndex(i);
+			traverse_gameobject(dynamic_cast<CCNode*>(child), sprite_node->getContentSize(), object["children"]);
+		}
+		json_object.push_back(object);
+	}
+}
+
+void traverse(CCNode* node, json& json_object)
+{
+	const auto children_count = node->getChildrenCount();
+	if (auto gob = static_cast<gd::GameObject*>(node);
+		gob && std::string(get_node_name(node)) == std::string("GameObject") &&
+		(gob->m_nObjectID > 0 && gob->m_nObjectID < 1911) &&
+		!(gob->m_nObjectID == 8 && gob->getPositionX() == 0 && gob->getPositionY() == 105))
+	{
+		std::cout << "Node is a GameObject, ID " << gob->m_nObjectID << std::endl;
+		auto id_key = std::to_string(gob->m_nObjectID);
+		json_object[id_key] = json::object();
+		json_object[id_key]["texture_name"] = get_frame_name(gob);
+		if (gob->getBaseColor())
+			json_object[id_key]["default_primary_channel"] = gob->getBaseColor()->defaultColorID;
+		else
+			json_object[id_key]["default_primary_channel"] = -1;
+		if (gob->getDetailColor())
+			json_object[id_key]["default_secondary_channel"] = gob->getDetailColor()->defaultColorID;
+		else
+			json_object[id_key]["default_secondary_channel"] = -1;
+
+		if (gob->getColor().r == 0 && gob->getColor().g == 0 && gob->getColor().b == 0)
+			json_object[id_key]["color_channel"] = "black";
+		else if (gob->getColor().r == 255 && gob->getColor().g == 255 && gob->getColor().b == 150)
+			json_object[id_key]["color_channel"] = "base";
+		else if (gob->getColor().r == 150 && gob->getColor().g == 255 && gob->getColor().b == 255)
+			json_object[id_key]["color_channel"] = "detail";
+
+		json_object[id_key]["default_z_layer"] = gob->m_nDefaultZLayer;
+		json_object[id_key]["default_z_order"] = gob->m_nDefaultZOrder;
+		json_object[id_key]["object_type"] = gob->m_nObjectType;
+
+		auto children = node->getChildren();
+		for (unsigned int i = 0; i < children_count; ++i)
+		{
+			auto child = children->objectAtIndex(i);
+			traverse_gameobject(dynamic_cast<CCNode*>(child), gob->getContentSize(), json_object[id_key]["children"]);
+		}
+	}
+	else
+	{
+		auto children = node->getChildren();
+		for (unsigned int i = 0; i < children_count; ++i)
+		{
+			auto child = children->objectAtIndex(i);
+			traverse(dynamic_cast<CCNode*>(child), json_object);
+		}
+	}
+}
+
+void GenerateJsonTextures(cocos2d::CCArray* children, bool isAGObject, json currentChild)
 {
 	bool is = false;
 	auto pl = gd::GameManager::sharedState()->getPlayLayer();
-	CCNode *obj;
+	CCNode* obj;
 	for (unsigned int i = 0; i < children->count(); ++i)
 	{
 		auto child = children->objectAtIndex(i);
-		obj = static_cast<CCNode *>(child);
-		if (auto sprite_node = dynamic_cast<CCSprite *>(obj); sprite_node)
+		obj = static_cast<CCNode*>(child);
+		if (auto sprite_node = dynamic_cast<CCSprite*>(obj); sprite_node)
 		{
-			if (auto gob = static_cast<gd::GameObject *>(sprite_node); gob && (gob->m_nObjectID > 0 && gob->m_nObjectID < 1911 || isAGObject) && !(gob->m_nObjectID == 8 && gob->getPositionX() == 0 && gob->getPositionY() == 105))
+			if (auto gob = static_cast<gd::GameObject*>(sprite_node);
+				gob && (gob->m_nObjectID > 0 && gob->m_nObjectID < 1911 || isAGObject) &&
+				!(gob->m_nObjectID == 8 && gob->getPositionX() == 0 && gob->getPositionY() == 105))
 			{
 				is = true;
-				auto *texture = sprite_node->getTexture();
-				CCDictElement *el;
+				auto* texture = sprite_node->getTexture();
+				CCDictElement* el;
 
-				auto *frame_cache = CCSpriteFrameCache::sharedSpriteFrameCache();
-				auto *cached_frames = public_cast(frame_cache, m_pSpriteFrames);
+				auto* frame_cache = CCSpriteFrameCache::sharedSpriteFrameCache();
+				auto* cached_frames = public_cast(frame_cache, m_pSpriteFrames);
 				const auto rect = sprite_node->getTextureRect();
 				CCDICT_FOREACH(cached_frames, el)
 				{
-					auto *frame = static_cast<CCSpriteFrame *>(el->getObject());
+					auto* frame = static_cast<CCSpriteFrame*>(el->getObject());
 					if (frame->getTexture() == texture && frame->getRect() == rect)
 					{
-						if(!isAGObject)
+						if (!isAGObject)
 						{
-							if (std::count(ids.begin(), ids.end(), gob->m_nObjectID)) break;
+							if (std::count(ids.begin(), ids.end(), gob->m_nObjectID))
+								break;
 							auto objet = json::object();
 							ids.push_back(gob->m_nObjectID);
 							objet["texture_name"] = el->getStrKey();
 							objet["default_z_layer"] = (int)gob->m_nDefaultZLayer;
 							objet["default_z_order"] = (int)gob->m_nDefaultZOrder;
-							objet["default_primary_channel"] = gob->getBaseColor() ? gob->getBaseColor()->defaultColorID : -1;
-							objet["default_secondary_channel"] = gob->getDetailColor() ? gob->getDetailColor()->defaultColorID : -1;
-							if((gob->getBaseColor()->defaultColorID != 1010 || gob->getDetailColor() && gob->getDetailColor()->defaultColorID != 1010) && gob->getDisplayedColor().r == 0 && gob->getDisplayedColor().g == 0 && gob->getDisplayedColor().b == 0) objet["black"] = 1;
+							objet["default_primary_channel"] =
+								gob->getBaseColor() ? gob->getBaseColor()->defaultColorID : -1;
+							objet["default_secondary_channel"] =
+								gob->getDetailColor() ? gob->getDetailColor()->defaultColorID : -1;
+							if ((gob->getBaseColor()->defaultColorID != 1010 ||
+								 gob->getDetailColor() && gob->getDetailColor()->defaultColorID != 1010) &&
+								gob->getDisplayedColor().r == 0 && gob->getDisplayedColor().g == 0 &&
+								gob->getDisplayedColor().b == 0)
+								objet["black"] = 1;
 							CCObject* obj;
 							CCARRAY_FOREACH(gob->getChildren(), obj)
 							{
 								auto childSprite = dynamic_cast<CCSprite*>(obj);
-								if(childSprite && !gob->getDetailColor() && childSprite->getColor().r == 0 && childSprite->getColor().g == 0 && childSprite->getColor().b == 0) objet["black_detail"] = 1;
+								if (childSprite && !gob->getDetailColor() && childSprite->getColor().r == 0 &&
+									childSprite->getColor().g == 0 && childSprite->getColor().b == 0)
+									objet["black_detail"] = 1;
 							}
 							objet["default_z_order"] = gob->m_nDefaultZOrder;
 							objet["object_type"] = gob->getType();
-							if(gob->getChildrenCount() > 0) objet["childrens"] = json::array();
+							if (gob->getChildrenCount() > 0)
+								objet["childrens"] = json::array();
 							j[std::to_string(gob->m_nObjectID)] = objet;
 							index = gob->m_nObjectID;
 						}
-						else if(std::string(el->getStrKey()) != "square_02_001.png")
+						else if (std::string(el->getStrKey()) != "square_02_001.png")
 						{
 							auto objet = json::object();
 							objet["texture_name"] = el->getStrKey();
@@ -81,13 +219,15 @@ void GenerateJsonTextures(cocos2d::CCArray *children, bool isAGObject, json curr
 							objet["r"] = gob->getColor().r;
 							objet["g"] = gob->getColor().g;
 							objet["b"] = gob->getColor().b;
-							if(gob->getChildrenCount() > 0)
+							if (gob->getChildrenCount() > 0)
 							{
 								objet["childrens"] = json::array();
 								GenerateJsonTextures(gob->getChildren(), true, objet);
 							}
-							if(currentChild == nullptr) j[std::to_string(index)]["childrens"].push_back(objet);
-							else currentChild["childrens"].push_back(objet);
+							if (currentChild == nullptr)
+								j[std::to_string(index)]["childrens"].push_back(objet);
+							else
+								currentChild["childrens"].push_back(objet);
 						}
 						break;
 					}
@@ -95,24 +235,15 @@ void GenerateJsonTextures(cocos2d::CCArray *children, bool isAGObject, json curr
 			}
 		}
 		if (obj->getChildrenCount() > 0)
-			GenerateJsonTextures(obj->getChildren(), is, nullptr);
+			GenerateJsonTextures(obj->getChildren(), true, nullptr);
 	}
 }
 
-const char *get_node_name(CCNode *node)
-{
-	// works because msvc's typeid().name() returns undecorated name
-	// typeid(CCNode).name() == "class cocos2d::CCNode"
-	// the + 6 gets rid of the class prefix
-	// "class cocos2d::CCNode" + 6 == "cocos2d::CCNode"
-	return typeid(*node).name() + 6;
-}
-
-static CCNode *selected_node = nullptr;
+static CCNode* selected_node = nullptr;
 static bool reached_selected_node = false;
-static CCNode *hovered_node = nullptr;
+static CCNode* hovered_node = nullptr;
 
-void render_node_tree(CCNode *node, unsigned int index = 0)
+void render_node_tree(CCNode* node, unsigned int index = 0)
 {
 	std::stringstream stream;
 	stream << "[" << index << "] " << get_node_name(node);
@@ -131,7 +262,8 @@ void render_node_tree(CCNode *node, unsigned int index = 0)
 	if (node->getChildrenCount() == 0)
 		flags |= ImGuiTreeNodeFlags_Leaf;
 
-	ImGui::PushStyleColor(ImGuiCol_Text, node->isVisible() ? ImVec4{1.f, 1.f, 1.f, 1.f} : ImVec4{0.8f, 0.8f, 0.8f, 1.f});
+	ImGui::PushStyleColor(ImGuiCol_Text,
+						  node->isVisible() ? ImVec4{1.f, 1.f, 1.f, 1.f} : ImVec4{0.8f, 0.8f, 0.8f, 1.f});
 	const bool is_open = ImGui::TreeNodeEx(node, flags, stream.str().c_str());
 	if (ImGui::IsItemClicked())
 	{
@@ -154,7 +286,7 @@ void render_node_tree(CCNode *node, unsigned int index = 0)
 		for (unsigned int i = 0; i < children_count; ++i)
 		{
 			auto child = children->objectAtIndex(i);
-			render_node_tree(static_cast<CCNode *>(child), i);
+			render_node_tree(static_cast<CCNode*>(child), i);
 		}
 		ImGui::TreePop();
 	}
@@ -164,7 +296,7 @@ void render_node_tree(CCNode *node, unsigned int index = 0)
 #define CONCAT_(a, b) a##b
 #define CONCAT(a, b) CONCAT_(a, b)
 
-void render_node_properties(CCNode *node)
+void render_node_properties(CCNode* node)
 {
 	if (ImGui::Button("Delete"))
 	{
@@ -185,42 +317,43 @@ void render_node_properties(CCNode *node)
 	if (node->getTag())
 		ImGui::Text(("Tag: " + std::to_string(node->getTag())).c_str());
 
-#define GET_SET_FLOAT2(name, label)                                      \
-	{                                                                    \
-		auto point = node->get##name();                                  \
-		if (ImGui::DragFloat2(label, reinterpret_cast<float *>(&point))) \
-			node->set##name(point);                                      \
+#define GET_SET_FLOAT2(name, label)                                                                                    \
+	{                                                                                                                  \
+		auto point = node->get##name();                                                                                \
+		if (ImGui::DragFloat2(label, reinterpret_cast<float*>(&point)))                                                \
+			node->set##name(point);                                                                                    \
 	}
 
-#define GET_SET_INT(name, label)            \
-	{                                       \
-		auto value = node->get##name();     \
-		if (ImGui::InputInt(label, &value)) \
-			node->set##name(value);         \
+#define GET_SET_INT(name, label)                                                                                       \
+	{                                                                                                                  \
+		auto value = node->get##name();                                                                                \
+		if (ImGui::InputInt(label, &value))                                                                            \
+			node->set##name(value);                                                                                    \
 	}
 
-#define GET_SET_CHECKBOX(name, label)       \
-	{                                       \
-		auto value = node->is##name();      \
-		if (ImGui::Checkbox(label, &value)) \
-			node->set##name(value);         \
+#define GET_SET_CHECKBOX(name, label)                                                                                  \
+	{                                                                                                                  \
+		auto value = node->is##name();                                                                                 \
+		if (ImGui::Checkbox(label, &value))                                                                            \
+			node->set##name(value);                                                                                    \
 	}
 
 	GET_SET_FLOAT2(Position, "Position");
 
-#define dragXYBothIDK(name, label, speed)                                                                                  \
-	{                                                                                                                      \
-		float values[3] = {node->get##name(), node->CONCAT(get, CONCAT(name, X))(), node->CONCAT(get, CONCAT(name, Y))()}; \
-		if (ImGui::DragFloat3(label, values, speed))                                                                       \
-		{                                                                                                                  \
-			if (node->get##name() != values[0])                                                                            \
-				node->set##name(values[0]);                                                                                \
-			else                                                                                                           \
-			{                                                                                                              \
-				node->CONCAT(set, CONCAT(name, X))(values[1]);                                                             \
-				node->CONCAT(set, CONCAT(name, Y))(values[2]);                                                             \
-			}                                                                                                              \
-		}                                                                                                                  \
+#define dragXYBothIDK(name, label, speed)                                                                              \
+	{                                                                                                                  \
+		float values[3] = {node->get##name(), node->CONCAT(get, CONCAT(name, X))(),                                    \
+						   node->CONCAT(get, CONCAT(name, Y))()};                                                      \
+		if (ImGui::DragFloat3(label, values, speed))                                                                   \
+		{                                                                                                              \
+			if (node->get##name() != values[0])                                                                        \
+				node->set##name(values[0]);                                                                            \
+			else                                                                                                       \
+			{                                                                                                          \
+				node->CONCAT(set, CONCAT(name, X))(values[1]);                                                         \
+				node->CONCAT(set, CONCAT(name, Y))(values[2]);                                                         \
+			}                                                                                                          \
+		}                                                                                                              \
 	}
 	dragXYBothIDK(Scale, "Scale", 0.025f);
 	dragXYBothIDK(Rotation, "Rotation", 1.0f);
@@ -237,38 +370,35 @@ void render_node_properties(CCNode *node)
 	GET_SET_INT(ZOrder, "Z Order");
 	GET_SET_CHECKBOX(Visible, "Visible");
 
-	if (auto rgba_node = dynamic_cast<CCNodeRGBA *>(node); rgba_node)
+	if (auto rgba_node = dynamic_cast<CCNodeRGBA*>(node); rgba_node)
 	{
 		auto color = rgba_node->getColor();
-		float colorValues[4] = {
-			color.r / 255.f,
-			color.g / 255.f,
-			color.b / 255.f,
-			rgba_node->getOpacity() / 255.f};
+		float colorValues[4] = {color.r / 255.f, color.g / 255.f, color.b / 255.f, rgba_node->getOpacity() / 255.f};
 		if (ImGui::ColorEdit4("Color", colorValues))
 		{
-			rgba_node->setColor({static_cast<GLubyte>(colorValues[0] * 255),
-								 static_cast<GLubyte>(colorValues[1] * 255),
+			rgba_node->setColor({static_cast<GLubyte>(colorValues[0] * 255), static_cast<GLubyte>(colorValues[1] * 255),
 								 static_cast<GLubyte>(colorValues[2] * 255)});
 			rgba_node->setOpacity(static_cast<GLubyte>(colorValues[3] * 255.f));
 		}
+		ImGui::Text(("Real Opacity " + std::to_string(rgba_node->_realOpacity)).c_str());
+		ImGui::Text(("Display Opacity " + std::to_string(rgba_node->_displayedOpacity)).c_str());
 	}
 
-	if (auto label_node = dynamic_cast<CCLabelProtocol *>(node); label_node)
+	if (auto label_node = dynamic_cast<CCLabelProtocol*>(node); label_node)
 	{
 		std::string str = label_node->getString();
-		char *test = (char *)str.c_str();
+		char* test = (char*)str.c_str();
 		if (ImGui::InputTextMultiline("Text", test, sizeof(test) / sizeof(char), {0, 50}))
 			label_node->setString(str.c_str());
 	}
 
-	if (auto sprite_node = dynamic_cast<CCSprite *>(node); sprite_node)
+	if (auto sprite_node = dynamic_cast<CCSprite*>(node); sprite_node)
 	{
-		auto *texture = sprite_node->getTexture();
+		auto* texture = sprite_node->getTexture();
 
-		auto *texture_cache = CCTextureCache::sharedTextureCache();
-		auto *cached_textures = public_cast(texture_cache, m_pTextures);
-		CCDictElement *el;
+		auto* texture_cache = CCTextureCache::sharedTextureCache();
+		auto* cached_textures = public_cast(texture_cache, m_pTextures);
+		CCDictElement* el;
 		CCDICT_FOREACH(cached_textures, el)
 		{
 			if (el->getObject() == texture)
@@ -278,12 +408,12 @@ void render_node_properties(CCNode *node)
 			}
 		}
 
-		auto *frame_cache = CCSpriteFrameCache::sharedSpriteFrameCache();
-		auto *cached_frames = public_cast(frame_cache, m_pSpriteFrames);
+		auto* frame_cache = CCSpriteFrameCache::sharedSpriteFrameCache();
+		auto* cached_frames = public_cast(frame_cache, m_pSpriteFrames);
 		const auto rect = sprite_node->getTextureRect();
 		CCDICT_FOREACH(cached_frames, el)
 		{
-			auto *frame = static_cast<CCSpriteFrame *>(el->getObject());
+			auto* frame = static_cast<CCSpriteFrame*>(el->getObject());
 			if (frame->getTexture() == texture && frame->getRect() == rect)
 			{
 				ImGui::Text("Frame name: %s", el->getStrKey());
@@ -291,12 +421,16 @@ void render_node_properties(CCNode *node)
 				break;
 			}
 		}
+
+		bool flipx = sprite_node->isFlipX(), flipy = sprite_node->isFlipY();
+		ImGui::Checkbox("Flip X", &flipx);
+		ImGui::Checkbox("Flip Y", &flipy);
 	}
 
-	if (auto menu_item_node = dynamic_cast<CCMenuItem *>(node); menu_item_node)
+	if (auto menu_item_node = dynamic_cast<CCMenuItem*>(node); menu_item_node)
 	{
 		const auto selector = public_cast(menu_item_node, m_pfnSelector);
-		const auto addr = format_addr(union_cast<void *>(selector));
+		const auto addr = format_addr(union_cast<void*>(selector));
 		ImGui::Text("CCMenuItem selector: %s", addr.c_str());
 		ImGui::SameLine();
 		if (ImGui::Button("Copy##copyselector"))
@@ -306,9 +440,9 @@ void render_node_properties(CCNode *node)
 	}
 }
 
-void render_node_highlight(CCNode *node, bool selected)
+void render_node_highlight(CCNode* node, bool selected)
 {
-	auto &foreground = *ImGui::GetForegroundDrawList();
+	auto& foreground = *ImGui::GetForegroundDrawList();
 	auto parent = node->getParent();
 	auto bounding_box = node->boundingBox();
 	CCPoint bb_min(bounding_box.getMinX(), bounding_box.getMinY());
@@ -371,7 +505,7 @@ void CocosExplorer::draw()
 		index = 0;
 		j.clear();
 		j = json::object();
-		GenerateJsonTextures(gd::GameManager::sharedState()->getPlayLayer()->getAllObjects(), false, nullptr);
+		traverse(selected_node, j);
 		Hacks::writeOutput(j.dump());
 	}
 
