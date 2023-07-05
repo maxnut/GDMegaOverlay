@@ -20,9 +20,11 @@ public:
 	inline static int lastLevelID = 0;
 	inline static int lastLevelPercentage = 0;
 	inline static int levelPercentageGoal = 1;
-	
+
 	inline static int skipsCount = 0;
 	inline static int skipsMax = 3;
+
+	inline static int numLevels = 0;
 
 	RouletteManagerStruct()
 	{

@@ -2,30 +2,29 @@
 #include "Hacks.h"
 #include <nlohmann/json.hpp>
 
-
 std::size_t curlWriteCallback(void* contents, size_t size, size_t nmemb, std::string* s)
 {
-    std::size_t newLength = size * nmemb;
+	std::size_t newLength = size * nmemb;
 
-    try
-    {
-        s->append(reinterpret_cast<char*>(contents), newLength);
-    }
-    catch (std::bad_alloc& e)
-    {
-        return 0;
-    }
+	try
+	{
+		s->append(reinterpret_cast<char*>(contents), newLength);
+	}
+	catch (std::bad_alloc& e)
+	{
+		return 0;
+	}
 
-    return newLength;
+	return newLength;
 }
 
 
-std::atomic_bool ListFetcher::finishedFetching = true;
+std::atomic_bool ListFetcher::isFetching = false;
 
 void ListFetcher::init()
 {
 	static bool firstLaunch = true;
-	finishedFetching = true;
+	isFetching = false;
 
 	if (firstLaunch)
 	{
@@ -37,9 +36,11 @@ void ListFetcher::init()
 
 curlFetchResponse ListFetcher::fetchLink(std::string link)
 {
+	curlFetchResponse err{ CURLcode::CURLE_HTTP_RETURNED_ERROR, "", {} };
+
 	try
 	{
-		CURLcode res = CURLcode::CURLE_COULDNT_CONNECT;
+		CURLcode res = CURLcode::CURLE_HTTP_RETURNED_ERROR;
 		std::string readBuffer;
 		std::string info;
 		nlohmann::json data;
@@ -59,27 +60,34 @@ curlFetchResponse ListFetcher::fetchLink(std::string link)
 			info = readBuffer.c_str();
 
 			if (info == "-1")
-				return { CURLcode::CURLE_COULDNT_CONNECT, "", {} };
+				return err;
 
-			data = nlohmann::json::parse(info);
+			try
+			{
+				data = nlohmann::json::parse(info);
+			}
+			catch (...)
+			{
+				return err;
+			}
 		}
 
 		return { res, info, data };
 	}
 	catch (...)
 	{
-		return { CURLcode::CURLE_COULDNT_CONNECT, "", {} };
+		return err;
 	}
 }
 
-void ListFetcher::getNormalList(int stars, nlohmann::json& json)
+void ListFetcher::getRandomNormalListLevel(int stars, nlohmann::json& json)
 {
 	if (stars > 10)
 	{
 		json = {};
 		return;
 	}
-	finishedFetching = false;
+	isFetching = true;
 
 	std::stringstream link;
 	link
@@ -90,24 +98,27 @@ void ListFetcher::getNormalList(int stars, nlohmann::json& json)
 
 	curlFetchResponse response = fetchLink(link.str());
 
-	json = response.jsonResponse;
+	nlohmann::json responseJson = response.jsonResponse;
 	// prevent auto levels from appearing in the Easy difficulty
-	if (json.size() != 0 && stars == 1)
+	if (responseJson.size() != 0 && stars == 1)
 	{
-		for (auto it = json.begin(); it != json.end();)
+		for (auto it = responseJson.begin(); it != responseJson.end();)
 		{
 			if (it.value()["difficulty"].get<std::string>() == "Auto")
-				it = json.erase(it);
+				it = responseJson.erase(it);
 			else
 				it++;
 		}
 	}
-	finishedFetching = true;
+
+	json = responseJson[Hacks::randomInt(0, responseJson.size() - 1)];
+
+	isFetching = false;
 }
 
 void ListFetcher::getRandomDemonListLevel(nlohmann::json& json)
 {
-	finishedFetching = false;
+	isFetching = true;
 	std::stringstream link;
 	link
 		<< "https://pointercrate.com/api/v2/demons/listed"
@@ -115,28 +126,36 @@ void ListFetcher::getRandomDemonListLevel(nlohmann::json& json)
 		<< "&after=" << Hacks::randomInt(0, m_demonListMaxPage);
 
 	curlFetchResponse response = fetchLink(link.str());
+	int index = Hacks::randomInt(0, response.jsonResponse.size() - 1);
 
-	getLevelInfo(response.jsonResponse[Hacks::randomInt(0, response.jsonResponse.size())]["level_id"].get<int>(), std::ref(json));
+	// like wtf pointercrate
+	while (response.jsonResponse[index]["level_id"].is_null())
+		index = Hacks::randomInt(0, response.jsonResponse.size() - 1);
 
-	finishedFetching = true;
+	getLevelInfo(response.jsonResponse[index]["level_id"].get<int>(), std::ref(json));
+
+	isFetching = false;
 }
 
 // TODO: figure out how to get extended list & the rest of the list (current limit is 50 levels)
 void ListFetcher::getRandomChallengeListLevel(nlohmann::json& json)
 {
-	finishedFetching = false;
+	isFetching = true;
 	std::string link = "https://challengelist.gd/api/v1/demons/";
 
 	curlFetchResponse response = fetchLink(link);
-	
-	getLevelInfo(response.jsonResponse[Hacks::randomInt(0, response.jsonResponse.size())]["level_id"].get<int>(), std::ref(json));
-	
-	finishedFetching = true;
+	int index = Hacks::randomInt(0, response.jsonResponse.size() - 1);
+
+	while (response.jsonResponse[index]["level_id"].is_null())
+		index = Hacks::randomInt(0, response.jsonResponse.size() - 1);
+
+	getLevelInfo(response.jsonResponse[index]["level_id"].get<int>(), std::ref(json));
+
+	isFetching = false;
 }
 
 void ListFetcher::getLevelInfo(int levelID, nlohmann::json& json)
 {
-	finishedFetching = false;
 	std::stringstream link;
 
 	link
@@ -145,7 +164,11 @@ void ListFetcher::getLevelInfo(int levelID, nlohmann::json& json)
 
 	curlFetchResponse response = fetchLink(link.str());
 
-	json = response.jsonResponse[0];
+	if (response.jsonResponse.size() > 0)
+	{
+		json = response.jsonResponse[0];
+		return;
+	}
 
-	finishedFetching = true;
+	json = {};
 }

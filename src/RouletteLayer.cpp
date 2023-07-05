@@ -42,12 +42,6 @@ std::ptrdiff_t getIndexOf(const std::array<T, S>& arr, T to_find)
 		return -1;
 }
 
-template<typename T, std::size_t S>
-int getCountOf(const std::array<T, S>& arr, T to_find)
-{
-	return std::count(arr.cbegin(), arr.cend(), to_find);
-}
-
 void getlistLevel(RouletteLayer* self, int difficulty, nlohmann::json& list)
 {
 	int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
@@ -56,7 +50,7 @@ void getlistLevel(RouletteLayer* self, int difficulty, nlohmann::json& list)
 	switch (listType)
 	{
 	case 0:
-		getListThread = std::thread(ListFetcher::getNormalList, difficulty, std::ref(list));
+		getListThread = std::thread(ListFetcher::getRandomNormalListLevel, difficulty, std::ref(list));
 		break;
 	case 1:
 		getListThread = std::thread(ListFetcher::getRandomDemonListLevel, std::ref(list));
@@ -67,6 +61,7 @@ void getlistLevel(RouletteLayer* self, int difficulty, nlohmann::json& list)
 	default:
 		break;
 	}
+
 	self->scheduleUpdate();
 	getListThread.detach();
 }
@@ -74,8 +69,7 @@ void getlistLevel(RouletteLayer* self, int difficulty, nlohmann::json& list)
 
 bool CustomLayer::createBasics(CCPoint contentSize, SEL_MenuHandler onClose, float closeBtnScale, const ccColor4B& color)
 {
-	bool init = CCLayerColor::initWithColor(color);
-	if (!init) return false;
+	if (!CCLayerColor::initWithColor(color)) return false;
 
 	alertSize = contentSize;
 
@@ -164,22 +158,22 @@ bool RouletteInfoLayer::init()
 	infoBg->setContentSize({ 320.f, 190.f });
 	infoBg->setAnchorPoint({ .5f, 1.f });
 	infoBg->setColor({ 123, 60, 31 });
-	infoBg->setPosition({.0f, 85.f });
+	infoBg->setPosition({ .0f, 85.f });
 	m_pButtonMenu->addChild(infoBg, -1);
 
 
 	auto infoTitle = CCLabelBMFont::create("GD Level Roulette Info", "goldFont.fnt");
-	infoTitle->setPosition({.0f, 102.f });
+	infoTitle->setPosition({ .0f, 102.f });
 	infoTitle->setScale(.725f);
 	m_pButtonMenu->addChild(infoTitle);
-	
+
 
 	auto infoText1 = CCLabelBMFont::create("Welcome to GD Level Roulette!", "chatFont.fnt");
 	auto infoText2 = CCLabelBMFont::create("Here you can modify some settings to your liking.", "chatFont.fnt");
-	infoText1->setPosition({.0f, 72.f });
-	infoText2->setPosition({.0f, 56.f });
+	infoText1->setPosition({ .0f, 72.f });
+	infoText2->setPosition({ .0f, 56.f });
 	infoText1->setScale(.9f);
-	infoText2->setScale(.9f);
+	infoText2->setScale(.85f);
 	m_pButtonMenu->addChild(infoText1);
 	m_pButtonMenu->addChild(infoText2);
 
@@ -187,6 +181,27 @@ bool RouletteInfoLayer::init()
 	createToggler(0, "Normal List", { -120.f, 20.f });
 	createToggler(1, "Demon List", { 20.f, 20.f });
 	createToggler(2, "Challenge List", { -120.f, -20.f });
+
+
+	auto skipsButtonText = CCLabelBMFont::create("Number of Skips", "bigFont.fnt");
+	skipsButtonText->setPosition({ 85.f, 16.f });
+	skipsButtonText->setScale(.525f);
+	auto skipsButton = gd::CCMenuItemSpriteExtra::create(
+		CCSprite::createWithSpriteFrameName("GJ_longBtn03_001.png"),
+		this,
+		menu_selector(RouletteInfoLayer::onSkipsButton)
+	);
+	skipsButton->setPosition({ 0.f, -65.f });
+	skipsButton->addChild(skipsButtonText);
+	skipsButton->setTag(3);
+	m_pButtonMenu->addChild(skipsButton);
+
+
+	auto versionText = CCLabelBMFont::create((std::string("Version ") + "1.0.0 (GDMO)").c_str(), "bigFont.fnt");
+	versionText->setPosition({ .0f, -94.f });
+	versionText->setScale(.5f);
+	m_pButtonMenu->addChild(versionText);
+
 
 	return true;
 }
@@ -223,12 +238,145 @@ void RouletteInfoLayer::onToggleButton(CCObject* sender)
 	sender->release();
 }
 
+void RouletteInfoLayer::onSkipsButton(CCObject* sender)
+{
+	IntegerInputLayer::create()->show();
+}
 
-gd::LoadingCircle* RouletteLayer::levelLoadingCircle;
-nlohmann::json list;
-// for demon & challenge lists
-nlohmann::json listLevel;
-int lastListIndex;
+
+IntegerInputLayer* IntegerInputLayer::create()
+{
+	auto ret = new IntegerInputLayer();
+
+	if (ret && ret->init())
+		ret->autorelease();
+	else
+	{
+		delete ret;
+		ret = nullptr;
+	}
+
+	return ret;
+}
+
+bool IntegerInputLayer::init()
+{
+	if (!createBasics({ 200.f, 100.f }, menu_selector(IntegerInputLayer::onClose))) return false;
+
+	auto infoBg = cocos2d::extension::CCScale9Sprite::create("square02b_001.png", { .0f, .0f, 80.0f, 80.0f });
+	infoBg->setContentSize({ 175.f, 65.f });
+	infoBg->setAnchorPoint({ .5f, 1.f });
+	infoBg->setColor({ 123, 60, 31 });
+	infoBg->setPosition({ .0f, 27.f });
+	m_pButtonMenu->addChild(infoBg, -1);
+
+
+	auto infoTitle = CCLabelBMFont::create("Number Of Skips", "goldFont.fnt");
+	infoTitle->setPosition({ .0f, 38.f });
+	infoTitle->setScale(.575f);
+	m_pButtonMenu->addChild(infoTitle);
+
+
+	auto maxSkipsBg = cocos2d::extension::CCScale9Sprite::create("square02b_small.png");
+	maxSkipsBg->setPosition({ -30.f, -20.f });
+	maxSkipsBg->setContentSize({ 60.f, 30.f });
+	maxSkipsBg->setAnchorPoint({ .0f, .0f });
+	maxSkipsBg->setColor({ 0, 0, 0 });
+	maxSkipsBg->setOpacity(125);
+	m_pButtonMenu->addChild(maxSkipsBg, -1);
+
+	auto leftButton = gd::CCMenuItemSpriteExtra::create(
+		CCSprite::createWithSpriteFrameName("edit_leftBtn_001.png"),
+		this,
+		menu_selector(IntegerInputLayer::onLeftButton)
+	);
+	leftButton->setPosition({ -42.f, -5.f });
+	m_pButtonMenu->addChild(leftButton);
+
+	auto rightButton = gd::CCMenuItemSpriteExtra::create(
+		CCSprite::createWithSpriteFrameName("edit_rightBtn_001.png"),
+		this,
+		menu_selector(IntegerInputLayer::onRightButton)
+	);
+	rightButton->setPosition({ 42.f, -5.f });
+	m_pButtonMenu->addChild(rightButton);
+
+	auto skipsInput = gd::CCTextInputNode::create("Skips", this, "bigFont.fnt", 100, 30);
+	skipsInput->setLabelPlaceholderColor({ 0x75, 0xAA, 0xF0 });
+	skipsInput->setString(CCString::createWithFormat("%d", RouletteManager.skipsMax)->getCString());
+	skipsInput->setAllowedChars("0123456789");
+	skipsInput->setMaxLabelScale(.5f);
+	skipsInput->setMaxLabelLength(5);
+	skipsInput->setPosition({ .0f, -5.f });
+	skipsInput->setTag(1);
+	m_pButtonMenu->addChild(skipsInput);
+
+
+	return true;
+}
+
+void IntegerInputLayer::onClose(CCObject* sender)
+{
+	try
+	{
+		int skips = std::stoi(
+			reinterpret_cast<gd::CCTextInputNode*>(m_pButtonMenu->getChildByTag(1))->getString()
+		);
+
+		RouletteManager.skipsMax = skips < 0 ? 3 : skips;
+	}
+	catch (...)
+	{
+		RouletteManager.skipsMax = 3;
+	}
+
+	setKeypadEnabled(false);
+	removeFromParentAndCleanup(true);
+}
+
+void IntegerInputLayer::onLeftButton(CCObject* sender)
+{
+	auto inputNode = reinterpret_cast<gd::CCTextInputNode*>(m_pButtonMenu->getChildByTag(1));
+	int previousValue;
+
+	try
+	{
+		previousValue = std::stoi(inputNode->getString());
+	}
+	catch (...)
+	{
+		previousValue = 0;
+	}
+
+	// manually sanitizing input because of mod menus
+	if (previousValue > 0)
+		inputNode->setString(std::to_string(previousValue - 1).c_str());
+	else
+		inputNode->setString("0");
+}
+
+void IntegerInputLayer::onRightButton(CCObject* sender)
+{
+	auto inputNode = reinterpret_cast<gd::CCTextInputNode*>(m_pButtonMenu->getChildByTag(1));
+	int previousValue;
+
+	try
+	{
+		previousValue = std::stoi(inputNode->getString());
+	}
+	catch (...)
+	{
+		previousValue = 0;
+	}
+
+	if (previousValue < 99999)
+		inputNode->setString(std::to_string(previousValue + 1).c_str());
+	else
+		inputNode->setString("99999");
+}
+
+
+nlohmann::json level;
 
 RouletteLayer* RouletteLayer::create()
 {
@@ -251,7 +399,7 @@ bool RouletteLayer::init()
 
 
 	auto title = CCLabelBMFont::create("GD Level Roulette", "goldFont.fnt");
-	title->setPosition({.0f, 120.f });
+	title->setPosition({ .0f, 120.f });
 	title->limitLabelWidth(340, 1, 0);
 	m_pButtonMenu->addChild(title);
 
@@ -260,20 +408,20 @@ bool RouletteLayer::init()
 	rouletteBg->setContentSize({ 340.f, 210.f });
 	rouletteBg->setAnchorPoint({ .5f, 1.f });
 	rouletteBg->setColor({ 123, 60, 31 });
-	rouletteBg->setPosition({.0f, 95.f });
+	rouletteBg->setPosition({ .0f, 95.f });
 	m_pButtonMenu->addChild(rouletteBg, -1);
 
 
 	createButton("GJ_infoIcon_001.png", { 200.f, 125.f }, menu_selector(RouletteLayer::onInfoButton));
 
-	
+
 	createDifficultyButton(
 		0, CCSprite::createWithSpriteFrameName("difficulty_01_btn_001.png"),
 		{ -90.f, 40.f }, 1.2f
 	);
 	createDifficultyButton(
 		1, CCSprite::createWithSpriteFrameName("difficulty_02_btn_001.png"),
-		{.0f, 40.f }, 1.2f
+		{ .0f, 40.f }, 1.2f
 	);
 	createDifficultyButton(
 		2, CCSprite::createWithSpriteFrameName("difficulty_03_btn_001.png"),
@@ -285,7 +433,7 @@ bool RouletteLayer::init()
 	);
 	createDifficultyButton(
 		4, CCSprite::createWithSpriteFrameName("difficulty_05_btn_001.png"),
-		{.0f, -25.f }, 1.2f
+		{ .0f, -25.f }, 1.2f
 	);
 	createDifficultyButton(
 		5, CCSprite::createWithSpriteFrameName("difficulty_06_btn_001.png"),
@@ -301,7 +449,7 @@ bool RouletteLayer::init()
 	);
 	createDifficultyButton(
 		8, CCSprite::createWithSpriteFrameName("difficulty_06_btn2_001.png"),
-		{.0f, -40.f }, 1.f, true, false
+		{ .0f, -40.f }, 1.f, true, false
 	);
 	createDifficultyButton(
 		9, CCSprite::createWithSpriteFrameName("difficulty_09_btn2_001.png"),
@@ -375,6 +523,7 @@ bool RouletteLayer::init()
 		levelDifficultySprite->setScale(1.5f);
 		levelDifficultySprite->setTag(102 + i);
 		levelDifficultySprite->setVisible(false);
+
 		m_pButtonMenu->addChild(levelDifficultySprite);
 	}
 
@@ -412,6 +561,8 @@ bool RouletteLayer::init()
 		levelCoinSprite->setScale(1.5f);
 		levelCoinSprite->setVisible(false);
 		levelCoinSprite->setTag(113 + i);
+		if (i == 1)
+			levelCoinSprite->setZOrder(-1);
 		m_pButtonMenu->addChild(levelCoinSprite);
 	}
 
@@ -473,23 +624,32 @@ bool RouletteLayer::init()
 	m_pButtonMenu->addChild(ggText);
 
 	auto ggSkipsUsedText = CCLabelBMFont::create("Skips Used: ", "bigFont.fnt");
-	ggSkipsUsedText->setPosition({ .0f, 30.f });
+	ggSkipsUsedText->setPosition({ .0f, 20.f });
 	ggSkipsUsedText->setVisible(false);
 	ggSkipsUsedText->setTag(123);
 	m_pButtonMenu->addChild(ggSkipsUsedText);
+
+	auto ggNumLevelsText = CCLabelBMFont::create("Levels Done: ", "bigFont.fnt");
+	ggNumLevelsText->setPosition({ .0f, -10.f });
+	ggNumLevelsText->setVisible(false);
+	ggNumLevelsText->setTag(124);
+	m_pButtonMenu->addChild(ggNumLevelsText);
 
 
 	auto errorText = CCLabelBMFont::create("An error has occured", "bigFont.fnt");
 	errorText->setPosition({ 10.f, 10.f });
 	errorText->setVisible(false);
 	errorText->setColor({ 255, 0, 0 });
-	errorText->setTag(124);
+	errorText->setTag(125);
 	m_pButtonMenu->addChild(errorText);
 
 
+	if (RouletteManager.lastLevelID != 0)
+		RouletteManager.isPlayingRoulette = true;
+
 	if (RouletteManager.isPlayingRoulette)
 		onStartButton(nullptr);
-	
+
 
 	return true;
 }
@@ -497,24 +657,8 @@ bool RouletteLayer::init()
 // called every frame after the ListFetcher thread has been detatched
 void RouletteLayer::update(float dt)
 {
-	static int tries = 0;
-
-	if (ListFetcher::finishedFetching)
+	if (!ListFetcher::isFetching)
 	{
-		if ((list.size() == 0 || listLevel.size() == 0) && tries <= 5)
-		{
-			tries++;
-			int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
-			int diffInd = getIndexOf(RouletteManager.difficultyArr, true);
-			int demonInd = getIndexOf(RouletteManager.demonDifficultyArr, true);
-			int difficulty = diffInd == 5 ? (demonInd + 6) : (diffInd + 1);
-
-			listType == 0
-				? getlistLevel(this, difficulty, std::ref(list))
-				: getlistLevel(this, 0, std::ref(listLevel));
-			
-			return;
-		}
 		finishLevelRoulette();
 		this->unscheduleUpdate();
 	}
@@ -522,6 +666,8 @@ void RouletteLayer::update(float dt)
 
 void RouletteLayer::onClose(CCObject* sender)
 {
+	RouletteManager.isPlayingRoulette = false;
+
 	setKeypadEnabled(false);
 	removeFromParentAndCleanup(true);
 }
@@ -556,7 +702,7 @@ void RouletteLayer::onDifficultyChosen(CCObject* sender)
 		auto ind = getIndexOf(demonDiffArr, true);
 		reinterpret_cast<gd::CCMenuItemSpriteExtra*>(
 			m_pButtonMenu->getChildByTag(ind + 6)
-		)->setColor({ 125, 125, 125 });
+			)->setColor({ 125, 125, 125 });
 
 		demonDiffArr.at(ind) = false;
 		demonDiffArr.at(tag - 6) = true;
@@ -571,7 +717,7 @@ void RouletteLayer::onDifficultyChosen(CCObject* sender)
 		auto ind = getIndexOf(diffArr, true);
 		reinterpret_cast<gd::CCMenuItemSpriteExtra*>(
 			m_pButtonMenu->getChildByTag(ind)
-		)->setColor({ 125, 125, 125 });
+			)->setColor({ 125, 125, 125 });
 
 		diffArr.at(ind) = false;
 		diffArr.at(tag) = true;
@@ -597,12 +743,11 @@ void RouletteLayer::onStartButton(CCObject* sender)
 	for (int i = 0; i < 13; i++)
 		m_pButtonMenu->getChildByTag(i)->setVisible(false);
 
-	int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
 	int diffInd = getIndexOf(RouletteManager.difficultyArr, true);
 	int demonInd = getIndexOf(RouletteManager.demonDifficultyArr, true);
 	int difficulty = diffInd == 5 ? (demonInd + 6) : (diffInd + 1);
 
-	getlistLevel(this, difficulty, listType == 0 ? list : listLevel);
+	getlistLevel(this, difficulty, level);
 
 	levelLoadingCircle->setVisible(true);
 	levelLoadingCircle->runAction(CCRepeatForever::create(cocos2d::CCRotateBy::create(1.f, 360)));
@@ -641,9 +786,7 @@ void RouletteLayer::onPlusButton(CCObject* sender)
 void RouletteLayer::onLevelInfo(CCObject* sender)
 {
 	auto buttonItem = reinterpret_cast<gd::CCMenuItemSpriteExtra*>(sender);
-	int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
 	std::string text;
-	nlohmann::json level = listType == 0 ? list[lastListIndex] : listLevel;
 
 	switch (buttonItem->getTag())
 	{
@@ -661,19 +804,17 @@ void RouletteLayer::onLevelInfo(CCObject* sender)
 		text = level["id"].get<std::string>();
 		break;
 	}
-	
+
 	ImGui::SetClipboardText(text.c_str());
 	this->addChild(gd::TextAlertPopup::create("Copied to Clipboard", .5f, .6f));
 }
 
 void RouletteLayer::onPlayButton(CCObject* sender)
 {
-	if (!ListFetcher::finishedFetching)
+	if (ListFetcher::isFetching)
 		return;
 
-
-	int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
-	nlohmann::json levelJson = listType == 0 ? list[lastListIndex] : listLevel;
+	nlohmann::json levelJson = level;
 
 	auto level = gd::GJGameLevel::create();
 	level->levelID_rand = std::stoi(levelJson["id"].get<std::string>()) + 5;
@@ -681,8 +822,9 @@ void RouletteLayer::onPlayButton(CCObject* sender)
 	level->levelID = std::stoi(levelJson["id"].get<std::string>());
 	level->levelName = levelJson["name"].get<std::string>();
 	level->userName = levelJson["author"].get<std::string>();
+	level->accountID_rand = std::stoi(levelJson["accountID"].get<std::string>());
+	level->accountID_seed = 0;
 	level->accountID = std::stoi(levelJson["accountID"].get<std::string>());
-	level->userID = std::stoi(levelJson["playerID"].get<std::string>());
 	try
 	{
 		level->songID = levelJson["songID"].get<int>();
@@ -704,10 +846,10 @@ void RouletteLayer::onPlayButton(CCObject* sender)
 
 void RouletteLayer::onNextButton(CCObject* sender)
 {
-	if (!ListFetcher::finishedFetching)
+	if (ListFetcher::isFetching)
 		return;
 
-	if (RouletteManager.levelPercentageGoal == 101)
+	if (RouletteManager.lastLevelPercentage == 100)
 	{
 		for (int i = 0; i < 13; i++)
 			m_pButtonMenu->getChildByTag(100 + i)->setVisible(false);
@@ -721,10 +863,12 @@ void RouletteLayer::onNextButton(CCObject* sender)
 			CCString::createWithFormat("Skips Used: %d", RouletteManager.skipsCount)->getCString()
 		);
 		m_pButtonMenu->getChildByTag(123)->setVisible(true);
-		return;
+		reinterpret_cast<CCLabelBMFont*>(m_pButtonMenu->getChildByTag(124))->setString(
+			CCString::createWithFormat("Levels Done: %d", RouletteManager.numLevels)->getCString()
+		);
+		m_pButtonMenu->getChildByTag(124)->setVisible(true);
 	}
-
-	if (RouletteManager.lastLevelPercentage != 0 && RouletteManager.hasFinishedPreviousLevel)
+	else if (RouletteManager.lastLevelPercentage != 0 && RouletteManager.hasFinishedPreviousLevel)
 	{
 		RouletteManager.hasFinishedPreviousLevel = false;
 
@@ -740,14 +884,13 @@ void RouletteLayer::onNextButton(CCObject* sender)
 
 		reinterpret_cast<CCLabelBMFont*>(
 			m_pButtonMenu->getChildByTag(117)
-		)->setString(CCString::createWithFormat("%d%%", RouletteManager.lastLevelPercentage)->getCString());
+			)->setString(CCString::createWithFormat("%d%%", RouletteManager.lastLevelPercentage)->getCString());
 
-		int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
 		int diffInd = getIndexOf(RouletteManager.difficultyArr, true);
 		int demonInd = getIndexOf(RouletteManager.demonDifficultyArr, true);
 		int difficulty = diffInd == 5 ? (demonInd + 6) : (diffInd + 1);
 
-		getlistLevel(this, difficulty, listType == 0 ? list : listLevel);
+		getlistLevel(this, difficulty, level);
 	}
 	else
 	{
@@ -756,7 +899,15 @@ void RouletteLayer::onNextButton(CCObject* sender)
 				"You need to get at least %d%%", RouletteManager.levelPercentageGoal
 			)->getCString(), 1.2f, .8f
 		));
+
+		return;
 	}
+
+	if (levelEpicSprite && levelEpicSprite->getParent())
+		levelEpicSprite->removeFromParentAndCleanup(true);
+
+	if (levelFeaturedSprite && levelFeaturedSprite->getParent())
+		levelFeaturedSprite->removeFromParentAndCleanup(true);
 }
 
 void RouletteLayer::onResetButton(CCObject* sender)
@@ -768,8 +919,13 @@ void RouletteLayer::onResetButton(CCObject* sender)
 	RouletteManager.levelPercentageGoal = 1;
 	RouletteManager.skipsCount = 0;
 
-	list = {};
-	lastListIndex = 0;
+	if (levelEpicSprite && levelEpicSprite->getParent())
+		levelEpicSprite->removeFromParentAndCleanup(true);
+
+	if (levelFeaturedSprite && levelFeaturedSprite->getParent())
+		levelFeaturedSprite->removeFromParentAndCleanup(true);
+
+	level = {};
 
 	for (int i = 0; i < 6; i++)
 	{
@@ -780,7 +936,7 @@ void RouletteLayer::onResetButton(CCObject* sender)
 	for (int i = 0; i < 6; i++)
 		m_pButtonMenu->getChildByTag(6 + i)->setVisible(false);
 
-	for (int i = 0; i < 25; i++)
+	for (int i = 0; i < 26; i++)
 		m_pButtonMenu->getChildByTag(100 + i)->setVisible(false);
 
 	reinterpret_cast<CCLabelBMFont*>(m_pButtonMenu->getChildByTag(117))->setString("0%");
@@ -801,8 +957,20 @@ void RouletteLayer::onResetButton(CCObject* sender)
 
 void RouletteLayer::onSkipButton(CCObject* sender)
 {
-	if (!ListFetcher::finishedFetching)
+	if (ListFetcher::isFetching)
 		return;
+
+	if (RouletteManager.levelPercentageGoal == 101)
+	{
+		onNextButton(nullptr);
+		return;
+	}
+
+	if (levelEpicSprite && levelEpicSprite->getParent())
+		levelEpicSprite->removeFromParentAndCleanup(true);
+
+	if (levelFeaturedSprite && levelFeaturedSprite->getParent())
+		levelFeaturedSprite->removeFromParentAndCleanup(true);
 
 	if (RouletteManager.skipsCount < RouletteManager.skipsMax)
 	{
@@ -823,7 +991,7 @@ void RouletteLayer::onSkipButton(CCObject* sender)
 		int demonInd = getIndexOf(RouletteManager.demonDifficultyArr, true);
 		int difficulty = diffInd == 5 ? (demonInd + 6) : (diffInd + 1);
 
-		getlistLevel(this, difficulty, list);
+		getlistLevel(this, difficulty, level);
 	}
 	else
 	{
@@ -840,23 +1008,15 @@ void RouletteLayer::finishLevelRoulette()
 	levelLoadingCircle->stopAllActions();
 	levelLoadingCircle->setVisible(false);
 
-	int listType = getIndexOf(RouletteManager.togglesStatesArr, true);
-	nlohmann::json level;
-
-	if (list.size() == 0 || listLevel.size() == 0)
+	if (level.size() == 0)
 	{
 		for (int i = 0; i < 11; i++)
 			m_pButtonMenu->getChildByTag(113 + i)->setVisible(false);
 
 		m_pButtonMenu->getChildByTag(121)->setVisible(true);
-		m_pButtonMenu->getChildByTag(124)->setVisible(true);
+		m_pButtonMenu->getChildByTag(125)->setVisible(true);
 		return;
 	}
-	
-	if (!RouletteManager.isPlayingRoulette)
-		lastListIndex = Hacks::randomInt(0, list.size() - 1);
-
-	level = listType == 0 ? list[lastListIndex] : listLevel;
 
 	RouletteManager.lastLevelID = std::stoi(level["id"].get<std::string>());
 
@@ -864,17 +1024,17 @@ void RouletteLayer::finishLevelRoulette()
 	{
 		reinterpret_cast<CCLabelBMFont*>(
 			m_pButtonMenu->getChildByTag(100)->getChildren()->objectAtIndex(0)
-		)->setScale(.75f);
+			)->setScale(.75f);
 	}
 	reinterpret_cast<CCLabelBMFont*>(
 		m_pButtonMenu->getChildByTag(100)->getChildren()->objectAtIndex(0)
-	)->setString(level["name"].get<std::string>().c_str());
+		)->setString(level["name"].get<std::string>().c_str());
 	reinterpret_cast<CCLabelBMFont*>(
 		m_pButtonMenu->getChildByTag(101)->getChildren()->objectAtIndex(0)
-	)->setString(("by " + level["author"].get<std::string>()).c_str());
+		)->setString(("by " + level["author"].get<std::string>()).c_str());
 	reinterpret_cast<CCLabelBMFont*>(
 		m_pButtonMenu->getChildByTag(102)->getChildren()->objectAtIndex(0)
-	)->setString(("ID: " + level["id"].get<std::string>()).c_str());
+		)->setString(("ID: " + level["id"].get<std::string>()).c_str());
 
 	for (int i = 0; i < 3; i++)
 		m_pButtonMenu->getChildByTag(100 + i)->setVisible(true);
@@ -919,7 +1079,7 @@ void RouletteLayer::finishLevelRoulette()
 			for (int i = 0; i < coins; i++)
 			{
 				m_pButtonMenu->getChildByTag(113 + i + 1)->setVisible(true);
-				if (diffInd == 5)
+				if (level["stars"].get<int>() > 5)
 					m_pButtonMenu->getChildByTag(113 + i + 1)->setPositionY(0.f);
 			}
 			break;
@@ -929,6 +1089,25 @@ void RouletteLayer::finishLevelRoulette()
 		m_pButtonMenu->getChildByTag(difficultyTag)->setPositionY(40.f);
 
 	m_pButtonMenu->getChildByTag(difficultyTag)->setVisible(true);
+
+	if (level["epic"].get<bool>())
+	{
+		auto difficultySprite = m_pButtonMenu->getChildByTag(difficultyTag);
+		levelEpicSprite = CCSprite::createWithSpriteFrameName("GJ_epicCoin_001.png");
+		levelEpicSprite->setScale(1.4f);
+		levelEpicSprite->setPosition(difficultySprite->getPosition());
+		m_pButtonMenu->addChild(levelEpicSprite, -1);
+	}
+
+	if (level["featured"].get<bool>())
+	{
+		auto difficultySprite = m_pButtonMenu->getChildByTag(difficultyTag);
+		levelFeaturedSprite = CCSprite::createWithSpriteFrameName("GJ_featuredCoin_001.png");
+		levelFeaturedSprite->setScale(1.5f);
+		levelFeaturedSprite->setPosition(difficultySprite->getPosition());
+		m_pButtonMenu->addChild(levelFeaturedSprite, -1);
+	}
+
 }
 
 
@@ -979,6 +1158,6 @@ gd::CCMenuItemToggler* RouletteInfoLayer::createToggler(int tag, const char* lab
 	m_pButtonMenu->addChild(button);
 
 	auto label = createTextLabel(labelText, { point.x + 20, point.y }, .5f, m_pButtonMenu);
-	label->setAnchorPoint({.0f, .5f });
-	label->limitLabelWidth( 80.f, .5f, 0);
+	label->setAnchorPoint({ .0f, .5f });
+	label->limitLabelWidth(80.f, .5f, 0);
 }

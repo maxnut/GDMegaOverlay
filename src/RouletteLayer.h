@@ -19,8 +19,10 @@ public:
 class RouletteLayer : public CustomLayer
 {
 private:
-	static gd::LoadingCircle* levelLoadingCircle;
 	inline static bool isPlusButtonToggled = false;
+	gd::LoadingCircle* levelLoadingCircle{};
+	CCSprite* levelEpicSprite{};
+	CCSprite* levelFeaturedSprite{};
 
 public:
 	static RouletteLayer* create();
@@ -42,7 +44,6 @@ public:
 	void finishLevelRoulette();
 
 private:
-	// helper functions
 	gd::CCMenuItemSpriteExtra* createDifficultyButton(int tag, CCNode* sprite, CCPoint point, float scale, bool isDemon = false, bool visible = true);
 };
 
@@ -54,6 +55,7 @@ public:
 
 	void onClose(CCObject* sender);
 	void onToggleButton(CCObject* sender);
+	void onSkipsButton(CCObject* sender);
 
 private:
 	gd::CCMenuItemToggler* createToggler(int tag, const char* label, CCPoint point, bool visible = true);
@@ -61,11 +63,13 @@ private:
 	void destroyLayerChildren();
 };
 
-class RouletteLevelLayer : public CustomLayer
+class IntegerInputLayer : public CustomLayer
 {
 public:
-	static RouletteLevelLayer* create();
+	static IntegerInputLayer* create();
 	bool init();
 
 	void onClose(CCObject* sender);
+	void onLeftButton(CCObject* sender);
+	void onRightButton(CCObject* sender);
 };

@@ -19,9 +19,7 @@ namespace LevelInfoLayer
 		CustomDirector* director = reinterpret_cast<CustomDirector*>(CCDirector::sharedDirector());
 
 		if (!RouletteManager.isPlayingRoulette || self->m_pLevel->levelID != RouletteManager.lastLevelID)
-		{
 			onBack(self, sender);
-		}
 		else
 		{
 			if (
@@ -34,17 +32,17 @@ namespace LevelInfoLayer
 					) {
 					CCLayer* rouletteLayer = reinterpret_cast<CCLayer*>(
 						director->getPreviousScene()->getChildren()->objectAtIndex(1)
-					);
+						);
 
 					CCMenu* rouletteMenu = reinterpret_cast<CCMenu*>(
 						reinterpret_cast<CCLayer*>(
 							rouletteLayer->getChildren()->objectAtIndex(0)
-						)->getChildren()->objectAtIndex(1)
-					);
+							)->getChildren()->objectAtIndex(1)
+						);
 
 					reinterpret_cast<CCLabelBMFont*>(
 						rouletteMenu->getChildByTag(117)
-					)->setString(CCString::createWithFormat("%d%%", RouletteManager.lastLevelPercentage)->getCString());
+						)->setString(CCString::createWithFormat("%d%%", RouletteManager.lastLevelPercentage)->getCString());
 				}
 			}
 
@@ -52,3 +50,4 @@ namespace LevelInfoLayer
 		}
 	}
 }
+

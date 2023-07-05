@@ -483,9 +483,10 @@ void __fastcall PlayLayer::destroyPlayer_H(gd::PlayLayer* self, void*, gd::Playe
 		if (delta > 0.2f && !self->m_isDead)
 		{
 			RouletteManager.hasFinishedPreviousLevel = true;
-			RouletteManager.lastLevelPercentage = static_cast<int>((player->getPositionX() / self->m_levelLength) * 100.f);
-			RouletteManager.levelPercentageGoal = RouletteManager.lastLevelPercentage + 1;
-			self->pauseGame();
+			RouletteManager.lastLevelPercentage = percentage;
+			RouletteManager.levelPercentageGoal++;
+			RouletteManager.numLevels++;
+			self->pauseGame(false);
 		}
 	}
 
@@ -538,7 +539,8 @@ gd::GameSoundManager* __fastcall PlayLayer::levelCompleteHook(gd::PlayLayer* sel
 		{
 			RouletteManager.hasFinishedPreviousLevel = true;
 			RouletteManager.lastLevelPercentage = 100;
-			RouletteManager.levelPercentageGoal = RouletteManager.lastLevelPercentage + 1;
+			RouletteManager.levelPercentageGoal++;
+			RouletteManager.numLevels++;
 		}
 	}
 

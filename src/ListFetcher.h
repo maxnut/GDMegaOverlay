@@ -4,7 +4,6 @@
 #define CURL_STATICLIB
 #include <curl/curl.h>
 
-
 struct curlFetchResponse
 {
 	CURLcode responseCode;
@@ -28,13 +27,13 @@ private:
 	static curlFetchResponse fetchLink(std::string link);
 
 public:
-	static std::atomic_bool finishedFetching;
+	static std::atomic_bool isFetching;
 
 	static void init();
 
-	static void getNormalList(int stars, nlohmann::json& json);
-	static void getRandomDemonListLevel(nlohmann::json& json);
-	static void getRandomChallengeListLevel(nlohmann::json& json);
-	
-	static void getLevelInfo(int levelID, nlohmann::json& json);
+	static void getRandomNormalListLevel(int, nlohmann::json&);
+	static void getRandomDemonListLevel(nlohmann::json&);
+	static void getRandomChallengeListLevel(nlohmann::json&);
+
+	static void getLevelInfo(int, nlohmann::json&);
 };
