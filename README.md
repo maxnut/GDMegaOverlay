@@ -25,6 +25,8 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 
 Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder.
 
+Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
+
 ## Development
 
 <span style="color:red">THIS PROJECT CAN BE COMPILED ONLY ON WINDOWS</span>
