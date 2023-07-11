@@ -330,3 +330,33 @@ void HitboxNode::drawForObject(gd::GameObject* obj)
 		this->drawPolygonHitbox(this->quadrilateralForObject(obj), color);
 	}
 }
+
+void HitboxNode::drawObjectWithRotation(gd::GameObject* obj)
+{
+	std::vector<CCPoint> points = this->quadrilateralForObject(obj);
+
+	CCPoint position = obj->getPosition();
+	float angle = obj->getRotation();
+
+	std::vector<CCPoint> rotatedPoints;
+
+	for (auto& point : points)
+	{
+		CCPoint offset = point - position;
+
+		float rotatedX = offset.x * cosf(-CC_DEGREES_TO_RADIANS(angle)) - offset.y * sinf(-CC_DEGREES_TO_RADIANS(angle));
+		float rotatedY = offset.x * sinf(-CC_DEGREES_TO_RADIANS(angle)) + offset.y * cosf(-CC_DEGREES_TO_RADIANS(angle));
+
+		CCPoint rotatedPoint = position + CCPoint(rotatedX, rotatedY);
+
+		rotatedPoints.push_back(rotatedPoint);
+	}
+
+	ccColor4B color = {
+		(GLubyte)(hacks.hazardHitboxColor[0] * 255.f),
+		(GLubyte)(hacks.hazardHitboxColor[1] * 255.f),
+		(GLubyte)(hacks.hazardHitboxColor[2] * 255.f)
+	};
+
+	this->drawPolygonHitbox(rotatedPoints, color);
+}
