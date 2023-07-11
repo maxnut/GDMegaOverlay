@@ -17,6 +17,8 @@ public:
 
 	virtual void drawRectangleHitbox(cocos2d::CCRect const &rect, cocos2d::ccColor4B col);
 
+	virtual void drawObjectWithRotation(gd::GameObject* obj);
+
 	// i dont know why, but if i remove these or interact with them the game crashes, so i will just leave them here
 	std::deque<cocos2d::CCRect> m_player1Queue;
 	std::deque<cocos2d::CCRect> m_player2Queue;

@@ -47,7 +47,7 @@ void __fastcall LevelEditorLayer::drawHook(gd::LevelEditorLayer *self, void *)
 					if (!obj->m_bActive)
 						continue;
 
-					HitboxNode::getInstance()->drawForObject(obj);
+					HitboxNode::getInstance()->drawObjectWithRotation(obj);
 				}
 			}
 		}
