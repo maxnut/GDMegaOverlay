@@ -352,6 +352,12 @@ void HitboxNode::drawObjectWithRotation(gd::GameObject* obj)
 		rotatedPoints.push_back(rotatedPoint);
 	}
 
+	if (obj->m_nObjectID != 749 && obj->getType() == gd::GameObjectType::kGameObjectTypeDecoration &&
+		!hacks.showDecorations)
+		return;
+	if (!obj->m_bActive)
+		return;
+
 	ccColor4B color;
 	switch (obj->getType())
 	{
