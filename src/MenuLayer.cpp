@@ -20,18 +20,21 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 		firstCall = true;
 		Hacks::MenuMusic();
 
-		gm->setPlayerFrame(hacks.iconIds[0]);
-		gm->setPlayerShip(hacks.iconIds[1]);
-		gm->setPlayerBall(hacks.iconIds[2]);
-		gm->setPlayerBird(hacks.iconIds[3]);
-		gm->setPlayerDart(hacks.iconIds[4]);
-		gm->setPlayerRobot(hacks.iconIds[5]);
-		gm->setPlayerSpider(hacks.iconIds[6]);
-		gm->setPlayerColor(hacks.iconIds[7]);
-		gm->setPlayerColor2(hacks.iconIds[8]);
-		gm->setPlayerDeathEffect(hacks.iconIds[9]);
-		gm->setPlayerGlow(hacks.iconIds[10]);
-		gm->setPlayerStreak(hacks.iconIds[11]);
+		if (hacks.iconIds[0] >= 0 && hacks.iconIds[0] < 200)
+		{
+			gm->setPlayerFrame(hacks.iconIds[0]);
+			gm->setPlayerShip(hacks.iconIds[1]);
+			gm->setPlayerBall(hacks.iconIds[2]);
+			gm->setPlayerBird(hacks.iconIds[3]);
+			gm->setPlayerDart(hacks.iconIds[4]);
+			gm->setPlayerRobot(hacks.iconIds[5]);
+			gm->setPlayerSpider(hacks.iconIds[6]);
+			gm->setPlayerColor(hacks.iconIds[7]);
+			gm->setPlayerColor2(hacks.iconIds[8]);
+			gm->setPlayerDeathEffect(hacks.iconIds[9]);
+			gm->setPlayerGlow(hacks.iconIds[10]);
+			gm->setPlayerStreak(hacks.iconIds[11]);
+		}
 	}
 
 	auto t = std::time(nullptr);

@@ -333,6 +333,12 @@ void HitboxNode::drawForObject(gd::GameObject* obj)
 
 void HitboxNode::drawObjectWithRotation(gd::GameObject* obj)
 {
+	if(obj->getObjectRadius() > 0)
+	{
+		drawForObject(obj);
+		return;
+	}
+
 	std::vector<CCPoint> points = this->quadrilateralForObject(obj);
 
 	CCPoint position = obj->getPosition();

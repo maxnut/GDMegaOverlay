@@ -11,7 +11,6 @@ float g_left_over = 0.f;
 void(__thiscall* CCScheduler_update)(CCScheduler*, float);
 void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt)
 {
-
 	auto& rs = ReplayPlayer::getInstance();
 	const auto play_layer = gd::GameManager::sharedState()->getPlayLayer();
 
@@ -50,22 +49,7 @@ void __fastcall CCScheduler_update_H(CCScheduler* self, int, float dt)
 				return;
 			}
 
-			if (hacks.tpsBypassBool || rs.IsRecording() || rs.IsPlaying())
-			{
-				for (unsigned i = 0; i < times; ++i)
-				{
-					CCScheduler_update(self, target_dt);
-					using namespace std::literals;
-					if (std::chrono::high_resolution_clock::now() - start > 33.333ms)
-					{
-						times = i + 1;
-						break;
-					}
-				}
-				g_left_over += dt - target_dt * times;
-			}
-			else
-				CCScheduler_update(self, target_dt * speedhack);
+			CCScheduler_update(self, target_dt * speedhack);
 			ExternData::steps--;
 			return;
 		}

@@ -19,6 +19,7 @@
 #include "ReplayPlayer.h"
 #include "Shortcuts.h"
 #include "TrajectorySimulation.h"
+#include "Updater.h"
 #include "explorer.hpp"
 #include "imgui_internal.h"
 #include "json.hpp"
@@ -259,10 +260,6 @@ void Init()
 	{
 		std::filesystem::create_directory("GDMenu/dll");
 	}
-	if (!std::filesystem::is_directory("GDMenu/checkpoints") || !std::filesystem::exists("GDMenu/checkpoints"))
-	{
-		std::filesystem::create_directory("GDMenu/checkpoints");
-	}
 
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
@@ -470,6 +467,8 @@ void Init()
 	ExternData::screenSizeX = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
 
 	loaded = true;
+
+	Updater::CheckUpdate();
 }
 
 void Hacks::RenderMain()
@@ -564,6 +563,99 @@ void Hacks::RenderMain()
 		ImGui::PopStyleColor();
 	}
 
+	if (ExternData::newRelease)
+	{
+		ImGui::OpenPopup("New Release");
+
+		if (ImGui::BeginPopupModal("New Release", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			static bool showText = false;
+			ImGui::Text(showText ? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
+								 : "A new release is available! Would you like to download it?");
+
+			ImGui::Text(ExternData::description.c_str());
+
+			if (!showText)
+			{
+				if (GDMO::ImButton("Yes", false))
+				{
+					showText = true;
+					Updater::Download(true);
+				}
+				ImGui::SameLine();
+				if (GDMO::ImButton("No", false))
+				{
+					ImGui::CloseCurrentPopup();
+					ExternData::newRelease = false;
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	if (ExternData::updatedZip)
+	{
+		ImGui::OpenPopup("Updated Zip");
+
+		if (ImGui::BeginPopupModal("Updated Zip", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			static bool showText = false;
+			ImGui::Text(showText ? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
+								 : "An updated zip is available! Would you like to download it?");
+
+			ImGui::Text(ExternData::description.c_str());
+
+			if (!showText)
+			{
+				if (GDMO::ImButton("Yes", false))
+				{
+					showText = true;
+					Updater::Download(true);
+				}
+				ImGui::SameLine();
+				if (GDMO::ImButton("No", false))
+				{
+					ImGui::CloseCurrentPopup();
+					ExternData::updatedZip = false;
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	if (ExternData::updatedDll)
+	{
+		ImGui::OpenPopup("Updated DLL");
+
+		if (ImGui::BeginPopupModal("Updated DLL", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		{
+			static bool showText = false;
+			ImGui::Text(showText ? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
+								 : "An updated DLL is available! Would you like to download it?");
+
+			ImGui::Text(ExternData::description.c_str());
+
+			if (!showText)
+			{
+				if (GDMO::ImButton("Yes", false))
+				{
+					showText = true;
+					Updater::Download(false);
+				}
+				ImGui::SameLine();
+				if (GDMO::ImButton("No", false))
+				{
+					ImGui::CloseCurrentPopup();
+					ExternData::updatedDll = false;
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
 	if (ExternData::show)
 	{
 		float s = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
@@ -650,6 +742,8 @@ void Hacks::RenderMain()
 		GDMO::ImInputFloat("Open Speed", &hacks.menuAnimationLength);
 		GDMO::ImInputText("Search", ExternData::searchbar, 30);
 		ImGui::PopItemWidth();
+
+		ImGui::Text(("Version: " + ExternData::version).c_str());
 
 		ImGui::End();
 
@@ -2436,8 +2530,6 @@ DWORD WINAPI my_thread(void* hModule)
 					  reinterpret_cast<void**>(&PlayLayer::toggleDartMode));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1e9a20), PlayLayer::incrementJumpsHook,
 					  reinterpret_cast<void**>(&PlayLayer::incrementJumps));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x20b4a0), PlayLayer::loadFromCheckpointHook,
-					  reinterpret_cast<void**>(&PlayLayer::loadFromCheckpoint));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook,
 					  reinterpret_cast<void**>(&LevelEditorLayer::draw));

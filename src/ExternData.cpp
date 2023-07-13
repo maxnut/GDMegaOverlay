@@ -31,3 +31,9 @@ bool ExternData::finishedFirstLoop;
 std::vector<std::string> ExternData::clickpacks;
 
 float ExternData::lastJumpRotP1, ExternData::lastJumpRotP2;
+
+bool ExternData::newRelease, ExternData::updatedZip, ExternData::updatedDll;
+
+std::string ExternData::version = "unknown";
+double ExternData::downloadProgress = 0;
+std::string ExternData::description = ":)";

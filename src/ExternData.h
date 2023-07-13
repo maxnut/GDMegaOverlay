@@ -46,4 +46,10 @@ namespace ExternData
     extern std::vector<std::string> clickpacks;
 
     extern float lastJumpRotP1, lastJumpRotP2;
+
+    extern bool newRelease, updatedZip, updatedDll;
+
+    extern std::string version;
+    extern double downloadProgress;
+    extern std::string description;
 } // namespace ExternData

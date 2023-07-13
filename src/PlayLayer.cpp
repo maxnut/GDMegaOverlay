@@ -1715,15 +1715,17 @@ void* __fastcall PlayLayer::getObjectRectHook2(cocos2d::CCNode* obj, void*, floa
 void __fastcall PlayLayer::incrementJumpsHook(gd::PlayerObject* self, void*)
 {
 	PlayLayer::incrementJumps(self);
+
 	if (playlayer && playlayer->m_pPlayer1 == self)
 		ExternData::lastJumpRotP1 = self->getRotation();
 	else if (playlayer && playlayer->m_pPlayer2 == self)
 		ExternData::lastJumpRotP2 = self->getRotation();
-	else
+	
+	if (hacks.trajectory && playlayer)
 	{
-		self->stopActionByTag(0);
-		TrajectorySimulation::getInstance()->rotateAction = runNormalRotation(self, 1);
-		self->runAction(TrajectorySimulation::getInstance()->rotateAction);
+			self->stopActionByTag(0);
+			TrajectorySimulation::getInstance()->rotateAction = runNormalRotation(self, 1);
+			self->runAction(TrajectorySimulation::getInstance()->rotateAction);
 	}
 }
 
@@ -1912,7 +1914,7 @@ enumKeyCodes mapKey(int keyCode)
 void __fastcall PlayLayer::dispatchKeyboardMSGHook(void* self, void*, int key, bool down)
 {
 	dispatchKeyboardMSG(self, key, down);
-	if (ImGui::GetIO().KeysDown[ImGuiKey_LeftCtrl] && key == 'D' && down)
+	if (ImGui::GetIO().KeysDown[ImGuiKey_LeftCtrl] && ImGui::GetIO().KeysDown[ImGuiKey_LeftAlt] && key == 'D' && down)
 	{
 		debug.enabled = !debug.enabled;
 	}
