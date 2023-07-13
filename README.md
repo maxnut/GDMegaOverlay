@@ -9,7 +9,7 @@
 
 Free, feature-rich, gui-integrated geometry dash mod menu
 
-![alt text](https://media.discordapp.net/attachments/587598582308143125/1064198417804431491/20230115160755_1.jpg)
+![menu screen](/docs/img/screen.jpg)
 
 ## Features
 
@@ -29,7 +29,7 @@ Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry 
 
 ## Development
 
-<span style="color:red">THIS PROJECT CAN BE COMPILED ONLY ON WINDOWS</span>
+<span style="color:red">THIS PROJECT CAN ONLY BE COMPILED ON WINDOWS</span>
 
 Some dependencies are needed:
 * [Git](https://git-scm.com/)
@@ -81,11 +81,11 @@ You should find the result in build/Release
 
 [matcool/ReplayBot](https://github.com/matcool/ReplayBot) internal recorder, i integrated my clickbot into it
 
-[Very-Tall-Midget/OmegaBot2](https://github.com/Very-Tall-Midget/OmegaBot2) practice fixes
+[Very-Tall-Midget/OmegaBot2](https://github.com/Very-Tall-Midget/OmegaBot2) base of practice fixes
 
 [adafcaefc/ProxyDllLoader](https://github.com/adafcaefc/ProxyDllLoader) for the mod loader
 
-[TpdEA](https://discord.gg/AXhTdHUd2R) for the json files and the endscreen code
+[TpdEA](https://discord.gg/AXhTdHUd2R) for the json files, the endscreen code, and improvements to trajectory code
 
 [Absolute](https://github.com/absoIute) for the json files, the gd::string and the demonlist/challenge list files
 
