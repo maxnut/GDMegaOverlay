@@ -20,8 +20,6 @@ target_include_directories(
     libs/gd.h/include
     libs/gd.h/
     libs/portaudio/include
-    libs/imgui-hook
-    libs/imgui-hook/imgui
     libs/libsndfile/include
     libs/discord_game_sdk/cpp
     libs/cocos-headers/libs/cocos2dx/include/platform/third_party/win32/curl)
