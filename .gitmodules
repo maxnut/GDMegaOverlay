@@ -8,3 +8,6 @@
 [submodule "libs/cocos-headers"]
 	path = libs/cocos-headers
 	url = https://github.com/zaphir-code/cocos-headers.git
+[submodule "libs/fmod-headers"]
+	path = libs/fmod-headers
+	url = https://github.com/adarift/fmod-headers.git
