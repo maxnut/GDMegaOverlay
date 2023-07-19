@@ -1,11 +1,15 @@
 #pragma once
+
+#include <cstdint>
+#include <array>
+
 #include "pch.h"
 
 struct CheckpointData
 {
     double xAccel, yAccel, jumpAccel;
     float xPos, yPos, rotationX, rotationY, playerSpeed, vehichleSize, decelerationRate;
-    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, unk630, unk631, isDropping;
+    bool hasJustHeld, hasJustHeld2, isHolding, isHolding2, canRobotJump, isUpsideDown, isOnGround, isDashing, isRising, isSliding, isLocked, isDropping;
     size_t touchRing;
     gd::Gamemode gamemode;
     static CheckpointData fromPlayer(gd::PlayerObject *p)
@@ -32,8 +36,8 @@ struct CheckpointData
         cd.isSliding = p->m_isSliding;
         cd.isRising = p->m_isRising;
         cd.isLocked = p->m_isLocked;
-        cd.unk630 = p->m_unk630;
-        cd.unk631 = p->m_unk631;
+        *reinterpret_cast<std::uint8_t*>(&cd.yAccel + 3) = *reinterpret_cast<std::uint8_t*>(&p->m_yAccel + 3);
+        *reinterpret_cast<std::uint8_t*>(&cd.yAccel + 4) = *reinterpret_cast<std::uint8_t*>(&p->m_yAccel + 4);
         cd.isDropping = p->m_isDropping;
         cd.touchRing = p->m_touchingRings->count();
         cd.gamemode = GetGamemode(p);

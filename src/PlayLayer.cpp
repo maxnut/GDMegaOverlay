@@ -1360,9 +1360,9 @@ void Change()
 
 	startPosText->runAction(CCSequence::create(&actions));
 
-	if (playlayer->unk330)
-		playlayer->unk330->release();
-	playlayer->unk330 = nullptr;
+	if (playlayer->m_startPosCheckpoint)
+		playlayer->m_startPosCheckpoint->release();
+	playlayer->m_startPosCheckpoint = nullptr;
 
 	if (startPosIndex >= 0)
 	{

@@ -72,8 +72,8 @@ int CheckpointData::Apply(gd::PlayerObject *p, bool tp)
     p->m_isSliding = isSliding;
     p->m_isRising = isRising;
     p->m_isLocked = isLocked;
-    p->m_unk630 = unk630;
-    p->m_unk631 = unk631;
+    *reinterpret_cast<std::uint8_t*>(&p->m_yAccel + 3) = *reinterpret_cast<std::uint8_t*>(&yAccel + 3);
+    *reinterpret_cast<std::uint8_t*>(&p->m_yAccel + 4) = *reinterpret_cast<std::uint8_t*>(&yAccel + 4);
     p->m_isDropping = isDropping;
     SetGamemode(p, gamemode);
     return out;
