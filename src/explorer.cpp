@@ -380,8 +380,8 @@ void render_node_properties(CCNode* node)
 								 static_cast<GLubyte>(colorValues[2] * 255)});
 			rgba_node->setOpacity(static_cast<GLubyte>(colorValues[3] * 255.f));
 		}
-		ImGui::Text(("Real Opacity " + std::to_string(rgba_node->_realOpacity)).c_str());
-		ImGui::Text(("Display Opacity " + std::to_string(rgba_node->_displayedOpacity)).c_str());
+		ImGui::Text(("Real Opacity " + std::to_string(rgba_node->getOpacity())).c_str());
+		ImGui::Text(("Display Opacity " + std::to_string(rgba_node->getDisplayedOpacity())).c_str());
 	}
 
 	if (auto label_node = dynamic_cast<CCLabelProtocol*>(node); label_node)

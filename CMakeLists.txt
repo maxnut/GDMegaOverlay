@@ -22,7 +22,7 @@ target_include_directories(${PROJECT} PRIVATE
   libs/libsndfile/include
   libs/fmod/inc
   libs/discord_game_sdk/cpp
-  libs/cocos-headers/cocos2dx/platform/third_party/win32/curl
+  libs/cocos-headers/libs/cocos2dx/include/platform/third_party/win32/curl
 )
 
 add_subdirectory(libs/minhook)
@@ -34,10 +34,8 @@ target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d) # OpenGL32
 target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/fmod/lib/x86/fmod_vc.lib
   ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib
-  ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib
+  ${CMAKE_SOURCE_DIR}/libs/cocos-headers/libs/cocos2dx/include/robtop/glfw/glfw3.lib
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
-  ${CMAKE_SOURCE_DIR}/libs/cocos-headers/extensions/libExtensions.lib
-  ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/libcocos2d.lib
   ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
   ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
 )
