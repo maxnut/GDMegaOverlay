@@ -13,7 +13,7 @@ namespace SpeedhackAudio {
 	static void* (__stdcall* setVolume)(void* t_channel, float volume);
 	static void* (__stdcall* setFrequency)(void* t_channel, float frequency);
 
-	static void* __stdcall AhsjkabdjhadbjJHDSJ(void* t_channel, float volume) {
+	static void* __stdcall setVolumeHook(void* t_channel, float volume) {
 		channel = t_channel;
 
 		if (speed != 1.f) {
@@ -32,7 +32,7 @@ namespace SpeedhackAudio {
 
 		MH_CreateHook(
 			(PVOID)hkAddr,
-			AhsjkabdjhadbjJHDSJ,
+			setVolumeHook,
 			(PVOID*)&setVolume
 		);
 
