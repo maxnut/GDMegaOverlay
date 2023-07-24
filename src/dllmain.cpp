@@ -1371,6 +1371,7 @@ void Hacks::RenderMain()
 		if (ImGui::BeginPopupModal("Clock Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
 		{
 			TextSettings(5, true);
+			GDMO::ImCheckbox("Use 12h format", &hacks.use12hFormat);
 			if (GDMO::ImButton("Close", false))
 			{
 				ImGui::CloseCurrentPopup();

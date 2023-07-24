@@ -123,6 +123,8 @@ struct HacksStr
 
 	bool realPercentage;
 	float levelEndPercent;
+
+	bool use12hFormat = false;
 };
 
 enum position
