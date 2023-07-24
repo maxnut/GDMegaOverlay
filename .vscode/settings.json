@@ -87,6 +87,9 @@
         "csignal": "cpp",
         "future": "cpp",
         "random": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "codecvt": "cpp",
+        "coroutine": "cpp",
+        "resumable": "cpp"
     }
 }

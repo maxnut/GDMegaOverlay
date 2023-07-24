@@ -699,7 +699,12 @@ void UpdateLabels(gd::PlayLayer* self)
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
 		std::ostringstream s;
+		if (!hacks.use12hFormat) 
+		{
 		s << std::put_time(&tm, "%H:%M:%S");
+		} else {
+			s << std::put_time(&tm, "%I:%M:%S %p");
+		}
 
 		fontPtr->setString(s.str().c_str());
 
