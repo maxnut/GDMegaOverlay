@@ -1074,7 +1074,10 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("sei", 1))
 			ImGui::OpenPopup("Endscreen Settings");
 
-		if (ImGui::BeginPopupModal("Endscreen Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) || ExternData::fake)
+		// ImGuiWindowFlags_AlwaysAutoResize doesn't work, so we specify the popup size manually
+		const float scale = ImGui::GetIO().DisplaySize.x / 1920;
+		ImGui::SetNextWindowSize(ImVec2(150 * scale, 170 * scale));
+		if (ImGui::BeginPopupModal("Endscreen Settings", NULL, ImGuiWindowFlags_NoResize) || ExternData::fake)
 		{
 			GDMO::ImCheckbox("Safe Mode", &hacks.safeModeEndscreen);
 			GDMO::ImCheckbox("Practice Button", &hacks.practiceButtonEndscreen);
