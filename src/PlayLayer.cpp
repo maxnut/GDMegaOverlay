@@ -791,7 +791,7 @@ void UpdateLabels(gd::PlayLayer* self)
 
 	if (labels.statuses[11])
 	{
-		fontPtr->setString(("ExternData::level ID: " + std::to_string(self->m_level->levelID)).c_str());
+		fontPtr->setString(("Level ID: " + std::to_string(self->m_level->levelID)).c_str());
 
 		if (labels.rainbowLabels)
 			fontPtr->setColor(rainbow);
