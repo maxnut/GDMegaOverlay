@@ -84,6 +84,8 @@ void Updater::CheckUpdate()
 		res = curl_easy_perform(curl);
 		curl_easy_cleanup(curl);
 
+		if (res != CURLE_OK) return;
+
 		std::string info = readBuffer.c_str();
 		savedRequest = json::parse(info);
 
