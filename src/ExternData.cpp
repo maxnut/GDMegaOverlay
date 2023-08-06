@@ -37,3 +37,5 @@ bool ExternData::newRelease, ExternData::updatedZip, ExternData::updatedDll;
 std::string ExternData::version = "unknown";
 double ExternData::downloadProgress = 0;
 std::string ExternData::description = ":)";
+
+bool ExternData::canShowUpdate = false;

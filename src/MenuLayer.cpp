@@ -58,6 +58,8 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 		ExternData::ds.core->ActivityManager().UpdateActivity(activity, [](discord::Result result) {});
 	}
 
+	ExternData::canShowUpdate = true;
+
 	return result;
 }
 

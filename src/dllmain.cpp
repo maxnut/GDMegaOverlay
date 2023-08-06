@@ -563,96 +563,103 @@ void Hacks::RenderMain()
 		ImGui::PopStyleColor();
 	}
 
-	if (ExternData::newRelease)
+	if (ExternData::canShowUpdate)
 	{
-		ImGui::OpenPopup("New Release");
 
-		if (ImGui::BeginPopupModal("New Release", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ExternData::newRelease)
 		{
-			static bool showText = false;
-			ImGui::Text(showText ? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
-								 : "A new release is available! Would you like to download it?");
+			ImGui::OpenPopup("New Release");
 
-			ImGui::Text(ExternData::description.c_str());
-
-			if (!showText)
+			if (ImGui::BeginPopupModal("New Release", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				if (GDMO::ImButton("Yes", false))
-				{
-					showText = true;
-					Updater::Download(true);
-				}
-				ImGui::SameLine();
-				if (GDMO::ImButton("No", false))
-				{
-					ImGui::CloseCurrentPopup();
-					ExternData::newRelease = false;
-				}
-			}
+				static bool showText = false;
+				ImGui::Text(showText
+								? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
+								: "A new release is available! Would you like to download it?");
 
-			ImGui::EndPopup();
+				ImGui::Text(ExternData::description.c_str());
+
+				if (!showText)
+				{
+					if (GDMO::ImButton("Yes", false))
+					{
+						showText = true;
+						Updater::Download(true);
+					}
+					ImGui::SameLine();
+					if (GDMO::ImButton("No", false))
+					{
+						ImGui::CloseCurrentPopup();
+						ExternData::newRelease = false;
+					}
+				}
+
+				ImGui::EndPopup();
+			}
 		}
-	}
 
-	if (ExternData::updatedZip)
-	{
-		ImGui::OpenPopup("Updated Zip");
-
-		if (ImGui::BeginPopupModal("Updated Zip", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ExternData::updatedZip)
 		{
-			static bool showText = false;
-			ImGui::Text(showText ? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
-								 : "An updated zip is available! Would you like to download it?");
+			ImGui::OpenPopup("Updated Zip");
 
-			ImGui::Text(ExternData::description.c_str());
-
-			if (!showText)
+			if (ImGui::BeginPopupModal("Updated Zip", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				if (GDMO::ImButton("Yes", false))
-				{
-					showText = true;
-					Updater::Download(true);
-				}
-				ImGui::SameLine();
-				if (GDMO::ImButton("No", false))
-				{
-					ImGui::CloseCurrentPopup();
-					ExternData::updatedZip = false;
-				}
-			}
+				static bool showText = false;
+				ImGui::Text(showText
+								? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
+								: "An updated zip is available! Would you like to download it?");
 
-			ImGui::EndPopup();
+				ImGui::Text(ExternData::description.c_str());
+
+				if (!showText)
+				{
+					if (GDMO::ImButton("Yes", false))
+					{
+						showText = true;
+						Updater::Download(true);
+					}
+					ImGui::SameLine();
+					if (GDMO::ImButton("No", false))
+					{
+						ImGui::CloseCurrentPopup();
+						ExternData::updatedZip = false;
+					}
+				}
+
+				ImGui::EndPopup();
+			}
 		}
-	}
 
-	if (ExternData::updatedDll)
-	{
-		ImGui::OpenPopup("Updated DLL");
-
-		if (ImGui::BeginPopupModal("Updated DLL", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ExternData::updatedDll)
 		{
-			static bool showText = false;
-			ImGui::Text(showText ? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
-								 : "An updated DLL is available! Would you like to download it?");
+			ImGui::OpenPopup("Updated DLL");
 
-			ImGui::Text(ExternData::description.c_str());
-
-			if (!showText)
+			if (ImGui::BeginPopupModal("Updated DLL", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 			{
-				if (GDMO::ImButton("Yes", false))
-				{
-					showText = true;
-					Updater::Download(false);
-				}
-				ImGui::SameLine();
-				if (GDMO::ImButton("No", false))
-				{
-					ImGui::CloseCurrentPopup();
-					ExternData::updatedDll = false;
-				}
-			}
+				static bool showText = false;
+				ImGui::Text(showText
+								? ("Downloading " + std::to_string((int)ExternData::downloadProgress) + "%%").c_str()
+								: "An updated DLL is available! Would you like to download it?");
 
-			ImGui::EndPopup();
+				ImGui::Text(ExternData::description.c_str());
+
+				if (!showText)
+				{
+					if (GDMO::ImButton("Yes", false))
+					{
+						showText = true;
+						Updater::Download(false);
+					}
+					ImGui::SameLine();
+					if (GDMO::ImButton("No", false))
+					{
+						ImGui::CloseCurrentPopup();
+						ExternData::updatedDll = false;
+					}
+				}
+
+				ImGui::EndPopup();
+			}
 		}
 	}
 

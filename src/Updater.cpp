@@ -94,6 +94,7 @@ void Updater::CheckUpdate()
 
 		if (savedRequest["id"].get<int>() != ver["release_id"].get<int>())
 		{
+			ver["release_id"] = savedRequest["id"];
 			ExternData::newRelease = true;
 			for (json jsonObj : savedRequest["assets"])
 			{
@@ -103,7 +104,7 @@ void Updater::CheckUpdate()
 					ver["zip_id"] = jsonObj["id"];
 					zipUrl = jsonObj["browser_download_url"];
 				}
-				else if (jsonObj["content_type"] == "application/x-msdownload" &&
+				else if (jsonObj["content_type"] == "application/x-msdownload" || jsonObj["content_type"] == "application/x-msdos-program" &&
 						 jsonObj["id"].get<int>() != ver["dll_id"].get<int>())
 				{
 					ver["dll_id"] = jsonObj["id"];
@@ -128,7 +129,7 @@ void Updater::CheckUpdate()
 			}
 			for (json jsonObj : savedRequest["assets"])
 			{
-				if (jsonObj["content_type"] == "application/x-msdownload" &&
+				if ((jsonObj["content_type"] == "application/x-msdownload" || jsonObj["content_type"] == "application/x-msdos-program") &&
 					jsonObj["id"].get<int>() != ver["dll_id"].get<int>())
 				{
 					ver["dll_id"] = jsonObj["id"];
@@ -139,8 +140,6 @@ void Updater::CheckUpdate()
 			}
 		}
 	}
-
-	ver["release_id"] = savedRequest["id"];
 }
 
 size_t WriteCallback(void* pOpaque, mz_uint64 file_ofs, const void* pBuf, size_t size)

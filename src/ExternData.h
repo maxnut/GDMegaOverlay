@@ -52,4 +52,6 @@ namespace ExternData
     extern std::string version;
     extern double downloadProgress;
     extern std::string description;
+
+    extern bool canShowUpdate;
 } // namespace ExternData
