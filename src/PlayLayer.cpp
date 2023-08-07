@@ -699,10 +699,12 @@ void UpdateLabels(gd::PlayLayer* self)
 		auto t = std::time(nullptr);
 		auto tm = *std::localtime(&t);
 		std::ostringstream s;
-		if (!hacks.use12hFormat) 
+		if (!hacks.use12hFormat)
 		{
-		s << std::put_time(&tm, "%H:%M:%S");
-		} else {
+			s << std::put_time(&tm, "%H:%M:%S");
+		}
+		else
+		{
 			s << std::put_time(&tm, "%I:%M:%S %p");
 		}
 
@@ -866,10 +868,11 @@ void UpdateLabels(gd::PlayLayer* self)
 	else if (sp.size() > 0 && startPosText)
 		startPosText->setString("");
 
-	if(hacks.realPercentage)
+	if (hacks.realPercentage)
 	{
 		float percent = (self->m_pPlayer1->getPositionX() / self->m_levelLength) * 100.0f;
-		self->m_percentLabel->setString(CCString::createWithFormat("%.2f%%", (percent * 100.0f) / hacks.levelEndPercent)->getCString());
+		self->m_percentLabel->setString(
+			CCString::createWithFormat("%.2f%%", (percent * 100.0f) / hacks.levelEndPercent)->getCString());
 	}
 }
 
@@ -1187,16 +1190,16 @@ void Update(gd::PlayLayer* self, float dt)
 		prevRot2 = self->m_pPlayer2->getRotation();
 	}
 
-	if(hacks.frameStep && !steppingBack)
+	if (hacks.frameStep && !steppingBack)
 	{
 		Checkpoint check;
 		check.p1 = CheckpointData::fromPlayer(self->m_pPlayer1);
-		if(self->m_bIsDualMode)
+		if (self->m_bIsDualMode)
 			check.p2 = CheckpointData::fromPlayer(self->m_pPlayer2);
 
 		backFrames.push_back(check);
-		if(backFrames.size() > hacks.backStepMax)
-			backFrames.pop_back();	
+		if (backFrames.size() > hacks.backStepMax)
+			backFrames.pop_back();
 	}
 
 	steppingBack = false;
@@ -1721,16 +1724,19 @@ void __fastcall PlayLayer::incrementJumpsHook(gd::PlayerObject* self, void*)
 {
 	PlayLayer::incrementJumps(self);
 
-	if (playlayer && playlayer->m_pPlayer1 == self)
-		ExternData::lastJumpRotP1 = self->getRotation();
-	else if (playlayer && playlayer->m_pPlayer2 == self)
-		ExternData::lastJumpRotP2 = self->getRotation();
-	
-	if (hacks.trajectory && playlayer)
+	if (playlayer)
 	{
+		if (playlayer->m_pPlayer1 == self)
+			ExternData::lastJumpRotP1 = self->getRotation();
+		else if (playlayer->m_pPlayer2 == self)
+			ExternData::lastJumpRotP2 = self->getRotation();
+
+		if (hacks.trajectory && CheckpointData::GetGamemode(self) == gd::Gamemode::kGamemodeCube && !self->m_isDashing)
+		{
 			self->stopActionByTag(0);
 			TrajectorySimulation::getInstance()->rotateAction = runNormalRotation(self, 1);
 			self->runAction(TrajectorySimulation::getInstance()->rotateAction);
+		}
 	}
 }
 
@@ -1966,7 +1972,7 @@ void __fastcall PlayLayer::dispatchKeyboardMSGHook(void* self, void*, int key, b
 			playlayer->releaseButton(1, false);
 	}
 
-	if(key == hacks.stepBackKey && down && backFrames.size() > 0)
+	if (key == hacks.stepBackKey && down && backFrames.size() > 0)
 	{
 		backFrames[backFrames.size() - 1].p1.Apply(playlayer->m_pPlayer1, false);
 		backFrames[backFrames.size() - 1].p2.Apply(playlayer->m_pPlayer2, false);

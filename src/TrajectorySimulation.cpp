@@ -249,6 +249,7 @@ void TrajectorySimulation::processMainSimulation(float dt)
 	m_pDieInSimulation = false;
 	if (playLayer->m_pPlayer2 && playLayer->m_bIsDualMode)
 		this->simulationPerPlayer(m_pPlayer2ForSimulation, playLayer->m_pPlayer2, dt);
+	m_pDieInSimulation = false;
 
 	if (safeCircles < playLayer->m_circleWaves->count())
 	{

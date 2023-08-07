@@ -68,7 +68,7 @@ void runBallRotation2(gd::PlayerObject* pl, CheckpointData c)
 
 		pl->setRotation(c.rotationElapsed);
 		pl->runAction(easeout);
-		easeout->step(0);
+		easeout->step(0);//rotrate 0
 		easeout->step(c.ballRotationElapsed);
 	}
 }
@@ -483,7 +483,7 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 
 	SetGamemode(p, gamemode);
 
-	if (gamemode == gd::kGamemodeCube && !p->m_isOnGround)
+	if (gamemode == gd::kGamemodeCube && !p->m_isOnGround && !p->m_isDashing)
 	{
 		p->runAction(runNormalRotation(p, rotRate));
 	}

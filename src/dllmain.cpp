@@ -469,6 +469,9 @@ void Init()
 	loaded = true;
 
 	Updater::CheckUpdate();
+
+	ExternData::level["mods"][24]["toggle"] = false;
+	Hacks::ToggleJSONHack(ExternData::level, 24, false);
 }
 
 void Hacks::RenderMain()

@@ -116,7 +116,7 @@ void ReplayPlayer::TogglePlaying()
 	Hacks::FPSBypass(hacks.fps);
 	hacks.tpsBypass = hacks.fps;
 	ExternData::tps = hacks.tpsBypass;
-	ExternData::level["mods"][24]["toggle"] = true;
+	ExternData::level["mods"][24]["toggle"] = playing;
 	Hacks::ToggleJSONHack(ExternData::level, 24, false);
 	UpdateFrameOffset();
 }
