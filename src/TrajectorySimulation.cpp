@@ -41,6 +41,12 @@ void playerupdate(gd::PlayerObject* player, float dt)
 	reinterpret_cast<void(__thiscall*)(gd::PlayerObject*, float dt)>(gd::base + 0x1e8200)(player, dt);
 }
 
+void playerupdateshiprotation(gd::PlayerObject* player, float dt)
+{
+	__asm movss xmm1, dt;
+	reinterpret_cast<void(__thiscall*)(gd::PlayerObject*)>(gd::base + 0x1eba60)(player);
+}
+
 void playerupdateRotation(gd::PlayerObject* player, float dt)
 {
 	__asm movss xmm1, dt;
@@ -70,11 +76,8 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 
 	auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
-	if (playerBase->m_vehicleSize < 1)
-	{
-		PlayLayer::togglePlayerScaleHook(player, 0, true);
-		player->m_vehicleSize = 0.6f;
-	}
+	player->m_vehicleSize = playerBase->m_vehicleSize;
+	player->updatePlayerScale();
 
 	float ratio = (1.0f / 60.0f) / (dt);
 	float accuracyValue = (float)hacks.trajectoryAccuracy / 1000.0f;
@@ -121,8 +124,10 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 			if (m_pDieInSimulation)
 				break;
 			playerupdate(player, stepDelta60);
+			playerupdateshiprotation(player, stepDelta60);
 			playercheckCollisions(playLayer, player, stepDelta60);
 			playerupdateSpecial(player, stepDelta);
+			
 		}
 		if (rotateAction && !player->m_isOnGround)
 			rotateAction->step(endDt);
@@ -153,6 +158,7 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 			player->m_collisionLog->removeAllObjects();
 			player->m_collisionLog1->removeAllObjects();
 			playerupdate(player, stepDelta60);
+			playerupdateshiprotation(player, stepDelta60);
 			playercheckCollisions(playLayer, player, stepDelta60);
 			playerupdateSpecial(player, stepDelta);
 		}

@@ -427,7 +427,13 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 				ac->step(el);
 			}
 		}
+		else
+		{
+			cd.rotationElapsed = 0;
+			cd.ballRotationElapsed = 0;
+		}
 	}
+
 	return cd;
 }
 
@@ -487,7 +493,7 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 	{
 		p->runAction(runNormalRotation(p, rotRate));
 	}
-	if (p->m_isBall && !p->m_isOnGround)
+	if (p->m_isBall && !p->m_isOnGround && ballRotationElapsed != 0)
 	{
 		runBallRotation2(p, *this);
 	}

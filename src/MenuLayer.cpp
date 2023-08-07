@@ -60,8 +60,6 @@ bool __fastcall MenuLayer::hook(CCLayer* self)
 
 	ExternData::canShowUpdate = true;
 
-	Hacks::writeOutput(libcocosbase);
-
 	return result;
 }
 

@@ -68,6 +68,18 @@ namespace PlayLayer
 	inline void(__thiscall* toggleDartMode)(gd::PlayerObject* self, bool toggle);
 	void __fastcall toggleDartModeHook(gd::PlayerObject* self, void*, bool toggle);
 
+	inline void(__thiscall* toggleShipMode)(gd::PlayerObject* self, bool toggle);
+	void __fastcall toggleShipModeHook(gd::PlayerObject* self, void*, bool toggle);
+
+	inline void(__thiscall* toggleBallMode)(gd::PlayerObject* self, bool toggle);
+	void __fastcall toggleBallModeHook(gd::PlayerObject* self, void*, bool toggle);
+
+	inline void(__thiscall* toggleUFOMode)(gd::PlayerObject* self, bool toggle);
+	void __fastcall toggleUFOModeHook(gd::PlayerObject* self, void*, bool toggle);
+
+	inline void(__thiscall* toggleRobotMode)(gd::PlayerObject* self, bool toggle);
+	void __fastcall toggleRobotModeHook(gd::PlayerObject* self, void*, bool toggle);
+
 	inline void(__thiscall* incrementJumps)(gd::PlayerObject* self);
 	void __fastcall incrementJumpsHook(gd::PlayerObject* self, void*);
 

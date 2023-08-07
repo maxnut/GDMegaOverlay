@@ -1180,6 +1180,8 @@ void Hacks::RenderMain()
 
 		GDMO::ImCheckbox("No Wave Pulse", &hacks.solidWavePulse);
 
+		GDMO::ImCheckbox("Random Icons", &hacks.randomIcons);
+
 		GDMO::ImCheckbox("Rainbow Icons", &hacks.rainbowIcons);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("rain", 1))
@@ -2542,6 +2544,14 @@ DWORD WINAPI my_thread(void* hModule)
 					  reinterpret_cast<void**>(&PlayLayer::playGravityEffect));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f62c0), PlayLayer::toggleDartModeHook,
 					  reinterpret_cast<void**>(&PlayLayer::toggleDartMode));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f62c0), PlayLayer::toggleShipModeHook,
+					  reinterpret_cast<void**>(&PlayLayer::toggleShipMode));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f68e0), PlayLayer::toggleBallModeHook,
+					  reinterpret_cast<void**>(&PlayLayer::toggleBallMode));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f6050), PlayLayer::toggleUFOModeHook,
+					  reinterpret_cast<void**>(&PlayLayer::toggleUFOMode));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f6a10), PlayLayer::toggleRobotModeHook,
+					  reinterpret_cast<void**>(&PlayLayer::toggleRobotMode));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1e9a20), PlayLayer::incrementJumpsHook,
 					  reinterpret_cast<void**>(&PlayLayer::incrementJumps));
 
