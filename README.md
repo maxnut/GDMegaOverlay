@@ -5,6 +5,10 @@
 [![Discord](https://img.shields.io/badge/Discord-white?style=flat&logo=discord)](https://discord.gg/nbDjEg7SSU)
 </div>
 
+## How to use
+
+Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder. __DO NOT DOWNLOAD THE SOURCE CODE__.
+
 ## Description
 
 Free, feature-rich, gui-integrated geometry dash mod menu
@@ -20,10 +24,6 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 * Macro bot
 * Click bot
 * And much more!
-
-## How to use
-
-Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder.
 
 Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
 
