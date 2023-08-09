@@ -46,6 +46,14 @@ std::string hoveredHack = "";
 
 bool opening = false;
 
+void(__thiscall* fpMainLoop)(cocos2d::CCDirector* self);
+
+void __fastcall hkMainLoop(cocos2d::CCDirector* self)
+{
+	ImGuiHook::poll(self->getOpenGLView());
+	fpMainLoop(self);
+}
+
 char* convert(const std::string& s)
 {
 	char* pc = new char[s.size() + 1];
@@ -472,6 +480,12 @@ void Init()
 
 	ExternData::level["mods"][24]["toggle"] = false;
 	Hacks::ToggleJSONHack(ExternData::level, 24, false);
+
+	auto cocos = GetModuleHandleA("libcocos2d.dll");
+	if (!hacks.inputDelay)
+		MH_DisableHook(reinterpret_cast<LPVOID>(reinterpret_cast<uintptr_t>(cocos) + 0xffb10));
+	else
+		MH_EnableHook(reinterpret_cast<LPVOID>(reinterpret_cast<uintptr_t>(cocos) + 0xffb10));
 }
 
 void Hacks::RenderMain()
@@ -1078,6 +1092,36 @@ void Hacks::RenderMain()
 				ImGui::EndPopup();
 		}
 
+		if (GDMO::ImCheckbox("Pitch Shifter", &hacks.pitchShift))
+		{
+			if (hacks.pitchShift)
+				PlayLayer::SetPitch(hacks.pitchShiftAmt);
+		}
+		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
+		if (ImGui::ArrowButton("psft", 1))
+			ImGui::OpenPopup("Pitch Shifter Settings");
+
+		if (ImGui::BeginPopupModal("Pitch Shifter Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+			ExternData::fake)
+		{
+			if (GDMO::ImInputFloat("Shift Amount", &hacks.pitchShiftAmt))
+			{
+				if (hacks.pitchShiftAmt < 0.5f)
+					hacks.pitchShiftAmt = 0.5f;
+				else if (hacks.pitchShiftAmt > 2.0f)
+					hacks.pitchShiftAmt = 2.0f;
+
+				if (hacks.pitchShift)
+					PlayLayer::SetPitch(hacks.pitchShiftAmt);
+			}
+			if (GDMO::ImButton("Close", false))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+			if (!ExternData::fake)
+				ImGui::EndPopup();
+		}
+
 		GDMO::ImCheckbox("Confirm Quit", &hacks.confirmQuit);
 		GDMO::ImCheckbox("Show Endscreen Info", &hacks.showExtraInfo);
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
@@ -1208,6 +1252,15 @@ void Hacks::RenderMain()
 			}
 			if (!ExternData::fake)
 				ImGui::EndPopup();
+		}
+
+		if (GDMO::ImCheckbox("-1 Frame Delay", &hacks.inputDelay))
+		{
+			auto cocos = GetModuleHandleA("libcocos2d.dll");
+			if (!hacks.inputDelay)
+				MH_DisableHook(reinterpret_cast<LPVOID>(reinterpret_cast<uintptr_t>(cocos) + 0xffb10));
+			else
+				MH_EnableHook(reinterpret_cast<LPVOID>(reinterpret_cast<uintptr_t>(cocos) + 0xffb10));
 		}
 
 		GDMO::ImColorEdit3("##WaveTrailColor", hacks.waveTrailColor, ImGuiColorEditFlags_NoInputs);
@@ -1640,33 +1693,6 @@ void Hacks::RenderMain()
 		{
 			CCEGLView::sharedOpenGLView()->showCursor(hacks.showCursor);
 		}
-
-		ImGui::End();
-
-		GDMO::ImBegin("Pitch Shift");
-
-		ImGui::PushItemWidth(120 * ExternData::screenSizeX * hacks.menuSize);
-		if (GDMO::ImButton("Select Song##pitch"))
-		{
-			auto selection = pfd::open_file("Select a file", CCFileUtils::sharedFileUtils()->getWritablePath(),
-											{"Audio File", "*.mp3"}, pfd::opt::none)
-								 .result();
-			for (auto const& filename : selection)
-			{
-				std::filesystem::path p = filename;
-				memset(hacks.pitchId, 0, sizeof(hacks.pitchId));
-				p.stem().string().copy(hacks.pitchId, 10);
-			}
-		}
-
-		ImGui::SameLine();
-		ImGui::Text(hacks.pitchId);
-
-		GDMO::ImInputFloat("Pitch", &pitch);
-		ImGui::PopItemWidth();
-
-		if (GDMO::ImButton("Render"))
-			Hacks::ChangePitch(pitch);
 
 		ImGui::End();
 
@@ -2481,7 +2507,7 @@ DWORD WINAPI my_thread(void* hModule)
 	{
 		ImGuiHook::setupHooks(
 			[](void* target, void* hook, void** trampoline) { MH_CreateHook(target, hook, trampoline); });
-		SpeedhackAudio::init();
+
 		auto cocos = GetModuleHandleA("libcocos2d.dll");
 		auto addr =
 			GetProcAddress(cocos, "?dispatchKeyboardMSG@CCKeyboardDispatcher@cocos2d@@QAE_NW4enumKeyCodes@2@_N@Z");
@@ -2544,7 +2570,7 @@ DWORD WINAPI my_thread(void* hModule)
 					  reinterpret_cast<void**>(&PlayLayer::playGravityEffect));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f62c0), PlayLayer::toggleDartModeHook,
 					  reinterpret_cast<void**>(&PlayLayer::toggleDartMode));
-		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f62c0), PlayLayer::toggleShipModeHook,
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f5e40), PlayLayer::toggleShipModeHook,
 					  reinterpret_cast<void**>(&PlayLayer::toggleShipMode));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1f68e0), PlayLayer::toggleBallModeHook,
 					  reinterpret_cast<void**>(&PlayLayer::toggleBallMode));
@@ -2554,6 +2580,8 @@ DWORD WINAPI my_thread(void* hModule)
 					  reinterpret_cast<void**>(&PlayLayer::toggleRobotMode));
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x1e9a20), PlayLayer::incrementJumpsHook,
 					  reinterpret_cast<void**>(&PlayLayer::incrementJumps));
+		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x23d80), PlayLayer::playBackgroundMusicHook,
+					  reinterpret_cast<void**>(&PlayLayer::playBackgroundMusic));
 
 		MH_CreateHook(reinterpret_cast<void*>(gd::base + 0x16B7C0), LevelEditorLayer::drawHook,
 					  reinterpret_cast<void**>(&LevelEditorLayer::draw));
@@ -2593,6 +2621,9 @@ DWORD WINAPI my_thread(void* hModule)
 		// Speedhack::Setup();
 
 		MH_EnableHook(MH_ALL_HOOKS);
+
+		MH_CreateHook(reinterpret_cast<LPVOID>(reinterpret_cast<uintptr_t>(cocos) + 0xffb10), hkMainLoop,
+					  reinterpret_cast<LPVOID*>(&fpMainLoop));
 	}
 	else
 	{

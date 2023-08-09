@@ -7,6 +7,7 @@
 #include "Shortcuts.h"
 #include "TrajectorySimulation.h"
 #include "bools.h"
+#include "fmod_dsp_effects.h"
 #include <chrono>
 #include <cmath>
 #include <ctime>
@@ -66,6 +67,7 @@ float avg = 0.f;
 int frame_count = 0;
 
 FMOD::Sound* accuracySound;
+FMOD::DSP* pitchShifterDSP = nullptr;
 
 std::deque<Checkpoint> backFrames;
 bool steppingBack = false;
@@ -991,18 +993,22 @@ void PlayLayer::UpdatePositions(int index)
 
 void PlayLayer::SyncMusic()
 {
-	if (!playlayer || replayPlayer->recorder.m_recording || reinterpret_cast<bool(__thiscall*)(gd::PlayerObject*)>(gd::base + 0x1f6820)(playlayer->m_pPlayer1))
+	if (!playlayer || replayPlayer->recorder.m_recording ||
+		reinterpret_cast<bool(__thiscall*)(gd::PlayerObject*)>(gd::base + 0x1f6820)(playlayer->m_pPlayer1))
 		return;
 	float f = playlayer->timeForXPos(playlayer->m_pPlayer1->getPositionX());
 	unsigned int p;
 	unsigned int* pos = &p;
 	float offset = playlayer->m_pLevelSettings->m_songStartOffset * 1000;
-	gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
-	if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !playlayer->m_hasCompletedLevel)
-	{
-		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(
-			static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
-	}
+
+	auto engine = gd::FMODAudioEngine::sharedEngine();
+
+	engine->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
+	// if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !playlayer->m_hasCompletedLevel)
+	// {
+	// 	gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(
+	// 		static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
+	// }
 }
 
 bool lastFrameDead = false;
@@ -1464,6 +1470,14 @@ void Change()
 		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 }
 
+void __fastcall PlayLayer::playBackgroundMusicHook(gd::FMODAudioEngine *self, void*, char a2, int a3, void* a4, int a5, int a6, int a7, int a8, unsigned int a9)
+{
+	PlayLayer::playBackgroundMusic(self, a2, a3, a4, a5, a6, a7, a8, a9);
+
+	if (hacks.pitchShift)
+		PlayLayer::SetPitch(hacks.pitchShiftAmt);
+}
+
 void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 {
 	// reset stuff
@@ -1534,11 +1548,13 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 
 	PlayLayer::resetLevel(self);
 
-	self->m_pPlayer1->setColor(gd::GameManager::sharedState()->colorForIdx(Hacks::randomInt(0, 41)));
-	self->m_pPlayer1->setSecondColor(gd::GameManager::sharedState()->colorForIdx(Hacks::randomInt(0, 41)));
+	auto gm = gd::GameManager::sharedState();
 
-	self->m_pPlayer2->setColor(gd::GameManager::sharedState()->colorForIdx(Hacks::randomInt(0, 41)));
-	self->m_pPlayer2->setSecondColor(gd::GameManager::sharedState()->colorForIdx(Hacks::randomInt(0, 41)));
+	self->m_pPlayer1->setColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
+	self->m_pPlayer1->setSecondColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
+
+	self->m_pPlayer2->setColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
+	self->m_pPlayer2->setSecondColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
 
 	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
 
@@ -1566,15 +1582,13 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 
 	if (!hacks.randomIcons)
 	{
-		self->m_pPlayer1->setColor(
-			gd::GameManager::sharedState()->colorForIdx(gd::GameManager::sharedState()->getPlayerColor()));
-		self->m_pPlayer1->setSecondColor(
-			gd::GameManager::sharedState()->colorForIdx(gd::GameManager::sharedState()->getPlayerColor2()));
+		bool t = ExternData::player["mods"][38]["toggle"];
 
-		self->m_pPlayer2->setColor(
-			gd::GameManager::sharedState()->colorForIdx(gd::GameManager::sharedState()->getPlayerColor2()));
-		self->m_pPlayer2->setSecondColor(
-			gd::GameManager::sharedState()->colorForIdx(gd::GameManager::sharedState()->getPlayerColor()));
+		self->m_pPlayer1->setColor(gd::GameManager::sharedState()->colorForIdx(gm->getPlayerColor()));
+		self->m_pPlayer1->setSecondColor(gd::GameManager::sharedState()->colorForIdx(gm->getPlayerColor2()));
+
+		self->m_pPlayer2->setColor(gm->colorForIdx(t ? gm->getPlayerColor() : gm->getPlayerColor2()));
+		self->m_pPlayer2->setSecondColor(gm->colorForIdx(t ? gm->getPlayerColor2() : gm->getPlayerColor()));
 	}
 }
 
@@ -1782,6 +1796,8 @@ void PlayLayer::Quit()
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
 	startPosText = nullptr;
+	pitchShifterDSP->release();
+	pitchShifterDSP = nullptr;
 	Hacks::MenuMusic();
 	drawer->clearQueue();
 	Hacks::UpdateRichPresence(2);
@@ -1832,14 +1848,12 @@ void __fastcall PlayLayer::toggleDartModeHook(gd::PlayerObject* self, void*, boo
 	{
 		if (toggle)
 			self->updatePlayerWaveFrame(waveIcon);
-		else
+		else if (CheckpointData::GetGamemode(self) == gd::kGamemodeCube)
 			self->updatePlayerFrame(cubeIcon);
 	}
 	else
 	{
-		if (toggle)
-			self->updatePlayerWaveFrame(gd::GameManager::sharedState()->getPlayerDart());
-		else
+		if (!toggle && CheckpointData::GetGamemode(self) == gd::kGamemodeCube)
 			self->updatePlayerFrame(gd::GameManager::sharedState()->getPlayerFrame());
 	}
 }
@@ -1849,8 +1863,6 @@ void __fastcall PlayLayer::toggleShipModeHook(gd::PlayerObject* self, void*, boo
 	PlayLayer::toggleShipMode(self, toggle);
 	if (hacks.randomIcons)
 		self->updatePlayerShipFrame(shipIcon);
-	else
-		self->updatePlayerShipFrame(gd::GameManager::sharedState()->getPlayerShip());
 }
 
 void __fastcall PlayLayer::toggleBallModeHook(gd::PlayerObject* self, void*, bool toggle)
@@ -1858,8 +1870,6 @@ void __fastcall PlayLayer::toggleBallModeHook(gd::PlayerObject* self, void*, boo
 	PlayLayer::toggleBallMode(self, toggle);
 	if (hacks.randomIcons)
 		self->updatePlayerBallFrame(ballIcon);
-	else
-		self->updatePlayerBallFrame(gd::GameManager::sharedState()->getPlayerBall());
 }
 
 void __fastcall PlayLayer::toggleUFOModeHook(gd::PlayerObject* self, void*, bool toggle)
@@ -1867,8 +1877,6 @@ void __fastcall PlayLayer::toggleUFOModeHook(gd::PlayerObject* self, void*, bool
 	PlayLayer::toggleUFOMode(self, toggle);
 	if (hacks.randomIcons)
 		self->updatePlayerUFOFrame(ufoIcon);
-	else
-		self->updatePlayerUFOFrame(gd::GameManager::sharedState()->getPlayerBird());
 }
 
 void __fastcall PlayLayer::toggleRobotModeHook(gd::PlayerObject* self, void*, bool toggle)
@@ -1876,8 +1884,6 @@ void __fastcall PlayLayer::toggleRobotModeHook(gd::PlayerObject* self, void*, bo
 	PlayLayer::toggleRobotMode(self, toggle);
 	if (hacks.randomIcons)
 		self->updatePlayerRobotFrame(robotIcon);
-	else
-		self->updatePlayerRobotFrame(gd::GameManager::sharedState()->getPlayerRobot());
 }
 
 void __fastcall PlayLayer::ringJumpHook(gd::PlayerObject* self, void*, gd::GameObject* ring)
@@ -2003,6 +2009,28 @@ enumKeyCodes mapKey(int keyCode)
 	default:
 		return enumKeyCodes::KEY_None;
 	}
+}
+
+void PlayLayer::SetPitch(float pitch)
+{
+	auto engine = gd::FMODAudioEngine::sharedEngine();
+
+	if(!engine || !engine->m_pSystem || !engine->m_pGlobalChannel)
+		return;
+
+	if (pitchShifterDSP)
+		engine->m_pGlobalChannel->removeDSP(pitchShifterDSP);
+
+	pitchShifterDSP->release();
+	pitchShifterDSP = nullptr;
+
+	engine->m_pSystem->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pitchShifterDSP);
+
+	pitchShifterDSP->setParameterFloat(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
+
+	pitchShifterDSP->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, pitch);
+
+	engine->m_pGlobalChannel->addDSP(0, pitchShifterDSP);
 }
 
 void __fastcall PlayLayer::dispatchKeyboardMSGHook(void* self, void*, int key, bool down)

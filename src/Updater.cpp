@@ -84,13 +84,20 @@ void Updater::CheckUpdate()
 		res = curl_easy_perform(curl);
 		curl_easy_cleanup(curl);
 
-		if (res != CURLE_OK) return;
+		if (res != CURLE_OK)
+			return;
 
 		std::string info = readBuffer.c_str();
 		savedRequest = json::parse(info);
 
-		ver["ver"] = savedRequest["name"];
+		ver["ver"] = Hacks::splitByDelim(savedRequest["body"], '\n')[0];
 		ExternData::description = savedRequest["body"];
+
+		std::size_t pos = ExternData::description.find('\n');
+		if (pos != std::string::npos)
+		{
+			ExternData::description = ExternData::description.substr(pos + 1);
+		}
 
 		if (savedRequest["id"].get<int>() != ver["release_id"].get<int>())
 		{
@@ -104,8 +111,9 @@ void Updater::CheckUpdate()
 					ver["zip_id"] = jsonObj["id"];
 					zipUrl = jsonObj["browser_download_url"];
 				}
-				else if (jsonObj["content_type"] == "application/x-msdownload" || jsonObj["content_type"] == "application/x-msdos-program" &&
-						 jsonObj["id"].get<int>() != ver["dll_id"].get<int>())
+				else if (jsonObj["content_type"] == "application/x-msdownload" ||
+						 jsonObj["content_type"] == "application/x-msdos-program" &&
+							 jsonObj["id"].get<int>() != ver["dll_id"].get<int>())
 				{
 					ver["dll_id"] = jsonObj["id"];
 					dllUrl = jsonObj["browser_download_url"];
@@ -129,7 +137,8 @@ void Updater::CheckUpdate()
 			}
 			for (json jsonObj : savedRequest["assets"])
 			{
-				if ((jsonObj["content_type"] == "application/x-msdownload" || jsonObj["content_type"] == "application/x-msdos-program") &&
+				if ((jsonObj["content_type"] == "application/x-msdownload" ||
+					 jsonObj["content_type"] == "application/x-msdos-program") &&
 					jsonObj["id"].get<int>() != ver["dll_id"].get<int>())
 				{
 					ver["dll_id"] = jsonObj["id"];

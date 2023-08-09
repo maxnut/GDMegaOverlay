@@ -119,6 +119,8 @@ namespace PlayLayer
 	inline void(__thiscall* addPoint)(gd::HardStreak *self, CCPoint point);
 	void __fastcall addPointHook(gd::HardStreak *self, void*, CCPoint point);
 
+	inline void(__thiscall* playBackgroundMusic)(gd::FMODAudioEngine *self, char a2, int a3, void* a4, int a5, int a6, int a7, int a8, unsigned int a9);
+	void __fastcall playBackgroundMusicHook(gd::FMODAudioEngine *self, void*, char a2, int a3, void* a4, int a5, int a6, int a7, int a8, unsigned int a9);
 
 	// https://github.com/CattoDev/IntegratedFPSBypass/blob/main/IntegratedFPSBypass/Other/ToggleVerticalSync.hpp thanks
 	typedef void* (__thiscall* fCCApplication_toggleVerticalSync)(void* instance, bool on);
@@ -137,5 +139,7 @@ namespace PlayLayer
 	float GetStartPercent();
 
 	void SyncMusic();
+
+	void SetPitch(float pitch);
 
 }

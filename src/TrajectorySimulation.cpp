@@ -76,6 +76,7 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 
 	auto pl = gd::GameManager::sharedState()->getPlayLayer();
 
+	PlayLayer::togglePlayerScaleHook(player, 0, true);
 	player->m_vehicleSize = playerBase->m_vehicleSize;
 	player->updatePlayerScale();
 

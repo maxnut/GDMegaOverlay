@@ -1,6 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
 #include "imgui-hook.hpp"
-#include <cocos2d.h>
 #include <windows.h>
 
 using namespace cocos2d;
@@ -154,6 +153,11 @@ void __fastcall CCEGLView_pollEvents_H(CCEGLView* self)
 	}
 
 	CCEGLView_pollEvents(self);
+}
+
+void ImGuiHook::poll(CCEGLView* self)
+{
+	CCEGLView_pollEvents_H(self);
 }
 
 void(__thiscall* CCEGLView_toggleFullScreen)(cocos2d::CCEGLView*, bool);

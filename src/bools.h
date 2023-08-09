@@ -125,6 +125,9 @@ struct HacksStr
 	float levelEndPercent;
 
 	bool use12hFormat = false, randomIcons = false;
+
+	float pitchShiftAmt;
+	bool pitchShift, inputDelay;
 };
 
 enum position
