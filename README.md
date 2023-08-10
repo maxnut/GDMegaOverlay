@@ -7,11 +7,11 @@
 
 ## How to use
 
-Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder. __DO NOT DOWNLOAD THE SOURCE CODE__.
+Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder. __DO NOT DOWNLOAD THE SOURCE CODE (IF YOU DON'T KNOW HOW TO COMPILE)__.
 
 ## Description
 
-Free, feature-rich, gui-integrated geometry dash mod menu
+Free, feature-rich, gui-integrated Geometry Dash mod menu
 
 ![menu screen](/docs/img/screen.jpg)
 
@@ -21,8 +21,8 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 * Startpos switcher
 * Show hitboxes
 * Internal recorder
-* Macro bot
-* Click bot
+* Macro recorder
+* AutoClicker
 * And much more!
 
 Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
