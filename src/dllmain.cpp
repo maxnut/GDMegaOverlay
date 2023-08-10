@@ -997,8 +997,10 @@ void Hacks::RenderMain()
 		ImGui::SameLine(arrowButtonPosition * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::ArrowButton("smar", 1))
 			ImGui::OpenPopup("Smart StartPos Settings");
-
-		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
+		// ImGuiWindowFlags_AlwaysAutoResize doesn't work, so we specify the popup size manually
+		const float scale = ImGui::GetIO().DisplaySize.x / 1920;
+		ImGui::SetNextWindowSize(ImVec2(200 * scale, 110 * scale));
+		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_NoResize) ||
 			ExternData::fake)
 		{
 			GDMO::ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
@@ -1129,7 +1131,6 @@ void Hacks::RenderMain()
 			ImGui::OpenPopup("Endscreen Settings");
 
 		// ImGuiWindowFlags_AlwaysAutoResize doesn't work, so we specify the popup size manually
-		const float scale = ImGui::GetIO().DisplaySize.x / 1920;
 		ImGui::SetNextWindowSize(ImVec2(150 * scale, 170 * scale));
 		if (ImGui::BeginPopupModal("Endscreen Settings", NULL, ImGuiWindowFlags_NoResize) || ExternData::fake)
 		{
