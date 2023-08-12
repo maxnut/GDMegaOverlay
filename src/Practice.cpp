@@ -2,8 +2,8 @@
 #include "Hacks.h"
 #include "PlayLayer.h"
 #include "ReplayPlayer.h"
-#include "imgui.h"
 #include "TrajectorySimulation.h"
+#include "imgui.h"
 
 void CustomCheckpoint::GetCheckpoint()
 {
@@ -69,7 +69,7 @@ void runBallRotation2(gd::PlayerObject* pl, CheckpointData c)
 
 		pl->setRotation(c.rotationElapsed);
 		pl->runAction(easeout);
-		easeout->step(0);//rotrate 0
+		easeout->step(0); // rotrate 0
 		easeout->step(c.ballRotationElapsed);
 	}
 }
@@ -96,7 +96,7 @@ void runBallRotation(gd::PlayerObject* pl, CheckpointData c)
 		}
 		else if (pl->m_playerSpeed == 1.3f)
 		{
-			v4= 0.66576928f;
+			v4 = 0.66576928f;
 		}
 		else if (pl->m_playerSpeed == 1.6f)
 		{
@@ -109,7 +109,7 @@ void runBallRotation(gd::PlayerObject* pl, CheckpointData c)
 
 		pl->setRotation(c.rotationElapsed);
 		pl->runAction(repeatForever);
-		repeatForever->step(0);//rotrate 0
+		repeatForever->step(0); // rotrate 0
 		repeatForever->step(c.ballRotationElapsed);
 	}
 }
@@ -451,13 +451,17 @@ CheckpointData CheckpointData::fromPlayer(gd::PlayerObject* p)
 	cd.gamemode = GetGamemode(p);
 	cd.objSnap = p->m_objectSnappedTo;
 	cd.ballRotationElapsed = 0;
-	if (p->m_isBall)
+	cd.rotateTag = -1;
+	if (p->m_isBall && !p->m_isOnGround)
 	{
 		cd.rotateTag = 1;
-		auto ac = static_cast<cocos2d::CCActionInterval*>(p->getActionByTag(1));
-		if (!ac && p->getPositionX() != pl->m_playerStartPosition.x && !TrajectorySimulation::getInstance()->shouldInterrumpHooks())
+		auto ac = dynamic_cast<cocos2d::CCActionInterval*>(p->getActionByTag(1));
+		if (!ac && p->getPositionX() != pl->m_playerStartPosition.x &&
+			!TrajectorySimulation::getInstance()->shouldInterrumpHooks())
 		{
-			ac = static_cast<cocos2d::CCActionInterval*>(static_cast<cocos2d::CCRepeatForever*>(p->getActionByTag(0))->getInnerAction());
+			auto forever = dynamic_cast<cocos2d::CCRepeatForever*>(p->getActionByTag(0));
+			if (forever)
+				ac = forever->getInnerAction();
 			cd.rotateTag = 0;
 		}
 
@@ -540,9 +544,9 @@ int CheckpointData::Apply(gd::PlayerObject* p, bool tp)
 	}
 	if (p->m_isBall && !p->m_isOnGround && ballRotationElapsed != 0)
 	{
-		if(rotateTag == 1)
+		if (rotateTag == 1)
 			runBallRotation2(p, *this);
-		else 
+		else
 			runBallRotation(p, *this);
 	}
 
