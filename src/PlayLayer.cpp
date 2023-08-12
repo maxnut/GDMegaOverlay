@@ -1548,6 +1548,8 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 
 	PlayLayer::resetLevel(self);
 
+	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speedhackBool ? hacks.speed : 1.0f : hacks.musicSpeed);
+
 	auto gm = gd::GameManager::sharedState();
 
 	self->m_pPlayer1->setColor(gm->colorForIdx(Hacks::randomInt(0, 41)));

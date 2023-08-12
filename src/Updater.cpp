@@ -220,10 +220,6 @@ bool ExtractZipFile(const std::string& zipFilePath, const std::string& destPath)
 	return true;
 }
 
-std::mutex downloadMutex;
-std::condition_variable downloadFinished;
-bool isDownloadFinished = false;
-
 int progressCallback(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
 	if (dltotal > 0)
@@ -238,20 +234,18 @@ int progressCallback(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 
 void DownloadThread(bool zip, std::function<void(bool)> callback)
 {
-	CURL* curl;
-
-	curl = curl_easy_init();
-
 	CURLcode res;
-
-	FILE* fp;
+	
 	std::stringstream stream;
 
 	std::string path =
 		CCFileUtils::sharedFileUtils()->getWritablePath2() + (zip ? "GDMenu\\update.zip" : "GDMenu\\GDMenu.dll");
 
+	CURL* curl = curl_easy_init();
+
 	if (curl && !std::filesystem::exists(path))
 	{
+		FILE* fp = nullptr;
 		fp = fopen(path.c_str(), "wb");
 		curl_easy_setopt(curl, CURLOPT_URL, zip ? zipUrl : dllUrl);
 		curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -265,17 +259,19 @@ void DownloadThread(bool zip, std::function<void(bool)> callback)
 		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 		curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progressCallback);
 		res = curl_easy_perform(curl);
-		curl_easy_cleanup(curl);
 		fclose(fp);
 	}
 
-	{
-		std::lock_guard<std::mutex> lock(downloadMutex);
-		isDownloadFinished = true;
-	}
-	downloadFinished.notify_one();
+	curl_easy_cleanup(curl);
 
-	callback(zip);
+	if (res == CURLcode::CURLE_OK)
+		callback(zip);
+	else
+	{
+		ExternData::canShowUpdate = false;
+		Hacks::writeOutput(curl_easy_strerror(res));
+		Hacks::writeOutput(zip ? zipUrl : dllUrl);
+	}
 }
 
 void AfterDownload(bool zip)
