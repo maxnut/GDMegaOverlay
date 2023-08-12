@@ -851,7 +851,7 @@ void Hacks::RenderMain()
 
 		if (GDMO::ImCheckbox("Tie Music to Gamespeed", &hacks.tieMusicToSpeed))
 		{
-			SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
+			SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speedhackBool ? hacks.speed : 1.0f : hacks.musicSpeed);
 		}
 
 		GDMO::ImCheckbox("Tie DeathTime to Gamespeed", &hacks.autoUpdateRespawn);

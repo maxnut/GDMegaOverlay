@@ -998,17 +998,16 @@ void PlayLayer::SyncMusic()
 		return;
 	float f = playlayer->timeForXPos(playlayer->m_pPlayer1->getPositionX());
 	unsigned int p;
-	unsigned int* pos = &p;
 	float offset = playlayer->m_pLevelSettings->m_songStartOffset * 1000;
 
 	auto engine = gd::FMODAudioEngine::sharedEngine();
 
-	engine->m_pGlobalChannel->getPosition(pos, FMOD_TIMEUNIT_MS);
-	// if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !playlayer->m_hasCompletedLevel)
-	// {
-	// 	gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(
-	// 		static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
-	// }
+	engine->m_pGlobalChannel->getPosition(&p, FMOD_TIMEUNIT_MS);
+	if (std::abs((int)(f * 1000) - (int)p + offset) > hacks.musicMaxDesync && !playlayer->m_hasCompletedLevel)
+	{
+		gd::FMODAudioEngine::sharedEngine()->m_pGlobalChannel->setPosition(
+			static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
+	}
 }
 
 bool lastFrameDead = false;
@@ -1470,7 +1469,8 @@ void Change()
 		gd::GameSoundManager::sharedState()->stopBackgroundMusic();
 }
 
-void __fastcall PlayLayer::playBackgroundMusicHook(gd::FMODAudioEngine *self, void*, char a2, int a3, void* a4, int a5, int a6, int a7, int a8, unsigned int a9)
+void __fastcall PlayLayer::playBackgroundMusicHook(gd::FMODAudioEngine* self, void*, char a2, int a3, void* a4, int a5,
+												   int a6, int a7, int a8, unsigned int a9)
 {
 	PlayLayer::playBackgroundMusic(self, a2, a3, a4, a5, a6, a7, a8, a9);
 
@@ -1555,8 +1555,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 
 	self->m_pPlayer2->setColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
 	self->m_pPlayer2->setSecondColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
-
-	SpeedhackAudio::set(hacks.tieMusicToSpeed ? hacks.speed : hacks.musicSpeed);
 
 	if (hacks.gravityDetection && startPosIndex >= 0 && gravityPortals.size() > 0 && willFlip[startPosIndex])
 	{
@@ -1796,7 +1794,8 @@ void PlayLayer::Quit()
 	PlayLayer::onQuit(playlayer);
 	playlayer = nullptr;
 	startPosText = nullptr;
-	pitchShifterDSP->release();
+	if (pitchShifterDSP)
+		pitchShifterDSP->release();
 	pitchShifterDSP = nullptr;
 	Hacks::MenuMusic();
 	drawer->clearQueue();
@@ -1861,28 +1860,28 @@ void __fastcall PlayLayer::toggleDartModeHook(gd::PlayerObject* self, void*, boo
 void __fastcall PlayLayer::toggleShipModeHook(gd::PlayerObject* self, void*, bool toggle)
 {
 	PlayLayer::toggleShipMode(self, toggle);
-	if (hacks.randomIcons)
+	if (hacks.randomIcons && toggle)
 		self->updatePlayerShipFrame(shipIcon);
 }
 
 void __fastcall PlayLayer::toggleBallModeHook(gd::PlayerObject* self, void*, bool toggle)
 {
 	PlayLayer::toggleBallMode(self, toggle);
-	if (hacks.randomIcons)
+	if (hacks.randomIcons && toggle)
 		self->updatePlayerBallFrame(ballIcon);
 }
 
 void __fastcall PlayLayer::toggleUFOModeHook(gd::PlayerObject* self, void*, bool toggle)
 {
 	PlayLayer::toggleUFOMode(self, toggle);
-	if (hacks.randomIcons)
+	if (hacks.randomIcons && toggle)
 		self->updatePlayerUFOFrame(ufoIcon);
 }
 
 void __fastcall PlayLayer::toggleRobotModeHook(gd::PlayerObject* self, void*, bool toggle)
 {
 	PlayLayer::toggleRobotMode(self, toggle);
-	if (hacks.randomIcons)
+	if (hacks.randomIcons && toggle)
 		self->updatePlayerRobotFrame(robotIcon);
 }
 
@@ -2015,7 +2014,7 @@ void PlayLayer::SetPitch(float pitch)
 {
 	auto engine = gd::FMODAudioEngine::sharedEngine();
 
-	if(!engine || !engine->m_pSystem || !engine->m_pGlobalChannel)
+	if (!engine || !engine->m_pSystem || !engine->m_pGlobalChannel)
 		return;
 
 	if (pitchShifterDSP)

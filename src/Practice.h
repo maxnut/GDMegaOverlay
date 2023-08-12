@@ -12,6 +12,7 @@ struct CheckpointData
     gd::Gamemode gamemode;
     float rotationElapsed;
     gd::GameObject* objSnap;
+    int rotateTag;
     static CheckpointData fromPlayer(gd::PlayerObject *p);
 
     int Apply(gd::PlayerObject *p, bool tp);
