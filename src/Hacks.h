@@ -545,11 +545,11 @@ static void NongDownload(char* url, char* id)
 
 			if (isYoutube)
 			{
-				stream << "GDMenu/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
+				stream << "GDMenu/tools/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
 			}
 			else
 			{
-				stream << "GDMenu/wget -O audiofile.m4a " << url;
+				stream << "GDMenu/tools/wget -O audiofile.m4a " << url;
 			}
 			auto process = subprocess::Popen(stream.str());
 			if (process.close())
