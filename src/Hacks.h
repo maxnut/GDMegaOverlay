@@ -542,21 +542,14 @@ static void NongDownload(char* url, char* id)
 			string mp3ext = ".mp3"
 			
 			bool isYoutube = url.find(youtubeURL) != string::npos;
-			
-			//Non-MP3 files aren't compatible with GD, if you can find a way to convert non-MP3s to MP3s automatically this check can be removed
-			bool isMP3 = url.find(mp3ext) != string::npos; 
 
 			if (isYoutube)
 			{
 				stream << "GDMenu/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
 			}
-			else if (isMP3)
-			{
-				stream << "GDMenu/wget " << url;
-			}
 			else
 			{
-				return; //The user gave an invalid link
+				stream << "GDMenu/wget -O audiofile.m4a " << url;
 			}
 			auto process = subprocess::Popen(stream.str());
 			if (process.close())
