@@ -9,6 +9,7 @@
 #include <curl/curl.h>
 #include <fstream>
 #include <vector>
+#include <string>
 #pragma comment(lib, "shell32")
 #include "DiscordManager.h"
 #include "ExternData.h"
