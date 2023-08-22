@@ -538,20 +538,8 @@ static void NongDownload(char* url, char* id)
 		{
 			std::stringstream stream;
 
-			
+			stream << "GDMenu/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
 
-			char youtubeURL[12] = {'y', 'o', 'u', 't', 'u', 'b', 'e', '.', 'c', 'o', 'm', '\0'};
-			
-			bool isYoutube = url.find(youtubeURL[]) != string::npos;
-
-			if (isYoutube)
-			{
-				stream << "GDMenu/tools/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
-			}
-			else
-			{
-				stream << "GDMenu/tools/wget -O audiofile.m4a " << url;
-			}
 			auto process = subprocess::Popen(stream.str());
 			if (process.close())
 			{
