@@ -9,7 +9,6 @@
 #include <curl/curl.h>
 #include <fstream>
 #include <vector>
-#include <string>
 #pragma comment(lib, "shell32")
 #include "DiscordManager.h"
 #include "ExternData.h"
@@ -538,11 +537,12 @@ static void NongDownload(char* url, char* id)
 	std::thread([&, url, id]() {
 		{
 			std::stringstream stream;
+
 			
-			string youtubeURL = "youtube.com"
-			string mp3ext = ".mp3"
+
+			char youtubeURL[12] = {'y', 'o', 'u', 't', 'u', 'b', 'e', '.', 'c', 'o', 'm', '\0'};
 			
-			bool isYoutube = url.find(youtubeURL) != string::npos;
+			bool isYoutube = url.find(youtubeURL[]) != string::npos;
 
 			if (isYoutube)
 			{
