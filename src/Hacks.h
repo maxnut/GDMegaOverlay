@@ -556,7 +556,7 @@ static void NongDownload(char* url, char* id)
 
 			char yturl[] = "youtube.com";
 
-			if (contains(url, yturl){
+			if (contains(url, yturl)){
 				stream << "GDMenu/tools/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
 			}
 			else {
