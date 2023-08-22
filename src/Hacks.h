@@ -538,7 +538,31 @@ static void NongDownload(char* url, char* id)
 		{
 			std::stringstream stream;
 
-			stream << "GDMenu/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
+			char yturl[] = "youtube.com";
+
+			// Check if a char array contains a substring
+			// Source: https://thispointer.com/check-if-char-array-contains-a-string-in-c/
+			bool contains(const char * mainStr, const char * subString)
+			{
+				bool result = false;
+				// Get the pointer to first occurrence of 
+				// string "subStr" in the "mainStr" String 
+				const char * ptr = strstr(mainStr, subString) ;
+				// If substring does not exits in the main string,
+				// then ptr will be NULL
+				if (ptr != NULL)
+			    	{
+				result = true;
+				}
+				return result;
+			}
+
+			if (contains(url, yturl){
+				stream << "GDMenu/tools/yt-dlp -f bestaudio[ext=m4a] --output audiofile.m4a " << url;
+			}
+			else {
+				stream << "GDMenu/tools/wget -o audiofile.m4a " << url;
+			}
 
 			auto process = subprocess::Popen(stream.str());
 			if (process.close())
