@@ -80,9 +80,15 @@ You should find the result in build/Release
 ## Credits
 
 [altalk23/HitboxVisualizer](https://github.com/altalk23/HitboxVisualizer) for the hitbox code, i simply corrected a bug and implemented them in the editor
+
 [matcool/ReplayBot](https://github.com/matcool/ReplayBot) internal recorder, i integrated my clickbot into it
+
 [Very-Tall-Midget/OmegaBot2](https://github.com/Very-Tall-Midget/OmegaBot2) base of practice fixes
+
 [adafcaefc/ProxyDllLoader](https://github.com/adafcaefc/ProxyDllLoader) for the mod loader
+
 [TpdEA](https://discord.gg/AXhTdHUd2R) for the json files, the endscreen code, and improvements to trajectory code
+
 [Absolute](https://github.com/absoIute) for the json files, the gd::string and the demonlist/challenge list files
+
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) for youtube audio downloading
