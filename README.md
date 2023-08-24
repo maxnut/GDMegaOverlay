@@ -27,7 +27,10 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 * Click Bot
 * and much more!
 
-Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
+<details>
+  <summary>Additional steps to run on Linux</summary>
+  Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
+</details>
 
 ## Development
 
