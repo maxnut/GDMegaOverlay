@@ -31,8 +31,8 @@ Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry 
 
 ## Development
 
-| Note: This project can only be compiled on Windows |
-| --- |
+> **Note**
+> This project can __only__ be compiled on Windows
 
 Some dependencies are needed:
 * [Git](https://git-scm.com/)
