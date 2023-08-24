@@ -77,7 +77,7 @@ You should find the result in build/Release
 
 ## Credits
 
-[altalk23/HitboxVisualizer](https://github.com/altalk23/HitboxVisualizer) for the hitbox code (i converted it from geode to gd.h, corrected a bug and implemented them in the editor)
+[altalk23/HitboxVisualizer](https://github.com/altalk23/HitboxVisualizer) for the hitbox code, i simply corrected a bug and implemented them in the editor
 
 [matcool/ReplayBot](https://github.com/matcool/ReplayBot) internal recorder, i integrated my clickbot into it
 

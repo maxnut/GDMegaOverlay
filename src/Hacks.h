@@ -511,27 +511,6 @@ static void MenuMusic()
 	}
 }
 
-static void ChangePitch(float pitch)
-{
-	std::string path = GetSongFolder() + hacks.pitchId + ".mp3";
-	debug.debugString = path;
-
-	std::thread([&, path, pitch]() {
-		{
-			std::stringstream stream;
-			stream << "ffmpeg -y -i " << '"' << path << '"' << " -af " << '"' << "rubberband=pitch=" << pitch
-				   << ":pitchq=consistency:smoothing=on" << '"' << " " << '"' << GetSongFolder() << "/out.mp3" << '"';
-			auto process = subprocess::Popen(stream.str());
-			if (process.close())
-			{
-				return;
-			}
-		}
-		std::filesystem::remove(Hacks::widen(path));
-		std::filesystem::rename(GetSongFolder() + "/out.mp3", Hacks::widen(path));
-	}).detach();
-}
-
 static void NongDownload(char* url, char* id)
 {
 	std::thread([&, url, id]() {
@@ -554,7 +533,7 @@ static void NongDownload(char* url, char* id)
 
 		{
 			std::stringstream stream;
-			stream << "ffmpeg -y -i audiofile.m4a -c:v copy -c:a libmp3lame -q:a 4 " << '"' << GetSongFolder() << "/"
+			stream << "GDMenu/tools/ffmpeg -y -i audiofile.m4a -c:v copy -c:a libmp3lame -q:a 4 " << '"' << GetSongFolder() << "/"
 				   << id << ".mp3" << '"';
 			auto process = subprocess::Popen(stream.str());
 			if (process.close())

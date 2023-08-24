@@ -39,7 +39,7 @@ public:
     float m_song_start_offset;
     bool m_finished_level;
     bool m_include_audio = true;
-    std::string m_ffmpeg_path = "ffmpeg";
+    std::string m_ffmpeg_path = "GDMenu/tools/ffmpeg";
 
     void start();
     void stop();
