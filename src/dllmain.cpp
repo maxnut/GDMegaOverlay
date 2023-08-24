@@ -38,9 +38,11 @@ extern struct Debug debug;
 float pitch;
 
 int shortcutIndex, pitchName, editing, tabIndex = 0, variableIndex = 0;
-char url[100], id[30], macroName[100];
+char url[200], id[30], macroName[100];
 std::vector<ReplayInfo> replays;
 std::vector<const char*> musicPathsVet;
+
+std::vector<std::string> fontsPaths;
 
 std::string hoveredHack = "";
 
@@ -232,10 +234,6 @@ void Init()
 	srand(time(NULL));
 
 	ImGuiIO& io = ImGui::GetIO();
-	auto font = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\Verdana.ttf", 14.0f);
-	io.Fonts->Build();
-	ImGui_ImplOpenGL3_CreateFontsTexture();
-	io.FontDefault = font;
 
 	io.IniFilename = NULL;
 
@@ -288,6 +286,22 @@ void Init()
 	for (size_t i = 0; i < ExternData::musicPaths.size(); i++)
 	{
 		musicPathsVet.push_back(ExternData::musicPaths[i].c_str());
+	}
+
+	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"C:\\Windows\\Fonts"})
+	{
+		if (loop.path().extension().string() == ".ttf")
+		{
+			fontsPaths.push_back(loop.path().string());
+		}
+	}
+
+	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu\\"})
+	{
+		if (loop.path().extension().string() == ".ttf")
+		{
+			fontsPaths.push_back(loop.path().string());
+		}
 	}
 
 	Hacks::AnticheatBypass();
@@ -469,6 +483,12 @@ void Init()
 			break;
 		}
 	}
+
+	auto font = io.Fonts->AddFontFromFileTTF(
+		hacks.fontIndex >= fontsPaths.size() ? "C:\\Windows\\verdana.ttf" : fontsPaths[hacks.fontIndex].c_str(), 14.0f);
+	io.Fonts->Build();
+	ImGui_ImplOpenGL3_CreateFontsTexture();
+	io.FontDefault = font;
 
 	ReplayPlayer::getInstance().ChangeClickpack();
 
@@ -710,6 +730,26 @@ void Hacks::RenderMain()
 		GDMO::ImInputFloat("Window Rounding", &hacks.windowRounding);
 		GDMO::ImInputInt("Window Snap", &hacks.windowSnap, 0);
 		ImGui::PopItemWidth();
+
+		if (ImGui::Combo(
+				"Font", &hacks.fontIndex,
+				[](void* vec, int idx, const char** out_text) {
+					std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
+					if (idx < 0 || idx >= vector->size())
+						return false;
+					*out_text = vector->at(idx).c_str();
+					return true;
+				},
+				reinterpret_cast<void*>(&fontsPaths), fontsPaths.size()))
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			auto font = io.Fonts->AddFontFromFileTTF(
+				hacks.fontIndex >= fontsPaths.size() ? "C:\\Windows\\verdana.ttf" : fontsPaths[hacks.fontIndex].c_str(),
+				14.0f);
+			io.Fonts->Build();
+			ImGui_ImplOpenGL3_CreateFontsTexture();
+			io.FontDefault = font;
+		}
 
 		if (ImGui::BeginMenu("Menu Colors"))
 		{
@@ -1000,8 +1040,7 @@ void Hacks::RenderMain()
 		// ImGuiWindowFlags_AlwaysAutoResize doesn't work, so we specify the popup size manually
 		const float scale = ImGui::GetIO().DisplaySize.x / 1920;
 		ImGui::SetNextWindowSize(ImVec2(200 * scale, 110 * scale));
-		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_NoResize) ||
-			ExternData::fake)
+		if (ImGui::BeginPopupModal("Smart StartPos Settings", NULL, ImGuiWindowFlags_NoResize) || ExternData::fake)
 		{
 			GDMO::ImCheckbox("Enable Gravity Detection", &hacks.gravityDetection);
 			if (ImGui::IsItemHovered())
@@ -1701,7 +1740,7 @@ void Hacks::RenderMain()
 
 		ImGui::PushItemWidth(120 * ExternData::screenSizeX * hacks.menuSize);
 
-		GDMO::ImInputText("Song Url", url, 100);
+		GDMO::ImInputText("Song Url", url, 200);
 		GDMO::ImInputText("Song Id", id, 30);
 		ImGui::PopItemWidth();
 
@@ -2364,7 +2403,7 @@ void Hacks::RenderMain()
 						->show();
 				}
 			}
-			if (GDMO::ImButton("From MHREPLAY"))
+			if (GDMO::ImButton("From mhr.json"))
 			{
 				auto selection =
 					pfd::open_file("Select a macro", "", {"MHR File", "*.mhr.json"}, pfd::opt::none).result();

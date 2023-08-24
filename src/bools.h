@@ -128,6 +128,8 @@ struct HacksStr
 
 	float pitchShiftAmt;
 	bool pitchShift, inputDelay;
+
+	int fontIndex = 0;
 };
 
 enum position

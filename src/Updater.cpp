@@ -111,13 +111,6 @@ void Updater::CheckUpdate()
 					ver["zip_id"] = jsonObj["id"];
 					zipUrl = jsonObj["browser_download_url"];
 				}
-				else if (jsonObj["content_type"] == "application/x-msdownload" ||
-						 jsonObj["content_type"] == "application/x-msdos-program" &&
-							 jsonObj["id"].get<int>() != ver["dll_id"].get<int>())
-				{
-					ver["dll_id"] = jsonObj["id"];
-					dllUrl = jsonObj["browser_download_url"];
-				}
 			}
 		}
 		else
@@ -126,10 +119,11 @@ void Updater::CheckUpdate()
 			bool foundZip = false;
 			for (json jsonObj : savedRequest["assets"])
 			{
-				if (jsonObj["content_type"] == "application/x-zip-compressed" && ver["zip_id"].get<int>() > 0 &&
+				if (jsonObj["content_type"] == "application/x-zip-compressed" &&
 					jsonObj["id"].get<int>() != ver["zip_id"].get<int>())
 				{
 					ver["zip_id"] = jsonObj["id"];
+					Hacks::writeOutput(jsonObj["id"]);
 					foundZip = true;
 					ExternData::updatedZip = true;
 					zipUrl = jsonObj["browser_download_url"];
@@ -175,7 +169,6 @@ bool ExtractZipFile(const std::string& zipFilePath, const std::string& destPath)
 		mz_zip_archive_file_stat fileStat;
 		if (!mz_zip_reader_file_stat(&zipArchive, i, &fileStat))
 		{
-			std::cout << "Failed to get file info from ZIP" << std::endl;
 			mz_zip_reader_end(&zipArchive);
 			return false;
 		}
@@ -191,11 +184,9 @@ bool ExtractZipFile(const std::string& zipFilePath, const std::string& destPath)
 		}
 		else
 		{
-			// File entry, extract file
 			mz_zip_archive_file_stat fileStat;
 			if (!mz_zip_reader_file_stat(&zipArchive, i, &fileStat))
 			{
-				std::cout << "Failed to get file info from ZIP" << std::endl;
 				mz_zip_reader_end(&zipArchive);
 				return false;
 			}
@@ -209,7 +200,6 @@ bool ExtractZipFile(const std::string& zipFilePath, const std::string& destPath)
 			}
 			else
 			{
-				std::cout << "Failed to create output file: " << outputPath << std::endl;
 				mz_zip_reader_end(&zipArchive);
 				return false;
 			}
@@ -241,9 +231,14 @@ void DownloadThread(bool zip, std::function<void(bool)> callback)
 	std::string path =
 		CCFileUtils::sharedFileUtils()->getWritablePath2() + (zip ? "GDMenu\\update.zip" : "GDMenu\\GDMenu.dll");
 
+	if(std::filesystem::exists(path))
+	{
+		std::filesystem::remove(path);
+	}
+
 	CURL* curl = curl_easy_init();
 
-	if (curl && !std::filesystem::exists(path))
+	if (curl)
 	{
 		FILE* fp = nullptr;
 		fp = fopen(path.c_str(), "wb");
