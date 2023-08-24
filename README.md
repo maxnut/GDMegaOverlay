@@ -1,35 +1,41 @@
 <div align="center">
   
 # GD Mega Overlay
-
+![](/docs/img/banner.png)
 [![Discord](https://img.shields.io/badge/Discord-white?style=flat&logo=discord)](https://discord.gg/nbDjEg7SSU)
 </div>
 
 ## How to use
+> **Warning**
+> Do __not__ download the source code
 
-Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder. __DO NOT DOWNLOAD THE SOURCE CODE__.
+Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder.
 
 ## Description
 
 Free, feature-rich, gui-integrated geometry dash mod menu
 
-![menu screen](/docs/img/screen.jpg)
+![Menu screen](/docs/img/screen.jpg)
 
 ## Features
 
 * Basic hacks
-* Startpos switcher
-* Show hitboxes
-* Internal recorder
-* Macro bot
-* Click bot
-* And much more!
+* Startpos Switcher
+* Show Hitboxes
+* Internal Recorder
+* Macro Bot
+* Click Bot
+* and much more!
 
-Additional steps to run on Linux: Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
+<details>
+  <summary>Additional steps to run on Linux</summary>
+  Go to `Steam Library` -> Right click Geometry Dash -> `Properties` -> `General` -> `Launch Options` and add `WINEDLLOVERRIDES="xinput9_1_0=n,b" %command%`
+</details>
 
 ## Development
 
-<span style="color:red">THIS PROJECT CAN ONLY BE COMPILED ON WINDOWS</span>
+> **Note**
+> This project can __only__ be compiled on Windows
 
 Some dependencies are needed:
 * [Git](https://git-scm.com/)
@@ -52,7 +58,6 @@ cmake -B build -A win32
 ```
 
 3. Build
-
 ```bash
 # do not use Debug
 cmake --build build --config Release -j 4
