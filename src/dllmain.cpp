@@ -288,7 +288,7 @@ void Init()
 		musicPathsVet.push_back(ExternData::musicPaths[i].c_str());
 	}
 
-	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu\\"})
+	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu/fonts"})
 	{
 		if (loop.path().extension().string() == ".ttf")
 		{
@@ -477,7 +477,7 @@ void Init()
 	}
 
 	auto font = io.Fonts->AddFontFromFileTTF(hacks.fontIndex < 0 || hacks.fontIndex >= fontsPaths.size()
-												 ? "GDMenu\\arial.ttf"
+												 ? "GDMenu/fonts/arial.ttf"
 												 : fontsPaths[hacks.fontIndex].c_str(),
 											 14.0f);
 	io.Fonts->Build();
@@ -739,7 +739,7 @@ void Hacks::RenderMain()
 		{
 			ImGuiIO& io = ImGui::GetIO();
 			auto font = io.Fonts->AddFontFromFileTTF(hacks.fontIndex < 0 || hacks.fontIndex >= fontsPaths.size()
-														 ? "GDMenu\\arial.ttf"
+														 ? "GDMenu/fonts/arial.ttf"
 														 : fontsPaths[hacks.fontIndex].c_str(),
 													 14.0f);
 			io.Fonts->Build();
