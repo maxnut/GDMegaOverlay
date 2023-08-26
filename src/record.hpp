@@ -41,6 +41,8 @@ public:
     bool m_include_audio = true;
     std::string m_ffmpeg_path = "GDMenu/tools/ffmpeg";
 
+    float tfx = 0;
+
     void start();
     void stop();
     void capture_frame();

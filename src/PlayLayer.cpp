@@ -1554,7 +1554,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 
 	self->m_pPlayer1->setColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
 	self->m_pPlayer1->setSecondColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
-
 	self->m_pPlayer2->setColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
 	self->m_pPlayer2->setSecondColor(gm->colorForIdx(Hacks::randomInt(0, 41)));
 

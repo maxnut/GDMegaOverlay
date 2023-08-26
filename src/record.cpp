@@ -51,6 +51,7 @@ void Recorder::start()
 	m_renderer.m_width = m_width;
 	m_renderer.m_height = m_height;
 	m_renderer.begin();
+	tfx = 0;
 	auto gm = gd::GameManager::sharedState();
 	auto play_layer = gm->getPlayLayer();
 	PlayLayer::resetLevelHook(play_layer, 0);
@@ -298,8 +299,13 @@ void Recorder::handle_recording(gd::PlayLayer* play_layer, float dt)
 			m_after_end_extra_time += dt;
 			m_finished_level = true;
 		}
+
+		if(!play_layer->m_hasCompletedLevel)
+			tfx = play_layer->timeForXPos(play_layer->m_pPlayer1->getPositionX());
+		else tfx += dt;
+
 		auto frame_dt = 1. / static_cast<double>(m_fps);
-		auto time = play_layer->m_time + m_extra_t - m_last_frame_t;
+		auto time = tfx + m_extra_t - m_last_frame_t;
 		if (time >= frame_dt)
 		{
 			if (!play_layer->m_hasCompletedLevel)
@@ -310,7 +316,7 @@ void Recorder::handle_recording(gd::PlayLayer* play_layer, float dt)
 					static_cast<uint32_t>(f * 1000) + static_cast<uint32_t>(offset), FMOD_TIMEUNIT_MS);
 			}
 			m_extra_t = time - frame_dt;
-			m_last_frame_t = play_layer->m_time;
+			m_last_frame_t = tfx;
 			capture_frame();
 		}
 	}

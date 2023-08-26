@@ -288,14 +288,6 @@ void Init()
 		musicPathsVet.push_back(ExternData::musicPaths[i].c_str());
 	}
 
-	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"C:\\Windows\\Fonts"})
-	{
-		if (loop.path().extension().string() == ".ttf")
-		{
-			fontsPaths.push_back(loop.path().string());
-		}
-	}
-
 	for (std::filesystem::directory_entry loop : std::filesystem::directory_iterator{"GDMenu\\"})
 	{
 		if (loop.path().extension().string() == ".ttf")
@@ -484,8 +476,10 @@ void Init()
 		}
 	}
 
-	auto font = io.Fonts->AddFontFromFileTTF(
-		hacks.fontIndex >= fontsPaths.size() ? "C:\\Windows\\verdana.ttf" : fontsPaths[hacks.fontIndex].c_str(), 14.0f);
+	auto font = io.Fonts->AddFontFromFileTTF(hacks.fontIndex < 0 || hacks.fontIndex >= fontsPaths.size()
+												 ? "GDMenu\\arial.ttf"
+												 : fontsPaths[hacks.fontIndex].c_str(),
+											 14.0f);
 	io.Fonts->Build();
 	ImGui_ImplOpenGL3_CreateFontsTexture();
 	io.FontDefault = font;
@@ -730,7 +724,8 @@ void Hacks::RenderMain()
 		GDMO::ImInputFloat("Window Rounding", &hacks.windowRounding);
 		GDMO::ImInputInt("Window Snap", &hacks.windowSnap, 0);
 		ImGui::PopItemWidth();
-
+		
+		ImGui::PushItemWidth(140 * ExternData::screenSizeX * hacks.menuSize);
 		if (ImGui::Combo(
 				"Font", &hacks.fontIndex,
 				[](void* vec, int idx, const char** out_text) {
@@ -743,13 +738,16 @@ void Hacks::RenderMain()
 				reinterpret_cast<void*>(&fontsPaths), fontsPaths.size()))
 		{
 			ImGuiIO& io = ImGui::GetIO();
-			auto font = io.Fonts->AddFontFromFileTTF(
-				hacks.fontIndex >= fontsPaths.size() ? "C:\\Windows\\verdana.ttf" : fontsPaths[hacks.fontIndex].c_str(),
-				14.0f);
+			auto font = io.Fonts->AddFontFromFileTTF(hacks.fontIndex < 0 || hacks.fontIndex >= fontsPaths.size()
+														 ? "GDMenu\\arial.ttf"
+														 : fontsPaths[hacks.fontIndex].c_str(),
+													 14.0f);
 			io.Fonts->Build();
 			ImGui_ImplOpenGL3_CreateFontsTexture();
 			io.FontDefault = font;
 		}
+
+		ImGui::PopItemWidth();
 
 		if (ImGui::BeginMenu("Menu Colors"))
 		{
@@ -983,8 +981,7 @@ void Hacks::RenderMain()
 		if (ImGui::ArrowButton("custmm", 1))
 			ImGui::OpenPopup("Custom Menu Music Settings");
 
-		if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize) ||
-			ExternData::fake)
+		if (ImGui::BeginPopupModal("Custom Menu Music Settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::PushItemWidth(100 * ExternData::screenSizeX * hacks.menuSize);
 			if (GDMO::ImButton("Select Song"))

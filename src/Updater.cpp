@@ -122,10 +122,11 @@ void Updater::CheckUpdate()
 				if (jsonObj["content_type"] == "application/x-zip-compressed" &&
 					jsonObj["id"].get<int>() != ver["zip_id"].get<int>())
 				{
+					if (ver["zip_id"] > 0)
+						ExternData::updatedZip = true;
+					
 					ver["zip_id"] = jsonObj["id"];
-					Hacks::writeOutput(jsonObj["id"]);
 					foundZip = true;
-					ExternData::updatedZip = true;
 					zipUrl = jsonObj["browser_download_url"];
 				}
 			}
@@ -225,13 +226,13 @@ int progressCallback(void* clientp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 void DownloadThread(bool zip, std::function<void(bool)> callback)
 {
 	CURLcode res;
-	
+
 	std::stringstream stream;
 
 	std::string path =
 		CCFileUtils::sharedFileUtils()->getWritablePath2() + (zip ? "GDMenu\\update.zip" : "GDMenu\\GDMenu.dll");
 
-	if(std::filesystem::exists(path))
+	if (std::filesystem::exists(path))
 	{
 		std::filesystem::remove(path);
 	}
@@ -264,8 +265,6 @@ void DownloadThread(bool zip, std::function<void(bool)> callback)
 	else
 	{
 		ExternData::canShowUpdate = false;
-		Hacks::writeOutput(curl_easy_strerror(res));
-		Hacks::writeOutput(zip ? zipUrl : dllUrl);
 	}
 }
 
