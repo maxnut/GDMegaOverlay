@@ -158,7 +158,7 @@ bool __fastcall EndLevelLayer::customSetupHook(CCLayer *self, void *)
         cheatIndicatorPass->setOpacity((GLubyte)100);
         cheatIndicatorPass->setPosition({(winSize.width / 2.f) + 158.f, (winSize.height / 2) + 110.f}); // 442.5f, 270.f
         cheatIndicatorPass->setColor({0, 255, 0});
-        PlayLayer::IsCheating() ? cheatIndicatorPass->setColor({255, 0, 0}) : cheatIndicatorPass->setColor({0, 255, 0});
+        PlayLayer::hasEverCheated ? cheatIndicatorPass->setColor({255, 0, 0}) : cheatIndicatorPass->setColor({0, 255, 0});
         layerMain->addChild(cheatIndicatorPass);
     }
 

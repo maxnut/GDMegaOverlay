@@ -123,9 +123,19 @@ void Updater::CheckUpdate()
 					jsonObj["id"].get<int>() != ver["zip_id"].get<int>())
 				{
 					if (ver["zip_id"] > 0)
+					{
 						ExternData::updatedZip = true;
-					
-					ver["zip_id"] = jsonObj["id"];
+						ver["zip_id"] = jsonObj["id"];
+					}
+					else
+					{
+						ver["zip_id"] = jsonObj["id"];
+						std::ofstream f("GDMenu/version.json");
+						if (f)
+							f << ver.dump(4);
+						f.close();
+					}
+
 					foundZip = true;
 					zipUrl = jsonObj["browser_download_url"];
 				}

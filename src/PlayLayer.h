@@ -4,7 +4,7 @@
 namespace PlayLayer
 {
 
-	extern bool isBot, hadAction, wasPaused;
+	extern bool isBot, hadAction, wasPaused, hasEverCheated;
 	extern int respawnAction, respawnAction2;
 	extern float player1RotRate, player2RotRate;
 

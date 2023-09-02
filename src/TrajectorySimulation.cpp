@@ -67,18 +67,19 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 	auto winSize = cocos2d::CCDirector::sharedDirector()->getWinSize();
 	auto res = CheckpointData::fromPlayer(playerBase);
 
-	if(playLayer->m_isDead) return;
+	if (playLayer->m_isDead)
+		return;
 
 	bool isp1 = playLayer->m_pPlayer1 == player;
 
+	if(player->m_vehicleSize != playerBase->m_vehicleSize)
+		PlayLayer::togglePlayerScale(player, player->m_vehicleSize >= 1);
+
 	res.Apply(player, false);
+
 	PlayLayer::pushButton(player, 0);
 
 	auto pl = gd::GameManager::sharedState()->getPlayLayer();
-
-	PlayLayer::togglePlayerScaleHook(player, 0, true);
-	player->m_vehicleSize = playerBase->m_vehicleSize;
-	player->updatePlayerScale();
 
 	float ratio = (1.0f / 60.0f) / (dt);
 	float accuracyValue = (float)hacks.trajectoryAccuracy / 1000.0f;
@@ -128,7 +129,6 @@ void TrajectorySimulation::simulationPerPlayer(gd::PlayerObject* player, gd::Pla
 			playerupdateshiprotation(player, stepDelta60);
 			playercheckCollisions(playLayer, player, stepDelta60);
 			playerupdateSpecial(player, stepDelta);
-			
 		}
 		if (rotateAction && !player->m_isOnGround)
 			rotateAction->step(endDt);

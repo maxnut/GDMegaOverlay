@@ -27,7 +27,7 @@ PlayLayer::fCCApplication_toggleVerticalSync PlayLayer::CCApplication_toggleVert
 
 ExitAlert a;
 
-bool PlayLayer::hadAction = false, PlayLayer::wasPaused = false;
+bool PlayLayer::hadAction = false, PlayLayer::wasPaused = false, PlayLayer::hasEverCheated = false;
 int PlayLayer::respawnAction = 0, PlayLayer::respawnAction2 = 0;
 float PlayLayer::player1RotRate = 0, PlayLayer::player2RotRate = 0;
 
@@ -1217,6 +1217,9 @@ void Update(gd::PlayLayer* self, float dt)
 
 	PlayLayer::update(self, dt);
 
+	if(ExternData::isCheating)
+		PlayLayer::hasEverCheated = true;
+
 	UpdateLabels(self);
 
 	if (hacks.trajectory)
@@ -1482,6 +1485,7 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 {
 	// reset stuff
 	hitboxDead = false;
+	hasEverCheated = false;
 	totalClicks = 0;
 	actualDeaths = 0;
 	EndLevelLayer::deaths = 0;
@@ -1510,8 +1514,6 @@ void __fastcall PlayLayer::resetLevelHook(gd::PlayLayer* self, void*)
 	if (drawer)
 	{
 		drawer->clearQueue();
-		drawer->m_isMini1 = self->m_pLevelSettings->m_startMini;
-		drawer->m_isMini2 = self->m_pLevelSettings->m_startMini;
 	}
 
 	for (size_t i = 0; i < STATUSSIZE; i++)
@@ -1823,11 +1825,8 @@ void __fastcall PlayLayer::lightningFlashHook(gd::PlayLayer* self, void* edx, CC
 
 void __fastcall PlayLayer::togglePlayerScaleHook(gd::PlayerObject* self, void*, bool toggle)
 {
-	if (drawer && playlayer)
-	{
-		self == playlayer->m_pPlayer1 ? drawer->m_isMini1 = toggle : drawer->m_isMini2 = toggle;
-	}
-	PlayLayer::togglePlayerScale(self, toggle);
+	if(!TrajectorySimulation::getInstance()->shouldInterrumpHooksWithPlayer(self))
+		PlayLayer::togglePlayerScale(self, toggle);
 }
 
 void __fastcall PlayLayer::toggleDartModeHook(gd::PlayerObject* self, void*, bool toggle)
