@@ -5,6 +5,10 @@
 [![Discord](https://img.shields.io/badge/Discord-white?style=flat&logo=discord)](https://discord.gg/nbDjEg7SSU)
 </div>
 
+Archived because 2.2
+
+If i make a 2.2 version it will be in a new repo because this codebase sucks and also geode
+
 ## How to use
 > **Warning**
 > Do __not__ download the source code
