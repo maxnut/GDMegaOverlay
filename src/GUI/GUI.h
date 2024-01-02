@@ -7,6 +7,7 @@
 #include "../json.hpp"
 #include <vector>
 
+
 using json = nlohmann::json;
 
 class WindowAction;
@@ -24,6 +25,11 @@ namespace GUI
 
     inline float hideTimer = 0.0f;
 
+    inline std::function<void()> lateInit;
+
+    inline bool(__thiscall* menuLayerInit)(int* self);
+    bool __fastcall menuLayerInitHook(int* self, void*);
+
     ImVec2 getJsonPosition(std::string);
     void setJsonPosition(std::string, ImVec2);
 
@@ -31,6 +37,8 @@ namespace GUI
     void setJsonSize(std::string, ImVec2);
 
     void init();
+    void initHooks();
+    void setLateInit(const std::function<void()>&func);
 
     void draw();
 

@@ -36,10 +36,12 @@ void init()
 	JsonHacks::load();
 	GUI::init();
 
-	Common::calculateFramerate();
-	Common::setPriority();
-	Common::onAudioSpeedChange();
-	Common::onAudioPitchChange();
+	GUI::setLateInit([] {
+		Common::calculateFramerate();
+		Common::setPriority();
+		Common::onAudioSpeedChange();
+		Common::onAudioPitchChange();
+	});
 
 	GUI::Window generalWindow("General", [] {
 		float framerate = Settings::get<float>("general/fps/value", 60.f);
@@ -237,8 +239,7 @@ void render()
 		}
 	}
 
-	if (GUI::isVisible)
-		GUI::draw();
+	GUI::draw();
 }
 
 DWORD WINAPI my_thread(void* hModule)
@@ -257,6 +258,7 @@ DWORD WINAPI my_thread(void* hModule)
 		ReplayLastCheckpoint::initHooks();
 		AudioChannelControl::initHooks();
 		Speedhack::initHooks();
+		GUI::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}

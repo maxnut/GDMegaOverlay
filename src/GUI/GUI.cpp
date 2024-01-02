@@ -51,8 +51,28 @@ void GUI::init()
 	loadStyle("GDMO\\Style.style");
 }
 
+void GUI::initHooks()
+{
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x276700), menuLayerInitHook,
+				  reinterpret_cast<void**>(&menuLayerInit));
+}
+
+void GUI::setLateInit(const std::function<void()>& func)
+{
+	lateInit = func;
+}
+
+bool __fastcall GUI::menuLayerInitHook(int* self, void*)
+{
+	lateInit();
+	menuLayerInit(self);
+}
+
 void GUI::draw()
 {
+	if (!isVisible && !shortcutLoop)
+		return;
+
 	for (WindowAction* ac : windowActions)
 		ac->step(ImGui::GetIO().DeltaTime);
 
@@ -96,7 +116,7 @@ void GUI::toggle()
 		if (screenSize.x != jsonScreenSize.x || screenSize.y != jsonScreenSize.y)
 		{
 			ImVec2 scaleFactor = {screenSize.x / jsonScreenSize.x, screenSize.y / jsonScreenSize.y};
-			if(scaleFactor.x >= 0.5f)
+			if (scaleFactor.x >= 0.5f)
 				w.position = {w.position.x * scaleFactor.x, w.position.y * scaleFactor.y};
 		}
 
