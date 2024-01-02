@@ -92,6 +92,7 @@ void GUI::toggle()
 	{
 		ImVec2 screenSize = ImGui::GetIO().DisplaySize;
 		ImVec2 jsonScreenSize = {windowPositions["res"]["x"], windowPositions["res"]["y"]};
+		std::cout << screenSize.x;
 
 		if (screenSize.x != jsonScreenSize.x || screenSize.y != jsonScreenSize.y)
 		{

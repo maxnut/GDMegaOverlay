@@ -24,6 +24,9 @@ void Common::calculateFramerate()
 	else
 		framerate = MBO(float, gameManager, 900);
 
+	if(framerate < 60.f)
+		framerate = 60.f;
+
 	if (Settings::get<bool>("general/speedhack/enabled") && Macrobot::playerMode != -1)
 		interval = framerate * speedhack;
 	else

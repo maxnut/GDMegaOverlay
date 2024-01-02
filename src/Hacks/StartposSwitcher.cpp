@@ -37,6 +37,9 @@ void StartposSwitcher::change(bool right)
 	int* startPosCheckpoint = (int*)Common::getBGL() + 2941;
 	*startPosCheckpoint = 0;
 
+	if(!startPosObject)
+		return;
+
 	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x195FC0)(Common::getBGL(), startPosObject);
 
 	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E42B0)(Common::getBGL());
@@ -56,7 +59,7 @@ int* __fastcall StartposSwitcher::createHook()
 {
 	int* sp = StartposSwitcher::create();
 
-	if (Settings::get<bool>("level/startpos_switcher"))
+	if (sp && Settings::get<bool>("level/startpos_switcher"))
 	{
 		startposObjects.push_back(sp);
 
