@@ -92,12 +92,12 @@ void GUI::toggle()
 	{
 		ImVec2 screenSize = ImGui::GetIO().DisplaySize;
 		ImVec2 jsonScreenSize = {windowPositions["res"]["x"], windowPositions["res"]["y"]};
-		std::cout << screenSize.x;
 
 		if (screenSize.x != jsonScreenSize.x || screenSize.y != jsonScreenSize.y)
 		{
 			ImVec2 scaleFactor = {screenSize.x / jsonScreenSize.x, screenSize.y / jsonScreenSize.y};
-			w.position = {w.position.x * scaleFactor.x, w.position.y * scaleFactor.y};
+			if(scaleFactor.x >= 0.5f)
+				w.position = {w.position.x * scaleFactor.x, w.position.y * scaleFactor.y};
 		}
 
 		uint8_t animationType = (w.name.length() + direction) % 4;

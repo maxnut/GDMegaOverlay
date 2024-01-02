@@ -10,16 +10,22 @@ void __fastcall Speedhack::CCSchedulerUpdateHook(void* self, void*, float dt)
 	float speedhack =
 		Settings::get<bool>("general/speedhack/enabled") ? Settings::get<float>("general/speedhack/value") : 1.f;
 
-    dt *= speedhack;
+	dt *= speedhack;
 
 	if (Macrobot::playerMode != -1)
 	{
-		float framerate = MBO(float, Common::gameManager, 900);
+		float framerate;
+
+		if (Settings::get<bool>("general/fps/enabled"))
+			framerate = Settings::get<float>("general/fps/value", 60.f);
+		else
+			framerate = MBO(float, Common::gameManager, 900);
+
 		dt = 1.0f / (framerate * speedhack);
 		dt *= speedhack;
 	}
 
-    CCSchedulerUpdate(self, dt);
+	CCSchedulerUpdate(self, dt);
 }
 
 void Speedhack::initHooks()
