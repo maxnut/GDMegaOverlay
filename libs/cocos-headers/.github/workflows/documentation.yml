@@ -1,0 +1,40 @@
+name: documentation
+
+on:
+  push:
+    branches: [ master ]
+
+  workflow_dispatch:
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      
+      # latest version of doxygen is currently not available in ubuntu lts repos
+      - name: Install doxygen and dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libc6 libclang-cpp12 libclang1-12 libgcc-s1 libllvm12 libstdc++6 libxapian30 graphviz python3
+          wget https://www.doxygen.nl/files/doxygen-1.9.3.linux.bin.tar.gz
+          tar -xvzf doxygen-1.9.3.linux.bin.tar.gz
+          echo "${GITHUB_WORKSPACE}/doxygen-1.9.3/bin" >> $GITHUB_PATH
+
+      - name: Append commit to version 
+        run: echo "PROJECT_NUMBER = 2.2.3-gd2.113-rev`git rev-parse --short HEAD`" >> Doxyfile
+        working-directory: 'document/'
+
+      - name: Generate documentation
+        run: doxygen
+        working-directory: 'document/'
+          
+      - name: Deploy documentation
+        uses: JamesIves/github-pages-deploy-action@v4.3.0
+        with:
+          branch: docs
+          folder: document/html
