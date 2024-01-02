@@ -15,12 +15,12 @@ cocos2d::CCLayer* Common::getBGL()
 
 void Common::calculateFramerate()
 {
-	float speedhack = Settings::get<float>("general/speedhack/value");
-	float framerate;
-	float interval;
+	float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
+	float framerate = 60.f;
+	float interval = 60.f;
 
 	if (Settings::get<bool>("general/fps/enabled"))
-		framerate = Settings::get<float>("general/fps/value");
+		framerate = Settings::get<float>("general/fps/value", 60.f);
 	else
 		framerate = MBO(float, gameManager, 900);
 

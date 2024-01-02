@@ -42,7 +42,7 @@ void init()
 	Common::onAudioPitchChange();
 
 	GUI::Window generalWindow("General", [] {
-		float framerate = Settings::get<float>("general/fps/value");
+		float framerate = Settings::get<float>("general/fps/value", 60.f);
 
 		if (GUI::inputFloat("##FPSValue", &framerate))
 			Settings::set<float>("general/fps/value", framerate);
