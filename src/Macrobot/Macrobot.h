@@ -13,6 +13,8 @@ class PlayerCheckpoint
 	double xVel;
 	float xPos;
 	float yPos;
+	float nodeXPos;
+	float nodeYPos;
 	float rotation;
 
 	void apply(cocos2d::CCNode* player);

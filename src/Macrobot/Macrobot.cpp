@@ -28,20 +28,17 @@ void Macrobot::recordAction(int key, double frame, bool press, bool player1)
 bool __fastcall Macrobot::playerObjectPushButtonHook(void* self, void*, int btn)
 {
 	int res = playerObjectPushButton(self, btn);
-	if (playerObject1)
+	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
-		if (playerMode == 1 && frame != 9999999999)
+		recordAction(btn, frame, true, self == playerObject1);
+		int correctionType = Settings::get<int>("macrobot/corrections", 0);
+		if (correctionType == 1)
 		{
-			recordAction(btn, frame, true, self == playerObject1);
-			int correctionType = Settings::get<int>("macrobot/corrections", 0);
-			if (correctionType == 1)
-			{
-				Correction c;
-				c.frame = frame;
-				c.player1 = self == playerObject1;
-				c.checkpoint.fromPlayer((cocos2d::CCNode*)self);
-				corrections.push_back(c);
-			}
+			Correction c;
+			c.frame = frame;
+			c.player1 = self == playerObject1;
+			c.checkpoint.fromPlayer((cocos2d::CCNode*)self);
+			corrections.push_back(c);
 		}
 	}
 	return res;
@@ -50,20 +47,17 @@ bool __fastcall Macrobot::playerObjectPushButtonHook(void* self, void*, int btn)
 bool __fastcall Macrobot::playerObjectReleaseButtonHook(void* self, void*, int btn)
 {
 	int res = playerObjectReleaseButton(self, btn);
-	if (playerObject1)
+	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
-		if (playerMode == 1 && frame != 9999999999)
+		recordAction(btn, frame, false, self == playerObject1);
+		int correctionType = Settings::get<int>("macrobot/corrections", 0);
+		if (correctionType == 1)
 		{
-			recordAction(btn, frame, false, self == playerObject1);
-			int correctionType = Settings::get<int>("macrobot/corrections", 0);
-			if (correctionType == 1)
-			{
-				Correction c;
-				c.frame = frame;
-				c.player1 = self == playerObject1;
-				c.checkpoint.fromPlayer((cocos2d::CCNode*)self);
-				corrections.push_back(c);
-			}
+			Correction c;
+			c.frame = frame;
+			c.player1 = self == playerObject1;
+			c.checkpoint.fromPlayer((cocos2d::CCNode*)self);
+			corrections.push_back(c);
 		}
 	}
 	return res;
@@ -79,6 +73,8 @@ void Macrobot::PlayerCheckpoint::fromPlayer(cocos2d::CCNode* player)
 	this->xVel = MBO(double, player, 2160);
 	this->xPos = position.x;
 	this->yPos = position.y;
+	this->nodeXPos = player->getPositionX();
+	this->nodeYPos = player->getPositionY();
 }
 
 void* __fastcall Macrobot::checkpointObjectInitHook(void* self, void*)
@@ -99,6 +95,9 @@ void Macrobot::PlayerCheckpoint::apply(cocos2d::CCNode* player)
 {
 	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 1944) = this->yVel;
 	player->setRotation(this->rotation);
+
+	player->setPositionX(this->nodeXPos);
+	player->setPositionY(this->nodeYPos);
 
 	*reinterpret_cast<cocos2d::CCPoint*>(reinterpret_cast<uintptr_t>(player) + 1068) =
 		cocos2d::CCPoint(this->xPos, this->yPos);
@@ -130,16 +129,8 @@ void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, voi
 
 		if (playerMode == 1)
 		{
-			recordAction(1, frame,
-						 ImGui::IsMouseDown(0) || ImGui::IsKeyDown(ImGuiKey_UpArrow) || ImGui::IsKeyDown(ImGuiKey_W),
-						 true);
-			recordAction(2, frame, false, true);
-			recordAction(3, frame, false, true);
-			recordAction(1, frame,
-						 ImGui::IsMouseDown(0) || ImGui::IsKeyDown(ImGuiKey_UpArrow) || ImGui::IsKeyDown(ImGuiKey_W),
-						 false);
-			recordAction(2, frame, false, false);
-			recordAction(3, frame, false, false);
+			recordAction(1, frame, false, true);
+			recordAction(1, frame, false, false);
 		}
 	}
 	else
@@ -156,13 +147,16 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 		if (playerMode == 0 && actions.size() > 0 && actionIndex < actions.size() &&
 			frame >= actions[actionIndex].frame)
 		{
-			Action& ac = actions[actionIndex];
-			if (ac.press)
-				playerObjectPushButtonHook(ac.player1 ? playerObject1 : playerObject2, 0, ac.key);
-			else
-				playerObjectReleaseButtonHook(ac.player1 ? playerObject1 : playerObject2, 0, ac.key);
+			do
+			{
+				Action& ac = actions[actionIndex];
+				if (ac.press)
+					playerObjectPushButtonHook(ac.player1 ? playerObject1 : playerObject2, 0, ac.key);
+				else
+					playerObjectReleaseButtonHook(ac.player1 ? playerObject1 : playerObject2, 0, ac.key);
 
-			actionIndex++;
+				actionIndex++;
+			} while (actionIndex < actions.size() && frame >= actions[actionIndex].frame);
 		}
 
 		int correctionType = Settings::get<int>("macrobot/corrections", 0);
@@ -170,10 +164,13 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 		if (correctionType > 0 && playerMode == 0 && corrections.size() > 0 && correctionIndex < corrections.size() &&
 			frame >= corrections[correctionIndex].frame)
 		{
-			Correction& co = corrections[correctionIndex];
-			co.checkpoint.apply(co.player1 ? playerObject1 : playerObject2);
+			do
+			{
+				Correction& co = corrections[correctionIndex];
+				co.checkpoint.apply(co.player1 ? playerObject1 : playerObject2);
 
-			correctionIndex++;
+				correctionIndex++;
+			} while (correctionIndex < corrections.size() && frame >= corrections[correctionIndex].frame);
 		}
 	}
 
@@ -282,8 +279,6 @@ void Macrobot::drawWindow()
 		if (ImGui::RadioButton("Play", &Macrobot::playerMode, 0))
 		{
 			Common::calculateFramerate();
-			if (Common::getBGL())
-				reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E42B0)(Common::getBGL());
 		}
 
 		ImGui::PushItemWidth(80);
@@ -301,7 +296,8 @@ void Macrobot::drawWindow()
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
 			Settings::set<int>("macrobot/corrections", corrections);
 
-		GUI::marker("[INFO]", "The bot is very likely to break without corrections. They're recommended for the time being, until it becomes better");
+		GUI::marker("[INFO]", "The bot is very likely to break without corrections. They're recommended for the time "
+							  "being, until it becomes better");
 	}
 }
 
