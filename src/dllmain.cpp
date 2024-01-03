@@ -41,6 +41,7 @@ void init()
 		Common::setPriority();
 		Common::onAudioSpeedChange();
 		Common::onAudioPitchChange();
+		Common::loadIcons();
 	});
 
 	GUI::Window generalWindow("General", [] {

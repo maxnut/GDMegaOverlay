@@ -46,9 +46,7 @@ void GUI::init()
 {
 	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF("GDMO\\arial.ttf", 14);
 	ImGui::GetIO().FontDefault = fnt;
-
 	load();
-	loadStyle("GDMO\\Style.style");
 }
 
 void GUI::initHooks()
@@ -64,7 +62,15 @@ void GUI::setLateInit(const std::function<void()>& func)
 
 bool __fastcall GUI::menuLayerInitHook(int* self, void*)
 {
-	lateInit();
+	static bool init = false;
+	if (!init)
+	{
+		lateInit();
+		loadStyle("GDMO\\Style.style");
+		canToggle = true;
+	}
+	init = true;
+	
 	menuLayerInit(self);
 }
 
@@ -91,6 +97,9 @@ void GUI::draw()
 
 void GUI::toggle()
 {
+	if (!canToggle)
+		return;
+
 	isVisible = true;
 	static bool toggle = false;
 	toggle = !toggle;

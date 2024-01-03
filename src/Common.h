@@ -18,10 +18,15 @@ namespace Common
 
     inline const char*(__thiscall* splashString)();
     const char* __fastcall splashStringHook();
+    inline bool(__thiscall* menuLayerInit)(int* self);
+    bool __fastcall menuLayerInitHook(int* self, void*);
 
     void initHooks();
     void calculateFramerate();
     void setPriority();
     void onAudioSpeedChange();
     void onAudioPitchChange();
+    void setIconValue(int valueOffset, int value);
+    void saveIcons();
+    void loadIcons();
 };

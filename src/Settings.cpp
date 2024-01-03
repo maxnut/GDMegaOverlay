@@ -1,8 +1,9 @@
 #include "Settings.h"
+#include "Common.h"
+
 #include <fstream>
 #include <sstream>
 #include <string_view>
-
 
 void Settings::save()
 {
