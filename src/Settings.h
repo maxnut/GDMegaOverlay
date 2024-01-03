@@ -17,8 +17,8 @@ namespace
         T default_value;
 
         DEFINE_DEFAULT(bool, false);
-        DEFINE_DEFAULT(float, .0f);
-        DEFINE_DEFAULT(int, 0);
+        DEFINE_DEFAULT(float, 1.f);
+        DEFINE_DEFAULT(int, 1);
 
         return default_value;
     }

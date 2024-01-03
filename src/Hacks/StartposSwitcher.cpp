@@ -37,7 +37,7 @@ void StartposSwitcher::change(bool right)
 	int* startPosCheckpoint = (int*)Common::getBGL() + 2941;
 	*startPosCheckpoint = 0;
 
-	if(!startPosObject)
+	if(!startPosObject && index != -1)
 		return;
 
 	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x195FC0)(Common::getBGL(), startPosObject);

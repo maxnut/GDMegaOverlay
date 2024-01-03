@@ -275,3 +275,19 @@ bool GUI::colorEdit(std::string name, float* color, bool inputs, bool alpha)
 
 	return result;
 }
+
+void GUI::marker(std::string title, std::string description)
+{
+	if (!GUI::shouldRender())
+		return;
+	
+	ImGui::TextDisabled(title.c_str());
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+		ImGui::TextUnformatted(description.c_str());
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+	}
+}
