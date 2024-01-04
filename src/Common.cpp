@@ -142,6 +142,22 @@ void Common::onAudioPitchChange()
 	AudioChannelControl::setPitch(enabled ? pitch : 1.f);
 }
 
+void Common::openLink(const char* path)
+{
+#ifdef _WIN32
+	::ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWDEFAULT);
+#else
+#if __APPLE__
+	const char* open_executable = "open";
+#else
+	const char* open_executable = "xdg-open";
+#endif
+	char command[256];
+	snprintf(command, 256, "%s \"%s\"", open_executable, path);
+	system(command);
+#endif
+}
+
 bool __fastcall Common::menuLayerInitHook(int* self, void*)
 {
 	saveIcons();

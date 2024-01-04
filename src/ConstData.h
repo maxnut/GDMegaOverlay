@@ -170,3 +170,5 @@ const char* const KeyNames[] = {"Unknown",
 const char* const priorities[] = {"Low", "Below Normal", "Normal", "Above Normal", "High"};
 
 const char* const correctionType[] = {"None", "Every Action"};
+
+const char* const positions[] = {"Top Left", "Top Right", "Bottom Left", "Bottom Right"};

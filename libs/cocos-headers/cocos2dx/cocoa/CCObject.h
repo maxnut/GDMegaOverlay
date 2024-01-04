@@ -86,8 +86,16 @@ protected:
 
     RT_ADD(
         int m_eObjType;
-        unsigned int m_uObjectIdxInArray;
+        int m_uIndexInArray;
     )
+
+    // 2.2 additions
+    int m_uUnknown; // -1 by default
+    int m_unknown2;
+    int m_nZOrder; // moved from CCNode, why rob
+    int m_uOrderOfArrival; // moved from CCNode, why rob
+    int m_unknown5;
+
 public:
     CCObject(void);
     RT_ADD( CCObject(const CCObject&);  )

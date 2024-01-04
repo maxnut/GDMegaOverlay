@@ -12,6 +12,7 @@
 
 #include "Common.h"
 #include "Hacks/AudioChannelControl.h"
+#include "Hacks/Labels.h"
 #include "Hacks/ReplayLastCheckpoint.h"
 #include "Hacks/Speedhack.h"
 #include "Hacks/StartposSwitcher.h"
@@ -225,6 +226,19 @@ void init()
 	shortcuts.minSize = {200, 120};
 	shortcuts.maxSize = {200, 2000};
 	GUI::addWindow(shortcuts);
+
+	GUI::Window labels("Labels", Labels::renderWindow);
+	labels.minSize = {200, 120};
+	labels.maxSize = {200, 2000};
+	GUI::addWindow(labels);
+
+	GUI::Window credits("Credits", [] {
+		GUI::textURL("SpaghettDev", "https://github.com/SpaghettDev");
+		GUI::textURL("TpdEA", "https://github.com/TpdeaX");
+	});
+	credits.minSize = {200, 120};
+	credits.maxSize = {200, 2000};
+	GUI::addWindow(credits);
 }
 
 void render()
@@ -237,6 +251,8 @@ void render()
 			GUI::shortcutLoop = true;
 			GUI::draw();
 			GUI::shortcutLoop = false;
+			Settings::save();
+			JsonHacks::save();
 		}
 	}
 
@@ -260,6 +276,7 @@ DWORD WINAPI my_thread(void* hModule)
 		AudioChannelControl::initHooks();
 		Speedhack::initHooks();
 		GUI::initHooks();
+		Labels::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}

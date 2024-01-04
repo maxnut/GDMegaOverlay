@@ -27,10 +27,10 @@ THE SOFTWARE.
 #ifndef __SPRITE_CCSPRITE_FRAME_H__
 #define __SPRITE_CCSPRITE_FRAME_H__
 
-#include "base_nodes/CCNode.h"
-#include "CCProtocols.h"
-#include "cocoa/CCObject.h"
-#include "cocoa/CCGeometry.h"
+#include "../base_nodes/CCNode.h"
+#include "../include/CCProtocols.h"
+#include "../cocoa/CCObject.h"
+#include "../cocoa/CCGeometry.h"
 
 NS_CC_BEGIN
 
@@ -42,16 +42,16 @@ class CCZone;
  * @{
  */
 
-/** @brief A CCSpriteFrame has:
-    - texture: A CCTexture2D that will be used by the CCSprite
-    - rectangle: A rectangle of the texture
+ /** @brief A CCSpriteFrame has:
+     - texture: A CCTexture2D that will be used by the CCSprite
+     - rectangle: A rectangle of the texture
 
 
- You can modify the frame of a CCSprite by doing:
- 
-    CCSpriteFrame *frame = CCSpriteFrame::frameWithTexture(texture, rect, offset);
-    sprite->setDisplayFrame(frame);
- */
+  You can modify the frame of a CCSprite by doing:
+
+     CCSpriteFrame *frame = CCSpriteFrame::frameWithTexture(texture, rect, offset);
+     sprite->setDisplayFrame(frame);
+  */
 class CC_DLL CCSpriteFrame : public CCObject
 {
 public:
@@ -101,18 +101,18 @@ public:
      *  @js NA
      *  @lua NA
      */
-    virtual CCObject* copyWithZone(CCZone *pZone);
+    virtual CCObject* copyWithZone(CCZone* pZone);
 
     /** Create a CCSpriteFrame with a texture filename, rect in points.
      It is assumed that the frame was not trimmed.
      */
     static CCSpriteFrame* create(const char* filename, const CCRect& rect);
-    
+
     /** Create a CCSpriteFrame with a texture filename, rect, rotated, offset and originalSize in pixels.
      The originalSize is the size in pixels of the frame before being trimmed.
      */
     static CCSpriteFrame* create(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
-    
+
     /** Create a CCSpriteFrame with a texture, rect in points.
      It is assumed that the frame was not trimmed.
      */
@@ -146,6 +146,8 @@ public:
      */
     bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
+    std::string getFrameName() const;
+    void setFrameName(std::string);
 
 protected:
     CCPoint m_obOffset;
@@ -155,8 +157,9 @@ protected:
     CCRect m_obRect;
     CCPoint m_obOffsetInPixels;
     CCSize m_obOriginalSizeInPixels;
-    CCTexture2D *m_pobTexture;
+    CCTexture2D* m_pobTexture;
     std::string  m_strTextureFilename;
+    RT_ADD(std::string  m_strFrameName; )
 };
 
 // end of sprite_nodes group

@@ -29,4 +29,6 @@ namespace Common
     void setIconValue(int valueOffset, int value);
     void saveIcons();
     void loadIcons();
+
+    void openLink(const char* path);
 };

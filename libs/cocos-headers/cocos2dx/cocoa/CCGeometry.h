@@ -29,6 +29,11 @@ THE SOFTWARE.
 #include "CCObject.h"
 #include <math.h>
 
+// why
+#if !defined(FLT_EPSILON)
+#define FLT_EPSILON 1.19209290E-07F // decimal constant 
+#endif
+
 NS_CC_BEGIN
 
 /**
@@ -36,8 +41,8 @@ NS_CC_BEGIN
  * @{
  */
 
-// for CCPoint assignement operator and copy constructor
-class CC_DLL CCSize;
+ // for CCPoint assignement operator and copy constructor
+    class CC_DLL CCSize;
 
 /**
  * @js NA
@@ -47,62 +52,92 @@ class CC_DLL CCPoint
 public:
     float x;
     float y;
+    // alk modifications: all defined
 
-public:
-    CCPoint();
-    CCPoint(float x, float y);
+    inline CCPoint() : x(0), y(0) {}
+    inline CCPoint(float x, float y) : x(x), y(y) {}
     /**
      * @lua NA
      */
-    CCPoint(const CCPoint& other);
+    inline CCPoint(const CCPoint& other) : x(other.x), y(other.y) {}
     /**
      * @lua NA
      */
-    CCPoint(const CCSize& size);
+    inline CCPoint(const CCSize& size);
     /**
      * @lua NA
      */
-    CCPoint& operator= (const CCPoint& other);
+    inline CCPoint& operator= (const CCPoint& other) {
+        setPoint(other.x, other.y);
+        return *this;
+    }
     /**
      * @lua NA
      */
-    CCPoint& operator= (const CCSize& size);
+    inline CCPoint& operator= (const CCSize& size);
     /**
      * @lua NA
      */
-    CCPoint operator+(const CCPoint& right) const;
+    inline CCPoint operator+(const CCPoint& right) const {
+        return CCPoint(this->x + right.x, this->y + right.y);
+    }
     /**
      * @lua NA
      */
-    CCPoint operator-(const CCPoint& right) const;
+    inline CCPoint operator-(const CCPoint& right) const {
+        return CCPoint(this->x - right.x, this->y - right.y);
+    }
     /**
      * @lua NA
      */
-    CCPoint operator-() const;
+    inline CCPoint operator-() const {
+        return CCPoint(-x, -y);
+    }
     /**
      * @lua NA
      */
-    CCPoint operator*(float a) const;
+    inline CCPoint operator*(float a) const {
+        return CCPoint(this->x * a, this->y * a);
+    }
     /**
      * @lua NA
      */
-    CCPoint operator/(float a) const;
+    inline CCPoint operator/(float a) const {
+        return CCPoint(this->x / a, this->y / a);
+    }
 
-HJ_ADD(
-    inline CCPoint operator*(const CCPoint& right) const {return CCPoint(x*right.x, y*right.y);}
-    inline CCPoint operator/(const CCPoint& right) const {return CCPoint(x/right.x, y/right.y);}
-)
+
+    // camila modification
+    inline CCPoint operator*(const CCPoint& right) const {
+        return CCPoint(x * right.x, y * right.y);
+    }
+    inline CCPoint operator/(const CCPoint& right) const {
+        return CCPoint(x / right.x, y / right.y);
+    }
+    //314
+
     /**
      * @lua NA
      */
-    void setPoint(float x, float y);
-    bool equals(const CCPoint& target) const;
-    
+    inline void setPoint(float x, float y) {
+        this->x = x;
+        this->y = y;
+    }
+
+    inline bool equals(const CCPoint& target) const {
+        return (fabs(this->x - target.x) < FLT_EPSILON) && (fabs(this->y - target.y) < FLT_EPSILON);
+    }
+
     /** @returns if points have fuzzy equality which means equal with some degree of variance.
      * @since v2.1.4
      * @lua NA
      */
-    bool fuzzyEquals(const CCPoint& target, float variance) const;
+    inline bool fuzzyEquals(const CCPoint& b, float var) const {
+        if (x - var <= b.x && b.x <= x + var)
+            if (y - var <= b.y && b.y <= y + var)
+                return true;
+        return false;
+    }
 
     /** Calculates distance between point an origin
      * @return float
@@ -110,7 +145,7 @@ HJ_ADD(
      * @lua NA
      */
     inline float getLength() const {
-        return sqrtf(x*x + y*y);
+        return sqrtf(x * x + y * y);
     };
 
     /** Calculates the square length of a CCPoint (not calling sqrt() )
@@ -148,14 +183,20 @@ HJ_ADD(
     /** @returns the angle in radians between two vector directions
      @since v2.1.4
     */
-    float getAngle(const CCPoint& other) const;
+    inline float getAngle(const CCPoint& other) const {
+        CCPoint a2 = normalize();
+        CCPoint b2 = other.normalize();
+        float angle = atan2f(a2.cross(b2), a2.dot(b2));
+        if (fabs(angle) < FLT_EPSILON) return 0.f;
+        return angle;
+    }
 
     /** Calculates dot product of two points.
      @return float
      @since v2.1.4
      */
     inline float dot(const CCPoint& other) const {
-        return x*other.x + y*other.y;
+        return x * other.x + y * other.y;
     };
 
     /** Calculates cross product of two points.
@@ -163,7 +204,7 @@ HJ_ADD(
      @since v2.1.4
      */
     inline float cross(const CCPoint& other) const {
-        return x*other.y - y*other.x;
+        return x * other.y - y * other.x;
     };
 
     /** Calculates perpendicular of v, rotated 90 degrees counter-clockwise -- cross(v, perp(v)) >= 0
@@ -187,7 +228,7 @@ HJ_ADD(
      @since v2.1.4
      */
     inline CCPoint project(const CCPoint& other) const {
-        return other * (dot(other)/other.dot(other));
+        return other * (dot(other) / other.dot(other));
     };
 
     /** Complex multiplication of two points ("rotates" two points).
@@ -196,7 +237,7 @@ HJ_ADD(
      @since v2.1.4
      */
     inline CCPoint rotate(const CCPoint& other) const {
-        return CCPoint(x*other.x - y*other.y, x*other.y + y*other.x);
+        return CCPoint(x * other.x - y * other.y, x * other.y + y * other.x);
     };
 
     /** Unrotates two points.
@@ -205,7 +246,7 @@ HJ_ADD(
      @since v2.1.4
      */
     inline CCPoint unrotate(const CCPoint& other) const {
-        return CCPoint(x*other.x + y*other.y, y*other.x - x*other.y);
+        return CCPoint(x * other.x + y * other.y, y * other.x - x * other.y);
     };
 
     /** Returns point multiplied to a length of 1.
@@ -215,7 +256,7 @@ HJ_ADD(
      */
     inline CCPoint normalize() const {
         float length = getLength();
-        if(length == 0.) return CCPoint(1.f, 0);
+        if (length == 0.) return CCPoint(1.f, 0);
         return *this / getLength();
     };
 
@@ -236,12 +277,21 @@ HJ_ADD(
      @returns the rotated point
      @since v2.1.4
      */
-    CCPoint rotateByAngle(const CCPoint& pivot, float angle) const;
+    inline CCPoint rotateByAngle(const CCPoint& pivot, float angle) const {
+        return pivot + (*this - pivot).rotate(CCPoint::forAngle(angle));
+    }
 
     static inline CCPoint forAngle(const float a)
     {
-    	return CCPoint(cosf(a), sinf(a));
+        return CCPoint(cosf(a), sinf(a));
     }
+
+    void add(int, float);
+    float at(int);
+    bool isZero() const;
+    void set(int, float);
+    void swap();
+
 };
 
 /**
@@ -254,49 +304,90 @@ public:
     float height;
 
 public:
-    CCSize();
-    CCSize(float width, float height);
+    inline CCSize() : width(0), height(0) {}
+    inline CCSize(float width, float height) : width(width), height(height) {}
     /**
      * @lua NA
      */
-    CCSize(const CCSize& other);
+    inline CCSize(const CCSize& other) : width(other.width), height(other.height) {}
     /**
      * @lua NA
      */
-    CCSize(const CCPoint& point);
+    inline CCSize(const CCPoint& point) : width(point.x), height(point.y) {}
     /**
      * @lua NA
      */
-    CCSize& operator= (const CCSize& other);
+    inline CCSize& operator= (const CCSize& other) {
+        setSize(other.width, other.height);
+        return *this;
+    }
     /**
      * @lua NA
      */
-    CCSize& operator= (const CCPoint& point);
+    inline CCSize& operator= (const CCPoint& point) {
+        setSize(point.x, point.y);
+        return *this;
+    }
     /**
      * @lua NA
      */
-    CCSize operator+(const CCSize& right) const;
+    inline CCSize operator+(const CCSize& right) const {
+        return CCSize(this->width + right.width, this->height + right.height);
+    }
     /**
      * @lua NA
      */
-    CCSize operator-(const CCSize& right) const;
+    inline CCSize operator-(const CCSize& right) const {
+        return CCSize(this->width - right.width, this->height - right.height);
+    }
     /**
      * @lua NA
      */
-    CCSize operator*(float a) const;
+    inline CCSize operator*(float a) const {
+        return CCSize(this->width * a, this->height * a);
+    }
     /**
      * @lua NA
      */
-    CCSize operator/(float a) const;
+    inline CCSize operator/(float a) const {
+        return CCSize(this->width / a, this->height / a);
+    }
     /**
      * @lua NA
      */
-    void setSize(float width, float height);
+    inline void setSize(float width, float height) {
+        this->width = width;
+        this->height = height;
+    }
     /**
      * @lua NA
      */
-    bool equals(const CCSize& target) const;
+    inline bool equals(const CCSize& target) const {
+        return (fabs(this->width - target.width) < FLT_EPSILON) && (fabs(this->height - target.height) < FLT_EPSILON);
+    }
+    /**
+     * Get the aspect ratio of this CCSize
+     * @note Geode addition
+     */
+    inline float aspect() const {
+        return this->width / this->height;
+    }
+
+    void add(int, float);
+    float at(int);
+    void set(int, float);
+
 };
+
+// alk cont
+
+CCPoint::CCPoint(const CCSize& size) : x(size.width), y(size.height) {}
+
+CCPoint& CCPoint::operator= (const CCSize& size) {
+    setPoint(size.width, size.height);
+    return *this;
+}
+
 
 /**
  * @js NA
@@ -308,26 +399,82 @@ public:
     CCSize  size;
 
 public:
-    CCRect();
-    CCRect(float x, float y, float width, float height);
+    inline CCRect() {
+        setRect(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    inline CCRect(float x, float y, float width, float height) {
+        setRect(x, y, width, height);
+    }
+    inline CCRect(CCPoint const& a, CCPoint const& b) {
+        setRect(a.x, a.y, b.x, b.y);
+    }
     /**
      * @lua NA
      */
-    CCRect(const CCRect& other);
+    inline CCRect(const CCRect& other) {
+        setRect(other.origin.x, other.origin.y, other.size.width, other.size.height);
+    }
     /**
      * @lua NA
      */
-    CCRect& operator= (const CCRect& other);
-    void setRect(float x, float y, float width, float height);
-    float getMinX() const; /// return the leftmost x-value of current rect
-    float getMidX() const; /// return the midpoint x-value of current rect
-    float getMaxX() const; /// return the rightmost x-value of current rect
-    float getMinY() const; /// return the bottommost y-value of current rect
-    float getMidY() const; /// return the midpoint y-value of current rect
-    float getMaxY() const; /// return the topmost y-value of current rect
-    bool equals(const CCRect& rect) const;   
-    bool containsPoint(const CCPoint& point) const;
-    bool intersectsRect(const CCRect& rect) const;
+    inline CCRect& operator= (const CCRect& other) {
+        setRect(other.origin.x, other.origin.y, other.size.width, other.size.height);
+        return *this;
+    }
+    inline void setRect(float x, float y, float width, float height) {
+        // CGRect can support width<0 or height<0
+        // CCAssert(width >= 0.0f && height >= 0.0f, "width and height of Rect must not less than 0.");
+
+        origin.x = x;
+        origin.y = y;
+
+        size.width = width;
+        size.height = height;
+    }
+
+    inline float getMinX() const {
+        return origin.x;
+    } /// return the leftmost x-value of current rect
+    inline float getMidX() const {
+        return (float)(origin.x + size.width / 2.0);
+    } /// return the midpoint x-value of current rect
+    inline float getMaxX() const {
+        return (float)(origin.x + size.width);
+    } /// return the rightmost x-value of current rect
+    inline float getMinY() const {
+        return origin.y;
+    } /// return the bottommost y-value of current rect
+    inline float getMidY() const {
+        return (float)(origin.y + size.height / 2.0);
+    } /// return the midpoint y-value of current rect
+    inline float getMaxY() const {
+        return origin.y + size.height;
+    } /// return the topmost y-value of current rect
+    inline bool equals(const CCRect& rect) const {
+        return (origin.equals(rect.origin) && size.equals(rect.size));
+    }
+    inline bool containsPoint(const CCPoint& point) const {
+        bool bRet = false;
+
+        if (point.x >= getMinX() && point.x <= getMaxX()
+            && point.y >= getMinY() && point.y <= getMaxY())
+        {
+            bRet = true;
+        }
+
+        return bRet;
+    }
+
+    inline bool intersectsRect(const CCRect& rect) const {
+        // lmao
+        return !(getMaxX() < rect.getMinX() ||
+            rect.getMaxX() < getMinX() ||
+            getMaxY() < rect.getMinY() ||
+            rect.getMaxY() < getMinY());
+    }
+
+    float getMax(int);
+    float getMin(int);
 };
 
 
@@ -336,13 +483,16 @@ public:
 #define CCRectMake(x, y, width, height) CCRect((float)(x), (float)(y), (float)(width), (float)(height))
 
 
-const CCPoint CCPointZero = CCPointMake(0,0);
+// const CCPoint CCPointZero = CCPointMake(0,0);
+#define CCPointZero CCPointMake(0,0)
 
-/* The "zero" size -- equivalent to CCSizeMake(0, 0). */ 
-const CCSize CCSizeZero = CCSizeMake(0,0);
+/* The "zero" size -- equivalent to CCSizeMake(0, 0). */
+// const CCSize CCSizeZero = CCSizeMake(0,0);
+#define CCSizeZero CCSizeMake(0,0)
 
-/* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */ 
-const CCRect CCRectZero = CCRectMake(0,0,0,0);
+/* The "zero" rectangle -- equivalent to CCRectMake(0, 0, 0, 0). */
+// const CCRect CCRectZero = CCRectMake(0,0,0,0);
+#define CCRectZero CCRectMake(0,0,0,0)
 
 // end of data_structure group
 /// @}

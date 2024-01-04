@@ -37,23 +37,23 @@ NS_CC_BEGIN
  * @{
  */
 
-typedef enum
+    typedef enum
 {
     ccTouchSelectorBeganBit = 1 << 0,
     ccTouchSelectorMovedBit = 1 << 1,
     ccTouchSelectorEndedBit = 1 << 2,
     ccTouchSelectorCancelledBit = 1 << 3,
-    ccTouchSelectorAllBits = ( ccTouchSelectorBeganBit | ccTouchSelectorMovedBit | ccTouchSelectorEndedBit | ccTouchSelectorCancelledBit),
+    ccTouchSelectorAllBits = (ccTouchSelectorBeganBit | ccTouchSelectorMovedBit | ccTouchSelectorEndedBit | ccTouchSelectorCancelledBit),
 } ccTouchSelectorFlag;
 
 
-enum {
-    CCTOUCHBEGAN,
-    CCTOUCHMOVED,
-    CCTOUCHENDED,
-    CCTOUCHCANCELLED,
-    
-    ccTouchMax,
+enum ccTouchType {
+    CCTOUCHBEGAN = 0,
+    CCTOUCHMOVED = 1,
+    CCTOUCHENDED = 2,
+    CCTOUCHCANCELLED = 3,
+
+    ccTouchMax = 4,
 };
 
 class CCSet;
@@ -102,10 +102,10 @@ struct _ccCArray;
  There are 2 different type of touch handlers:
    - Standard Touch Handlers
    - Targeted Touch Handlers
- 
+
  The Standard Touch Handlers work like the CocoaTouch touch handler: a set of touches is passed to the delegate.
  On the other hand, the Targeted Touch Handlers only receive 1 touch at the time, and they can "swallow" touches (avoid the propagation of the event).
- 
+
  Firstly, the dispatcher sends the received touches to the targeted touches.
  These touches can be swallowed by the Targeted Touch Handlers. If there are still remaining touches, then the remaining touches will be sent
  to the Standard Touch Handlers.
@@ -132,7 +132,7 @@ public:
         , m_pStandardHandlers(NULL)
         , m_pHandlersToAdd(NULL)
         , m_pHandlersToRemove(NULL)
-        
+
     {}
 
 public:
@@ -145,35 +145,35 @@ public:
      * IMPORTANT: The delegate will be retained.
      * @lua NA
      */
-    void addStandardDelegate(CCTouchDelegate *pDelegate, int nPriority);
+    void addStandardDelegate(CCTouchDelegate* pDelegate, int nPriority);
 
     /** Adds a targeted touch delegate to the dispatcher's list.
      * See TargetedTouchDelegate description.
      * IMPORTANT: The delegate will be retained.
      * @lua NA
      */
-    void addTargetedDelegate(CCTouchDelegate *pDelegate, int nPriority, bool bSwallowsTouches);
+    void addTargetedDelegate(CCTouchDelegate* pDelegate, int nPriority, bool bSwallowsTouches);
 
     /** Removes a touch delegate.
      * The delegate will be released
      * @lua NA
      */
-    void removeDelegate(CCTouchDelegate *pDelegate);
+    void removeDelegate(CCTouchDelegate* pDelegate);
 
-    /** Removes all touch delegates, releasing all the delegates 
+    /** Removes all touch delegates, releasing all the delegates
      * @lua NA
      */
     void removeAllDelegates(void);
 
     /** Changes the priority of a previously added delegate. The lower the number,
-     * the higher the priority 
+     * the higher the priority
      * @lua NA
      */
-    void setPriority(int nPriority, CCTouchDelegate *pDelegate);
+    void setPriority(int nPriority, CCTouchDelegate* pDelegate);
     /**
      * @lua NA
      */
-    void touches(CCSet *pTouches, CCEvent *pEvent, unsigned int uIndex);
+    void touches(CCSet* pTouches, CCEvent* pEvent, unsigned int uIndex);
     /**
      * @lua NA
      */
@@ -195,38 +195,44 @@ public:
     /**
      * @lua NA
      */
-    CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
+    CCTouchHandler* findHandler(CCTouchDelegate* pDelegate);
+
+    void addPrioTargetedDelegate(cocos2d::CCTouchDelegate*, int, bool);
+    bool isUsingForcePrio();
+    void registerForcePrio(cocos2d::CCObject*, int);
+    void unregisterForcePrio(cocos2d::CCObject*);
 
     RT_ADD(
         void incrementForcePrio(int priority);
-        void decrementForcePrio(int priority);
+    void decrementForcePrio(int priority);
     )
 protected:
-    void forceRemoveDelegate(CCTouchDelegate *pDelegate);
-    void forceAddHandler(CCTouchHandler *pHandler, CCArray* pArray);
+    void forceRemoveDelegate(CCTouchDelegate* pDelegate);
+    void forceAddHandler(CCTouchHandler* pHandler, CCArray* pArray);
     void forceRemoveAllDelegates(void);
     void rearrangeHandlers(CCArray* pArray);
-    CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate *pDelegate);
+    CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate* pDelegate);
 
 protected:
-     CCArray* m_pTargetedHandlers;
-     CCArray* m_pStandardHandlers;
+    CCArray* m_pTargetedHandlers;
+    CCArray* m_pStandardHandlers;
 
     bool m_bLocked;
     bool m_bToAdd;
     bool m_bToRemove;
-     CCArray* m_pHandlersToAdd;
-    struct _ccCArray *m_pHandlersToRemove;
+    CCArray* m_pHandlersToAdd;
+    struct _ccCArray* m_pHandlersToRemove;
     bool m_bToQuit;
     bool m_bDispatchEvents;
 
     // 4, 1 for each type of event
     struct ccTouchHandlerHelperData m_sHandlerHelperData[ccTouchMax];
 
-    RT_ADD(
-        CC_SYNTHESIZE_NV(bool, m_bForcePrio, ForcePrio);
-        CC_SYNTHESIZE_NV(int, m_nTargetPrio, TargetPrio);
-    )
+    // 2.2 changes
+
+    CC_SYNTHESIZE_NV(int, m_forcePrio, ForcePrio);
+    void* m_unknown;
+    CC_SYNTHESIZE_NV(int, m_targetPrio, TargetPrio);
 };
 
 // end of input group

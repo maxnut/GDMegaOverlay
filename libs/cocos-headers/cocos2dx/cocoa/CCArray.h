@@ -32,22 +32,22 @@ THE SOFTWARE.
  * @{
  */
 
-/** @def CCARRAY_FOREACH
-A convenience macro to iterate over a CCArray using. It is faster than the "fast enumeration" interface.
-@since v0.99.4
-*/
+ /** @def CCARRAY_FOREACH
+ A convenience macro to iterate over a CCArray using. It is faster than the "fast enumeration" interface.
+ @since v0.99.4
+ */
 
-/*
-In cocos2d-iphone 1.0.0, This macro have been update to like this:
+ /*
+ In cocos2d-iphone 1.0.0, This macro have been update to like this:
 
-#define CCARRAY_FOREACH(__array__, __object__)                                                \
-if (__array__ && __array__->data->num > 0)                                                    \
-for(id *__arr__ = __array__->data->arr, *end = __array__->data->arr + __array__->data->num-1;    \
-__arr__ <= end && ((__object__ = *__arr__) != nil || true);                                        \
-__arr__++)
+ #define CCARRAY_FOREACH(__array__, __object__)                                                \
+ if (__array__ && __array__->data->num > 0)                                                    \
+ for(id *__arr__ = __array__->data->arr, *end = __array__->data->arr + __array__->data->num-1;    \
+ __arr__ <= end && ((__object__ = *__arr__) != nil || true);                                        \
+ __arr__++)
 
-I found that it's not work in C++. So it keep what it's look like in version 1.0.0-rc3. ---By Bin
-*/
+ I found that it's not work in C++. So it keep what it's look like in version 1.0.0-rc3. ---By Bin
+ */
 #define CCARRAY_FOREACH(__array__, __object__)                                                                         \
     if ((__array__) && (__array__)->data->num > 0)                                                                     \
     for(CCObject** __arr__ = (__array__)->data->arr, **__end__ = (__array__)->data->arr + (__array__)->data->num-1;    \
@@ -111,7 +111,7 @@ NS_CC_BEGIN
 /**
  * @js NA
  */
-class CC_DLL CCArray : public CCObject
+    class CC_DLL CCArray : public CCObject
 {
 public:
     /**
@@ -121,7 +121,7 @@ public:
 
     /** Create an array */
     static CCArray* create();
-    /** Create an array with some objects 
+    /** Create an array with some objects
      *  @lua NA
      */
     static CCArray* create(CCObject* pObject, ...);
@@ -137,7 +137,7 @@ public:
      @return  The CCArray pointer generated from the file
      */
     static CCArray* createWithContentsOfFile(const char* pFileName);
-    
+
     /*
      @brief The same meaning as arrayWithContentsOfFile(), but it doesn't call autorelease, so the
      invoker should call release().
@@ -145,7 +145,7 @@ public:
      */
     static CCArray* createWithContentsOfFileThreadSafe(const char* pFileName);
 
-    /** Initializes an array 
+    /** Initializes an array
      *  @lua NA
      */
     bool init();
@@ -153,15 +153,15 @@ public:
      *  @lua NA
      */
     bool initWithObject(CCObject* pObject);
-    /** Initializes an array with some objects 
+    /** Initializes an array with some objects
      *  @lua NA
      */
     bool initWithObjects(CCObject* pObject, ...);
-    /** Initializes an array with capacity 
+    /** Initializes an array with capacity
      *  @lua NA
      */
     bool initWithCapacity(unsigned int capacity);
-    /** Initializes an array with an existing array 
+    /** Initializes an array with an existing array
      *  @lua NA
      */
     bool initWithArray(CCArray* otherArray);
@@ -176,6 +176,16 @@ public:
     unsigned int indexOfObject(CCObject* object) const;
     /** Returns an element with a certain index */
     CCObject* objectAtIndex(unsigned int index);
+    /**
+     * Rob modification
+     * Returns an element with a certain index casted to CCString */
+    CCString* stringAtIndex(unsigned int index);
+
+    /**
+     * Returns first element, or null if empty
+     * @note Geode addition
+     */
+    CCObject* firstObject();
     /** Returns last element */
     CCObject* lastObject();
     /** Returns a random element */
@@ -188,6 +198,11 @@ public:
 
     /** Add a certain object */
     void addObject(CCObject* object);
+
+    /**
+     * Rob modification
+     * Add a certain object */
+    void addObjectNew(CCObject* object);
     /** Add all elements of an existing array */
     void addObjectsFromArray(CCArray* otherArray);
     /** Insert a certain object at a certain index */
@@ -195,6 +210,11 @@ public:
 
     // Removing Objects
 
+    /**
+     * Remove first object, or do nothing if array is empty
+     * @note Geode addition
+     */
+    void removeFirstObject(bool bReleaseObj = true);
     /** Remove last object */
     void removeLastObject(bool bReleaseObj = true);
     /** Remove a certain object */
@@ -209,6 +229,17 @@ public:
     void fastRemoveObject(CCObject* object);
     /** Fast way to remove an element with a certain index */
     void fastRemoveObjectAtIndex(unsigned int index);
+    /**
+     * Fast way to remove an element with a certain index
+     * @note RobTop addition
+     */
+    void fastRemoveObjectAtIndexNew(unsigned int index);
+
+    void fastRemoveObjectAtIndexChild(unsigned int);
+
+    void recreateNewIndexes();
+    void removeObjectAtIndexChild(unsigned int, bool);
+
 
     // Rearranging Content
 
@@ -224,15 +255,15 @@ public:
     void reverseObjects();
     /* Shrinks the array so the memory footprint corresponds with the number of items */
     void reduceMemoryFootprint();
-  
-    /** override functions 
+
+    /** override functions
      *  @js NA
      *  @lua NA
      */
     virtual CCObject* copyWithZone(CCZone* pZone);
 
     /* override functions */
-    virtual void acceptVisitor(CCDataVisitor &visitor);
+    virtual void acceptVisitor(CCDataVisitor& visitor);
 
 public:
     ccArray* data;

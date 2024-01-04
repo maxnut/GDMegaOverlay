@@ -157,7 +157,7 @@ public:
     RT_REMOVE(  virtual std::string fullPathForFilename(const char* pszFileName);       )
     RT_ADD(     virtual std::string fullPathForFilename(const char* pszFileName, bool); )
     
-    RT_ADD( virtual void removeFullPath(const char* path); )
+    RT_ADD(virtual void removeFullPath(const char* path));
 
     /**
      * Loads the filenameLookup dictionary from the contents of a filename.
@@ -359,7 +359,7 @@ protected:
     virtual std::string getNewFilename(const char* pszFileName);
 
     RT_ADD(virtual bool shouldUseHD();)
-    RT_ADD(virtual std::string addSuffix(std::string, std::string);)
+    RT_ADD(virtual bool addSufix(std::string, std::string);)
     
     /**
      *  Gets full path for filename, resolution directory and search path.

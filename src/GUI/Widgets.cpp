@@ -2,6 +2,7 @@
 #include "../ConstData.h"
 #include "GUI.h"
 #include "Shortcut.h"
+#include "../Common.h"
 
 #include <imgui_internal.h>
 
@@ -195,7 +196,7 @@ bool GUI::inputInt(std::string name, int* value, int min, int max)
 	if (GUI::shouldRender())
 	{
 		ImGui::PushItemWidth(50);
-		result = ImGui::InputInt(name.c_str(), value);
+		result = ImGui::InputInt(name.c_str(), value, 0);
 		ImGui::PopItemWidth();
 	}
 
@@ -280,7 +281,7 @@ void GUI::marker(std::string title, std::string description)
 {
 	if (!GUI::shouldRender())
 		return;
-	
+
 	ImGui::TextDisabled(title.c_str());
 	if (ImGui::IsItemHovered())
 	{
@@ -289,5 +290,37 @@ void GUI::marker(std::string title, std::string description)
 		ImGui::TextUnformatted(description.c_str());
 		ImGui::PopTextWrapPos();
 		ImGui::EndTooltip();
+	}
+}
+
+inline void AddUnderLine(ImColor col_)
+{
+	ImVec2 min = ImGui::GetItemRectMin();
+	ImVec2 max = ImGui::GetItemRectMax();
+	min.y = max.y;
+	ImGui::GetWindowDrawList()->AddLine(min, max, col_, 1.0f);
+}
+
+void GUI::textURL(std::string text, std::string link)
+{
+	if (!GUI::shouldRender())
+		return;
+
+	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.3f, 0.3f, 1, 1));
+	ImGui::Text(text.c_str());
+	ImGui::PopStyleColor();
+	if (ImGui::IsItemHovered())
+	{
+		if (ImGui::IsMouseClicked(0))
+		{
+			ImGui::FocusWindow(nullptr);
+			Common::openLink(link.c_str());
+		}
+		AddUnderLine(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+		ImGui::SetTooltip("Open in browser\n%s", link.c_str());
+	}
+	else
+	{
+		AddUnderLine(ImGui::GetStyle().Colors[ImGuiCol_Button]);
 	}
 }

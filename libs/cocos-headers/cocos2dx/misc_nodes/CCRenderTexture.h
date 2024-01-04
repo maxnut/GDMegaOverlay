@@ -36,10 +36,10 @@ NS_CC_BEGIN
  * @{
  */
 
-typedef enum eImageFormat
+    typedef enum eImageFormat
 {
-    kCCImageFormatJPEG      = 0,
-    kCCImageFormatPNG       = 1,
+    kCCImageFormatJPEG = 0,
+    kCCImageFormatPNG = 1,
 } tCCImageFormat;
 /**
 @brief CCRenderTexture is a generic rendering target. To render things into it,
@@ -51,7 +51,7 @@ There are also functions for saving the render texture to disk in PNG or JPG for
 
 @since v0.8.1
 */
-class CC_DLL CCRenderTexture : public CCNode 
+class CC_DLL CCRenderTexture : public CCNode
 {
     /** The CCSprite being used.
     The sprite, by default, will use the following blending function: GL_ONE, GL_ONE_MINUS_SRC_ALPHA.
@@ -69,18 +69,18 @@ public:
      * @lua NA
      */
     virtual ~CCRenderTexture();
-    
+
     virtual void visit();
     virtual void draw();
 
     /** initializes a RenderTexture object with width and height in Points and a pixel format( only RGB and RGBA formats are valid ) and depthStencil format*/
-    static CCRenderTexture * create(int w ,int h, CCTexture2DPixelFormat eFormat, GLuint uDepthStencilFormat);
+    static CCRenderTexture* create(int w, int h, CCTexture2DPixelFormat eFormat, GLuint uDepthStencilFormat);
 
     /** creates a RenderTexture object with width and height in Points and a pixel format, only RGB and RGBA formats are valid */
-    static CCRenderTexture * create(int w, int h, CCTexture2DPixelFormat eFormat);
+    static CCRenderTexture* create(int w, int h, CCTexture2DPixelFormat eFormat);
 
     /** creates a RenderTexture object with width and height in Points, pixel format is RGBA8888 */
-    static CCRenderTexture * create(int w, int h);
+    static CCRenderTexture* create(int w, int h);
 
     /** initializes a RenderTexture object with width and height in Points and a pixel format, only RGB and RGBA formats are valid */
     bool initWithWidthAndHeight(int w, int h, CCTexture2DPixelFormat eFormat);
@@ -104,7 +104,7 @@ public:
     void beginWithClear(float r, float g, float b, float a, float depthValue, int stencilValue);
 
     /** end is key word of lua, use other name to export to lua. */
-    inline void endToLua(){ end();};
+    inline void endToLua() { end(); };
 
     /** ends grabbing*/
     void end();
@@ -125,44 +125,46 @@ public:
     /** saves the texture into a file using JPEG format. The file will be saved in the Documents folder.
         Returns YES if the operation is successful.
      */
-    bool saveToFile(const char *szFilePath);
+    bool saveToFile(const char* szFilePath);
 
     /** saves the texture into a file. The format could be JPG or PNG. The file will be saved in the Documents folder.
         Returns YES if the operation is successful.
      */
-    bool saveToFile(const char *name, tCCImageFormat format);
-    
+    bool saveToFile(const char* name, tCCImageFormat format);
+
     /** Listen "come to background" message, and save render texture.
      It only has effect on Android.
      */
-    void listenToBackground(CCObject *obj);
-    
+    void listenToBackground(CCObject* obj);
+
     /** Listen "come to foreground" message and restore the frame buffer object
      It only has effect on Android.
      */
-    void listenToForeground(CCObject *obj);
-    
+    void listenToForeground(CCObject* obj);
+
     /** Valid flags: GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT, GL_STENCIL_BUFFER_BIT. They can be OR'ed. Valid when "autoDraw is YES. */
     unsigned int getClearFlags() const;
     void setClearFlags(unsigned int uClearFlags);
-    
+
     /** Clear color value. Valid only when "autoDraw" is true. */
     const ccColor4F& getClearColor() const;
-    void setClearColor(const ccColor4F &clearColor);
-    
+    void setClearColor(const ccColor4F& clearColor);
+
     /** Value for clearDepth. Valid only when autoDraw is true. */
     float getClearDepth() const;
     void setClearDepth(float fClearDepth);
-    
+
     /** Value for clear Stencil. Valid only when autoDraw is true */
     int getClearStencil() const;
     void setClearStencil(float fClearStencil);
-    
+
     /** When enabled, it will render its children into the texture automatically. Disabled by default for compatiblity reasons.
      Will be enabled in the future.
      */
     bool isAutoDraw() const;
     void setAutoDraw(bool bAutoDraw);
+
+    void updateInternalScale(float, float);
 
 private:
     void beginWithClear(float r, float g, float b, float a, float depthValue, int stencilValue, GLbitfield flags);
@@ -173,9 +175,9 @@ protected:
     GLint        m_nOldFBO;
     CCTexture2D* m_pTexture;
     CCTexture2D* m_pTextureCopy;    // a copy of m_pTexture
-    CCImage*     m_pUITextureImage;
+    CCImage* m_pUITextureImage;
     GLenum       m_ePixelFormat;
-    
+
     // code for "auto" update
     GLbitfield   m_uClearFlags;
     ccColor4F    m_sClearColor;

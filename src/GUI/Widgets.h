@@ -18,4 +18,5 @@ namespace GUI
     bool hotkey(std::string, int*, const ImVec2& = ImVec2(0, 0));
     bool modalPopup(std::string, const std::function<void()>&, int = ImGuiWindowFlags_AlwaysAutoResize);
     void marker(std::string, std::string);
+    void textURL(std::string, std::string);
 };

@@ -79,7 +79,7 @@ void Macrobot::PlayerCheckpoint::fromPlayer(cocos2d::CCNode* player)
 
 void* __fastcall Macrobot::checkpointObjectInitHook(void* self, void*)
 {
-	if (frame > 0 && playerObject1)
+	if (frame > 0 && playerObject1 && *((double*)Common::getBGL() + 1411) > 0)
 	{
 		CheckpointData data;
 		data.time = *((double*)Common::getBGL() + 1411);
@@ -129,8 +129,8 @@ void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, voi
 
 		if (playerMode == 1)
 		{
-			recordAction(1, frame, false, true);
-			recordAction(1, frame, false, false);
+			playerObjectReleaseButtonHook(playerObject1, 0, 1);
+			playerObjectReleaseButtonHook(playerObject2, 0, 1);
 		}
 	}
 	else
@@ -229,11 +229,15 @@ void Macrobot::save(std::string file)
 	if (!std::filesystem::exists("GDMO\\macros"))
 		std::filesystem::create_directory("GDMO\\macros");
 
-	std::ofstream f("GDMO\\macros\\" + file + ".macro");
-	f << actions.size();
+	std::ofstream f("GDMO\\macros\\" + file + ".macro", std::ios::binary);
+
+	size_t size = actions.size();
+	std::cout << size << std::endl;
+	f.write((const char*)&size, sizeof(size_t));
 	for (Action& ac : actions)
 		f.write((const char*)&ac, sizeof(Action));
-	f << corrections.size();
+	size = corrections.size();
+	f.write((const char*)&size, sizeof(size_t));
 	for (Correction& co : corrections)
 		f.write((const char*)&co, sizeof(Correction));
 }
@@ -246,20 +250,23 @@ void Macrobot::load(std::string file)
 	actions.clear();
 	corrections.clear();
 
-	std::ifstream f("GDMO\\macros\\" + file + ".macro");
+	std::ifstream f("GDMO\\macros\\" + file + ".macro", std::ios::binary);
 	size_t size = 0;
-	f >> size;
+	f.read((char*)&size, sizeof(size_t));
+	std::cout << size << std::endl;
 	for (size_t i = 0; i < size; i++)
 	{
 		Action ac;
 		f.read((char*)&ac, sizeof(Action));
 		actions.push_back(ac);
 	}
-	f >> size;
-	for (size_t i = 0; i < size; i++)
+	size_t size_c = 0;
+	f.read((char*)&size_c, sizeof(size_t));
+	for (size_t i = 0; i < size_c; i++)
 	{
 		Correction co;
 		f.read((char*)&co, sizeof(Correction));
+		std::cout << co.checkpoint.yPos << std::endl;
 		corrections.push_back(co);
 	}
 }

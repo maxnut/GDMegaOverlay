@@ -3,7 +3,7 @@ Copyright (c) 2010-2012 cocos2d-x.org
 Copyright (c) 2008-2010 Ricardo Quesada
 Copyright (c) 2009      Leonardo Kasperavičius
 Copyright (c) 2011      Zynga Inc.
- 
+
 http://www.cocos2d-x.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,28 +33,34 @@ NS_CC_BEGIN
 
 class CCSpriteFrame;
 
+// 2.2 additions
+struct ParticleStruct {
+
+};
+
 /**
  * @addtogroup particle_nodes
  * @{
  */
 
-/** @brief CCParticleSystemQuad is a subclass of CCParticleSystem
+ /** @brief CCParticleSystemQuad is a subclass of CCParticleSystem
 
-It includes all the features of ParticleSystem.
+ It includes all the features of ParticleSystem.
 
-Special features and Limitations:    
-- Particle size can be any float number.
-- The system can be scaled
-- The particles can be rotated
-- It supports subrects
-- It supports batched rendering since 1.1
-@since v0.8
-*/
+ Special features and Limitations:
+ - Particle size can be any float number.
+ - The system can be scaled
+ - The particles can be rotated
+ - It supports subrects
+ - It supports batched rendering since 1.1
+ @since v0.8
+ */
 class CC_DLL CCParticleSystemQuad : public CCParticleSystem
 {
 protected:
-    ccV3F_C4B_T2F_Quad    *m_pQuads;        // quads to be rendered
-    GLushort            *m_pIndices;    // indices
+
+    ccV3F_C4B_T2F_Quad* m_pQuads;        // quads to be rendered
+    GLushort* m_pIndices;    // indices
 
 #if CC_TEXTURE_ATLAS_USE_VAO
     GLuint                m_uVAOname;
@@ -68,15 +74,15 @@ public:
      */
     CCParticleSystemQuad();
     /**
-     * @js NA
-     * @lua NA
-     */
+        * @js NA
+        * @lua NA
+        */
     virtual ~CCParticleSystemQuad();
 
     /** creates an initializes a CCParticleSystemQuad from a plist file.
-    This plist files can be created manually or with Particle Designer:  
+    This plist files can be created manually or with Particle Designer:
     */
-    static CCParticleSystemQuad * create(const char *plistFile);
+    static CCParticleSystemQuad* create(const char* plistFile);
 
     /** initializes the indices for the vertices*/
     void initIndices();
@@ -88,17 +94,17 @@ public:
     WARNING: this method is experimental. Use setTexture:withRect instead.
     @since v0.99.4
     */
-    void setDisplayFrame(CCSpriteFrame *spriteFrame);
+    void setDisplayFrame(CCSpriteFrame* spriteFrame);
 
     /** Sets a new texture with a rect. The rect is in Points.
     @since v0.99.4
     */
-    void setTextureWithRect(CCTexture2D *texture, const CCRect& rect);
+    void setTextureWithRect(CCTexture2D* texture, const CCRect& rect);
     /** super methods
      *  @js NA
      *  @lua NA
      */
-    virtual bool initWithTotalParticles(unsigned int numberOfParticles);
+    virtual bool initWithTotalParticles(unsigned int numberOfParticles, bool);
     /**
      * @js NA
      */
@@ -124,15 +130,22 @@ public:
      * @js NA
      */
     virtual void setTotalParticles(unsigned int tp);
-    
+
     /** listen the event that coming to foreground on Android
      *  @js NA
      *  @lua NA
      */
-    void listenBackToForeground(CCObject *obj);
+    void listenBackToForeground(CCObject* obj);
 
-    static CCParticleSystemQuad * create();
-    static CCParticleSystemQuad * createWithTotalParticles(unsigned int numberOfParticles);
+    static CCParticleSystemQuad* create();
+    static CCParticleSystemQuad* create(const char*, bool);
+    static CCParticleSystemQuad* createWithTotalParticles(unsigned int numberOfParticles, bool);
+
+    unsigned char getOpacity();
+    void setOpacity(unsigned char);
+
+    void updateTexCoords();
+
 private:
 #if CC_TEXTURE_ATLAS_USE_VAO
     void setupVBOandVAO();

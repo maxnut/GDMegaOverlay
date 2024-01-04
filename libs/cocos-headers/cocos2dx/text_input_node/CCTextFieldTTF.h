@@ -46,7 +46,7 @@ public:
     /**
     @brief    If the sender doesn't want to attach to the IME, return true;
     */
-    virtual bool onTextFieldAttachWithIME(CCTextFieldTTF * sender)
+    virtual bool onTextFieldAttachWithIME(CCTextFieldTTF* sender)
     {
         CC_UNUSED_PARAM(sender);
         return false;
@@ -55,7 +55,7 @@ public:
     /**
     @brief    If the sender doesn't want to detach from the IME, return true;
     */
-    virtual bool onTextFieldDetachWithIME(CCTextFieldTTF * sender)
+    virtual bool onTextFieldDetachWithIME(CCTextFieldTTF* sender)
     {
         CC_UNUSED_PARAM(sender);
         return false;
@@ -64,7 +64,7 @@ public:
     /**
     @brief    If the sender doesn't want to insert the text, return true;
     */
-    virtual bool onTextFieldInsertText(CCTextFieldTTF * sender, const char * text, int nLen)
+    virtual bool onTextFieldInsertText(CCTextFieldTTF* sender, const char* text, int nLen, cocos2d::enumKeyCodes)
     {
         CC_UNUSED_PARAM(sender);
         CC_UNUSED_PARAM(text);
@@ -75,7 +75,7 @@ public:
     /**
     @brief    If the sender doesn't want to delete the delText, return true;
     */
-    virtual bool onTextFieldDeleteBackward(CCTextFieldTTF * sender, const char * delText, int nLen)
+    virtual bool onTextFieldDeleteBackward(CCTextFieldTTF* sender, const char* delText, int nLen)
     {
         CC_UNUSED_PARAM(sender);
         CC_UNUSED_PARAM(delText);
@@ -86,11 +86,15 @@ public:
     /**
     @brief    If the sender doesn't want to draw, return true.
     */
-    virtual bool onDraw(CCTextFieldTTF * sender)
+    virtual bool onDraw(CCTextFieldTTF* sender)
     {
         CC_UNUSED_PARAM(sender);
         return false;
     }
+
+    RT_ADD(
+        virtual void textChanged() {}
+    )
 };
 
 /**
@@ -112,13 +116,13 @@ public:
     //char * description();
 
     /** creates a CCTextFieldTTF from a fontname, alignment, dimension and font size */
-    static CCTextFieldTTF * textFieldWithPlaceHolder(const char *placeholder, const CCSize& dimensions, CCTextAlignment alignment, const char *fontName, float fontSize);
+    static CCTextFieldTTF* textFieldWithPlaceHolder(const char* placeholder, const CCSize& dimensions, CCTextAlignment alignment, const char* fontName, float fontSize);
     /** creates a CCLabelTTF from a fontname and font size */
-    static CCTextFieldTTF * textFieldWithPlaceHolder(const char *placeholder, const char *fontName, float fontSize);
+    static CCTextFieldTTF* textFieldWithPlaceHolder(const char* placeholder, const char* fontName, float fontSize);
     /** initializes the CCTextFieldTTF with a font name, alignment, dimension and font size */
-    bool initWithPlaceHolder(const char *placeholder, const CCSize& dimensions, CCTextAlignment alignment, const char *fontName, float fontSize);
+    bool initWithPlaceHolder(const char* placeholder, const CCSize& dimensions, CCTextAlignment alignment, const char* fontName, float fontSize);
     /** initializes the CCTextFieldTTF with a font name and font size */
-    bool initWithPlaceHolder(const char *placeholder, const char *fontName, float fontSize);
+    bool initWithPlaceHolder(const char* placeholder, const char* fontName, float fontSize);
 
     /**
     @brief    Open keyboard and receive input text.
@@ -134,25 +138,25 @@ public:
     // properties
     //////////////////////////////////////////////////////////////////////////
 
-    CC_SYNTHESIZE(CCTextFieldDelegate *, m_pDelegate, Delegate);
+    CC_SYNTHESIZE_NV(CCTextFieldDelegate*, m_pDelegate, Delegate);
     CC_SYNTHESIZE_READONLY(int, m_nCharCount, CharCount);
     virtual const ccColor3B& getColorSpaceHolder();
     virtual void setColorSpaceHolder(const ccColor3B& color);
 
     // input text property
 public:
-    virtual void setString(const char *text);
+    virtual void setString(const char* text);
     virtual const char* getString(void);
 protected:
-    std::string * m_pInputText;
+    std::string* m_pInputText;
 
     // place holder text property
     // place holder text displayed when there is no text in the text field.
 public:
-    virtual void setPlaceHolder(const char * text);
-    virtual const char * getPlaceHolder(void);
+    virtual void setPlaceHolder(const char* text);
+    virtual const char* getPlaceHolder(void);
 protected:
-    std::string * m_pPlaceHolder;
+    std::string* m_pPlaceHolder;
     ccColor3B m_ColorSpaceHolder;
 public:
     virtual void setSecureTextEntry(bool value);
@@ -169,12 +173,12 @@ protected:
 
     virtual bool canAttachWithIME();
     virtual bool canDetachWithIME();
-    virtual void insertText(const char * text, int len);
+    virtual void insertText(const char* text, int len, cocos2d::enumKeyCodes);
     virtual void deleteBackward();
-    virtual const char * getContentText();
+    virtual const char* getContentText();
 private:
     class LengthStack;
-    LengthStack * m_pLens;
+    LengthStack* m_pLens;
 };
 
 // end of input group

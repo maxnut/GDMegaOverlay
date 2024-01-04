@@ -184,6 +184,10 @@ public:
     RT_ADD(
         void keyDown(enumKeyCodes);
     )
+
+    // 2.2 additions
+    virtual void setPreviousPriority(int);
+    virtual int getPreviousPriority();
     
     inline CCTouchScriptHandlerEntry* getScriptTouchHandlerEntry() { return m_pScriptTouchHandlerEntry; };
     inline CCScriptHandlerEntry* getScriptKeypadHandlerEntry() { return m_pScriptKeypadHandlerEntry; };
@@ -205,6 +209,9 @@ private:
     
     int m_nTouchPriority;
     ccTouchesMode m_eTouchMode;
+
+    // 2.2 additions
+    int m_uPreviousPriority; // no idea
     
     int  excuteScriptTouchHandler(int nEventType, CCTouch *pTouch);
     int  excuteScriptTouchHandler(int nEventType, CCSet *pTouches);
@@ -271,10 +278,12 @@ All features from CCLayer are valid, plus the following new features:
 */
 class CC_DLL CCLayerColor : public CCLayerRGBA, public CCBlendProtocol
 #ifdef EMSCRIPTEN
-, public CCGLBufferedNode
+    , public CCGLBufferedNode
 #endif // EMSCRIPTEN
 {
 protected:
+
+
     ccVertex2F m_pSquareVertices[4];
     ccColor4F  m_pSquareColors[4];
 
@@ -284,20 +293,20 @@ public:
      */
     CCLayerColor();
     /**
-     *  @js NA
-     *  @lua NA
-     */
+        *  @js NA
+        *  @lua NA
+        */
     virtual ~CCLayerColor();
 
     virtual void draw();
-    virtual void setContentSize(const CCSize & var);
-    
+    virtual void setContentSize(const CCSize& var);
+
     static CCLayerColor* create();
-    
+
     /** creates a CCLayer with color, width and height in Points */
-    static CCLayerColor * create(const ccColor4B& color, GLfloat width, GLfloat height);
+    static CCLayerColor* create(const ccColor4B& color, GLfloat width, GLfloat height);
     /** creates a CCLayer with color. Width and height are the window size. */
-    static CCLayerColor * create(const ccColor4B& color);
+    static CCLayerColor* create(const ccColor4B& color);
 
     virtual bool init();
     /** initializes a CCLayer with color, width and height in Points */
@@ -312,13 +321,17 @@ public:
     /** change width and height in Points
     @since v0.8
     */
-    void changeWidthAndHeight(GLfloat w ,GLfloat h);
+    void changeWidthAndHeight(GLfloat w, GLfloat h);
 
     /** BlendFunction. Conforms to CCBlendProtocol protocol */
     CC_PROPERTY(ccBlendFunc, m_tBlendFunc, BlendFunc)
-   
-    virtual void setColor(const ccColor3B &color);
+
+        virtual void setColor(const ccColor3B& color);
     virtual void setOpacity(GLubyte opacity);
+
+    void addToVertices(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::CCPoint);
+    void setVertices(cocos2d::CCPoint, cocos2d::CCPoint, cocos2d::CCPoint);
+
 
 protected:
     virtual void updateColor();
@@ -349,7 +362,7 @@ If ' compressedInterpolation' is enabled (default mode) you will see both the st
 class CC_DLL CCLayerGradient : public CCLayerColor
 {
 public:
-
+    CCLayerGradient() {}
     /** Creates a full-screen CCLayer with a gradient between start and end. */
     static CCLayerGradient* create(const ccColor4B& start, const ccColor4B& end);
 
@@ -357,21 +370,26 @@ public:
     static CCLayerGradient* create(const ccColor4B& start, const ccColor4B& end, const CCPoint& v);
 
     virtual bool init();
-    /** Initializes the CCLayer with a gradient between start and end. 
+    /** Initializes the CCLayer with a gradient between start and end.
      *  @js init
      */
     virtual bool initWithColor(const ccColor4B& start, const ccColor4B& end);
 
-    /** Initializes the CCLayer with a gradient between start and end in the direction of v. 
+    /** Initializes the CCLayer with a gradient between start and end in the direction of v.
      *  @js init
      */
     virtual bool initWithColor(const ccColor4B& start, const ccColor4B& end, const CCPoint& v);
 
     CC_PROPERTY_PASS_BY_REF(ccColor3B, m_startColor, StartColor)
-    CC_PROPERTY_PASS_BY_REF(ccColor3B, m_endColor, EndColor)
-    CC_PROPERTY(GLubyte, m_cStartOpacity, StartOpacity)
-    CC_PROPERTY(GLubyte, m_cEndOpacity, EndOpacity)
-    CC_PROPERTY_PASS_BY_REF(CCPoint, m_AlongVector, Vector)
+        CC_PROPERTY_PASS_BY_REF(ccColor3B, m_endColor, EndColor)
+        CC_PROPERTY(GLubyte, m_cStartOpacity, StartOpacity)
+        CC_PROPERTY(GLubyte, m_cEndOpacity, EndOpacity)
+        CC_PROPERTY_PASS_BY_REF(CCPoint, m_AlongVector, Vector)
+
+        bool getShouldPremultiply() const;
+    void setShouldPremultiply(bool);
+    void setValues(cocos2d::_ccColor3B const&, unsigned char, cocos2d::_ccColor3B const&, unsigned char, cocos2d::CCPoint const&);
+
 
     /** Whether or not the interpolation will be compressed in order to display all the colors of the gradient both in canonical and non canonical vectors
     Default: YES
@@ -381,7 +399,7 @@ protected:
 public:
     virtual void setCompressedInterpolation(bool bCompressedInterpolation);
     virtual bool isCompressedInterpolation();
-    
+
     static CCLayerGradient* create();
 
 protected:

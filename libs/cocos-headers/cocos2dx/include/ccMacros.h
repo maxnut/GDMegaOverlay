@@ -272,7 +272,7 @@ extern unsigned int CC_DLL g_uNumberOfDraws;
 #define __STR_CAT___(str1, str2) str1##str2
 #define __STR_CAT__(str1, str2) __STR_CAT___(str1, str2)
 
-/** @def RT_ADD
+/** RT_ADD
 * RobTop added this function / field. It is proprietary,
 * and the modding library will not compile properly
 * if this function / field is not found in the
@@ -283,13 +283,13 @@ extern unsigned int CC_DLL g_uNumberOfDraws;
 */
 #define RT_ADD(...) __VA_ARGS__
 
-/** @def RT_REMOVE
+/** RT_REMOVE
 * RobTop removed this function / field. It is not
 * found in libcocos2d.dll, and can't be called / used.
 */
 #define RT_REMOVE(name)
 
-/** @def HJ_ADD
+/** HJ_ADD
  * This function / field might not actually exist in GD itself.
  * 
  * However, it has been added in these headers for ease-of-use
@@ -298,7 +298,7 @@ extern unsigned int CC_DLL g_uNumberOfDraws;
 */
 #define HJ_ADD(...) __VA_ARGS__
 
-/** @def PAD
+/** PAD
 * Add padding to a class / struct. For shifting classes /
 * structs to be aligned, if too lazy to fully reverse.
 * 
@@ -306,7 +306,7 @@ extern unsigned int CC_DLL g_uNumberOfDraws;
 */
 #define PAD(size) char __STR_CAT__(pad, __LINE__)[size] = {};
 
-/** @def STUB
+/** STUB
 * Stub class. Not complete: use with caution.
 */
 #define STUB(className)\
