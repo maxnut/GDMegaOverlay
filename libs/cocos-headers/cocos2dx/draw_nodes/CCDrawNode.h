@@ -42,7 +42,7 @@ NS_CC_BEGIN
  @since v2.1
  @lua NA
  */
-class CC_DLL CCDrawNode : public CCNode
+class CC_DLL CCDrawNode : public CCNodeRGBA
 {
 protected:
     GLuint      m_uVao;
