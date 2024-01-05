@@ -16,6 +16,9 @@ public:
 	float nodeXPos;
 	float nodeYPos;
 	float rotation;
+	float rotationRate;
+
+	float randomProperties[2268];
 
 	void apply(cocos2d::CCNode* player);
 	void fromPlayer(cocos2d::CCNode* player);

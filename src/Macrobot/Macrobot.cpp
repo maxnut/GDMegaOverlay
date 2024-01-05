@@ -63,20 +63,6 @@ bool __fastcall Macrobot::playerObjectReleaseButtonHook(void* self, void*, int b
 	return res;
 }
 
-void Macrobot::PlayerCheckpoint::fromPlayer(cocos2d::CCNode* player)
-{
-	// playerObject + 2280 isplatformer
-	// playerObject + 2160 xVelPlatformer
-	cocos2d::CCPoint position = MBO(cocos2d::CCPoint, player, 1068);
-	this->yVel = MBO(double, player, 1944);
-	this->rotation = player->getRotation();
-	this->xVel = MBO(double, player, 2160);
-	this->xPos = position.x;
-	this->yPos = position.y;
-	this->nodeXPos = player->getPositionX();
-	this->nodeYPos = player->getPositionY();
-}
-
 void* __fastcall Macrobot::checkpointObjectInitHook(void* self, void*)
 {
 	if (frame > 0 && playerObject1 && *((double*)Common::getBGL() + 1411) > 0)
@@ -91,8 +77,30 @@ void* __fastcall Macrobot::checkpointObjectInitHook(void* self, void*)
 	return checkpointObjectInit(self);
 }
 
+void Macrobot::PlayerCheckpoint::fromPlayer(cocos2d::CCNode* player)
+{
+	// playerObject + 2280 isplatformer
+	// playerObject + 2160 xVelPlatformer
+	cocos2d::CCPoint position = MBO(cocos2d::CCPoint, player, 1068);
+	this->yVel = MBO(double, player, 1944);
+	this->rotation = player->getRotation();
+	this->xVel = MBO(double, player, 2160);
+	this->xPos = position.x;
+	this->yPos = position.y;
+	this->nodeXPos = player->getPositionX();
+	this->nodeYPos = player->getPositionY();
+	this->rotationRate = MBO(float, player, 1496);
+
+	//dont ask
+	for (int i = 0; i < 2265; i++)
+		this->randomProperties[i] = MBO(float, player, 160 + i);
+}
+
 void Macrobot::PlayerCheckpoint::apply(cocos2d::CCNode* player)
 {
+	if(frame <= 0)
+		return;
+	
 	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 1944) = this->yVel;
 	player->setRotation(this->rotation);
 
@@ -104,6 +112,36 @@ void Macrobot::PlayerCheckpoint::apply(cocos2d::CCNode* player)
 
 	if (MBO(bool, player, 2280))
 		*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 2160) = this->xVel;
+
+	*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 1496) = this->rotationRate;
+
+	//🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥
+	//no but seriously this has no right of working so well
+	for (int i = 1410; i < 1600; i++)
+	{
+		if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+		{
+			*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+		}
+	}
+
+	for (int i = 1800; i < 2265; i++)
+	{
+		if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+		{
+			*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+		}
+	}
+
+	for (int i = 0; i < 1200; i++)
+	{
+		if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+		{
+			*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+		}
+	}
+
+	//1350 - 1410
 }
 
 void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, void* checkpoint)
@@ -151,9 +189,9 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 			{
 				Action& ac = actions[actionIndex];
 				if (ac.press)
-					playerObjectPushButtonHook(ac.player1 ? playerObject1 : playerObject2, 0, ac.key);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1b2880)(Common::getBGL(), true, ac.key, ac.player1);
 				else
-					playerObjectReleaseButtonHook(ac.player1 ? playerObject1 : playerObject2, 0, ac.key);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1b2880)(Common::getBGL(), false, ac.key, ac.player1);
 
 				actionIndex++;
 			} while (actionIndex < actions.size() && frame >= actions[actionIndex].frame);
@@ -221,7 +259,7 @@ int __fastcall Macrobot::playLayerResetLevelHook(void* self, void*)
 bool __fastcall Macrobot::playerObjectLoadFromCheckpointHook(void* self, void*, void* checkpoint)
 {
 	return playerObjectLoadFromCheckpoint(self, checkpoint);
-	// return false;
+	//return false;
 }
 
 void Macrobot::save(std::string file)
@@ -232,7 +270,6 @@ void Macrobot::save(std::string file)
 	std::ofstream f("GDMO\\macros\\" + file + ".macro", std::ios::binary);
 
 	size_t size = actions.size();
-	std::cout << size << std::endl;
 	f.write((const char*)&size, sizeof(size_t));
 	for (Action& ac : actions)
 		f.write((const char*)&ac, sizeof(Action));
@@ -253,7 +290,6 @@ void Macrobot::load(std::string file)
 	std::ifstream f("GDMO\\macros\\" + file + ".macro", std::ios::binary);
 	size_t size = 0;
 	f.read((char*)&size, sizeof(size_t));
-	std::cout << size << std::endl;
 	for (size_t i = 0; i < size; i++)
 	{
 		Action ac;
@@ -266,7 +302,6 @@ void Macrobot::load(std::string file)
 	{
 		Correction co;
 		f.read((char*)&co, sizeof(Correction));
-		std::cout << co.checkpoint.yPos << std::endl;
 		corrections.push_back(co);
 	}
 }

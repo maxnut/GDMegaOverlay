@@ -18,6 +18,7 @@
 #include "Hacks/StartposSwitcher.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Macrobot.h"
+#include "Hitbox/Hitbox.h"
 #include "Settings.h"
 
 void init()
@@ -281,6 +282,7 @@ DWORD WINAPI my_thread(void* hModule)
 		Speedhack::initHooks();
 		GUI::initHooks();
 		Labels::initHooks();
+		//Hitbox::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
