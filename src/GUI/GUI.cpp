@@ -70,8 +70,8 @@ bool __fastcall GUI::menuLayerInitHook(int* self, void*)
 		canToggle = true;
 	}
 	init = true;
-	
-	menuLayerInit(self);
+
+	return menuLayerInit(self);
 }
 
 void GUI::draw()

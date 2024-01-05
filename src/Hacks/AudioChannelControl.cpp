@@ -3,9 +3,9 @@
 #include "fmod_dsp_effects.h"
 #include <fmod.hpp>
 
-void* __stdcall AudioChannelControl::setVolumeHook(void* channel, float volume)
+void* __stdcall AudioChannelControl::setVolumeHook(FMOD::Channel* channel, float volume)
 {
-	AudioChannelControl::audioChannel = channel;
+	audioChannel = channel;
 
 	if (speed != 1.f)
 		setFrequency(channel, speed);
@@ -33,7 +33,7 @@ void AudioChannelControl::setPitch(float pitch)
 
 	if (pitchShifter)
 	{
-		((FMOD::Channel*)audioChannel)->removeDSP(pitchShifter);
+		audioChannel->removeDSP(pitchShifter);
 		pitchShifter->release();
 		pitchShifter = nullptr;
 	}
@@ -44,16 +44,16 @@ void AudioChannelControl::setPitch(float pitch)
 	system->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pitchShifter);
 
 	pitchShifter->setParameterFloat(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
-
 	pitchShifter->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, pitch);
 
-	((FMOD::Channel*)audioChannel)->addDSP(0, pitchShifter);
+	audioChannel->addDSP(0, pitchShifter);
 }
 
 int __fastcall AudioChannelControl::playLayerResetLevelHook(void* self, void*)
 {
 	int value = playLayerResetLevel(self);
 	Common::onAudioPitchChange();
+
 	return value;
 }
 

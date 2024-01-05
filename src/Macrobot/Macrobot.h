@@ -8,7 +8,7 @@ namespace Macrobot
 
 class PlayerCheckpoint
 {
-  public:
+public:
 	double yVel;
 	double xVel;
 	float xPos;

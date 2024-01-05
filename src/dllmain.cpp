@@ -3,7 +3,6 @@
 #include <imgui.h>
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "ConstData.h"
-#include "GUI/GUI.h"
 #include "imgui_internal.h"
 #include "json.hpp"
 #include <MinHook.h>
@@ -11,6 +10,7 @@
 #include <fstream>
 
 #include "Common.h"
+#include "GUI/GUI.h"
 #include "Hacks/AudioChannelControl.h"
 #include "Hacks/Labels.h"
 #include "Hacks/ReplayLastCheckpoint.h"
@@ -23,9 +23,13 @@
 void init()
 {
 #ifdef DEV_CONSOLE
-	AllocConsole();
-	static std::ofstream conout("CONOUT$", std::ios::out);
-	std::cout.rdbuf(conout.rdbuf());
+	if (AllocConsole())
+	{
+		freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
+		SetConsoleTitleW(L"GDMegaOverlay");
+		SetConsoleCP(CP_UTF8);
+		SetConsoleOutputCP(CP_UTF8);
+	}
 #endif
 
 	if (!std::filesystem::exists("GDMO"))
@@ -188,7 +192,7 @@ void init()
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Settings::set<float>("menu/window/opacity", windowOpacity);
 
-		float windowColor[3];
+		float windowColor[3]{};
 		windowColor[0] = Settings::get<float>("menu/window/color/r", 1.f);
 		windowColor[1] = Settings::get<float>("menu/window/color/g", 0.f);
 		windowColor[2] = Settings::get<float>("menu/window/color/b", 0.f);

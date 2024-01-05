@@ -10,16 +10,16 @@ namespace Labels
 
 class Label
 {
-  public:
+public:
 	cocos2d::CCLabelBMFont* pointer = nullptr;
 	std::string settingName = "";
-    std::function<void(cocos2d::CCLabelBMFont*)> function;
+	std::function<void(cocos2d::CCLabelBMFont*)> function;
 
-    void process()
-    {
-        if (Settings::get<bool>("labels/" + settingName + "/enabled", false))
-            function(pointer);
-    }
+	void process()
+	{
+		if (Settings::get<bool>("labels/" + settingName + "/enabled", false))
+			function(pointer);
+	}
 };
 
 inline std::vector<Label> labels, tl, tr, bl, br;
