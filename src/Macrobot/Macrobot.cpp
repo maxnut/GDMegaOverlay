@@ -31,7 +31,7 @@ bool __fastcall Macrobot::playerObjectPushButtonHook(void* self, void*, int btn)
 	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
 		recordAction(btn, frame, true, self == playerObject1);
-		int correctionType = Settings::get<int>("macrobot/corrections", 0);
+		int correctionType = 0;//Settings::get<int>("macrobot/corrections", 0);
 		if (correctionType == 1)
 		{
 			Correction c;
@@ -50,7 +50,7 @@ bool __fastcall Macrobot::playerObjectReleaseButtonHook(void* self, void*, int b
 	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
 		recordAction(btn, frame, false, self == playerObject1);
-		int correctionType = Settings::get<int>("macrobot/corrections", 0);
+		int correctionType = 0;//Settings::get<int>("macrobot/corrections", 0);
 		if (correctionType == 1)
 		{
 			Correction c;
@@ -197,7 +197,7 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 			} while (actionIndex < actions.size() && frame >= actions[actionIndex].frame);
 		}
 
-		int correctionType = Settings::get<int>("macrobot/corrections", 0);
+		int correctionType = 0;//Settings::get<int>("macrobot/corrections", 0);
 
 		if (correctionType > 0 && playerMode == 0 && corrections.size() > 0 && correctionIndex < corrections.size() &&
 			frame >= corrections[correctionIndex].frame)
@@ -333,13 +333,13 @@ void Macrobot::drawWindow()
 		if (GUI::button("Load##macro"))
 			load(macroName);
 
-		int corrections = Settings::get<int>("macrobot/corrections", 0);
+		/* int corrections = Settings::get<int>("macrobot/corrections", 0);
 
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
-			Settings::set<int>("macrobot/corrections", corrections);
+			Settings::set<int>("macrobot/corrections", corrections); */
 
-		GUI::marker("[INFO]", "The bot is very likely to break without corrections. They're recommended for the time "
-							  "being, until it becomes better");
+		/* GUI::marker("[INFO]", "The bot is very likely to break without corrections. They're recommended for the time "
+							  "being, until it becomes better"); */
 	}
 }
 
