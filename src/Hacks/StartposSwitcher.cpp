@@ -40,13 +40,13 @@ void StartposSwitcher::change(bool right)
 	if(!startPosObject && index != -1)
 		return;
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x195FC0)(Common::getBGL(), startPosObject);
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x198E50)(Common::getBGL(), startPosObject);
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E42B0)(Common::getBGL());
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
 
 	// apparently you have to start music manually since gd only does it if you dont have a startpos???? (see
 	// playlayer_resetlevel line 272 in ida)
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E5570)(Common::getBGL());
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E9470)(Common::getBGL());
 }
 
 int __fastcall StartposSwitcher::playLayerQuitHook(int* self, void*)

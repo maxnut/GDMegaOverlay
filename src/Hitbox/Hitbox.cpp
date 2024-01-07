@@ -20,7 +20,7 @@ void __fastcall Hitbox::playLayerPostUpdateHook(cocos2d::CCLayer* self, void*, f
 		if (obj->getParent())
 		{
 			auto rect =
-				reinterpret_cast<cocos2d::CCRect*(__thiscall*)(cocos2d::CCNode*)>(utils::gd_base + 0x138430)(obj);
+				reinterpret_cast<cocos2d::CCRect*(__thiscall*)(cocos2d::CCNode*)>(utils::gd_base + 0x1397C0)(obj);
 
 			HitboxNode::getInstance()->drawRectangleHitbox(*rect, {255, 0, 0, 255});
 		}

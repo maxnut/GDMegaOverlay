@@ -189,9 +189,9 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 			{
 				Action& ac = actions[actionIndex];
 				if (ac.press)
-					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1b2880)(Common::getBGL(), true, ac.key, ac.player1);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B59A0)(Common::getBGL(), true, ac.key, ac.player1);
 				else
-					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1b2880)(Common::getBGL(), false, ac.key, ac.player1);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B59A0)(Common::getBGL(), false, ac.key, ac.player1);
 
 				actionIndex++;
 			} while (actionIndex < actions.size() && frame >= actions[actionIndex].frame);
@@ -316,7 +316,7 @@ void Macrobot::drawWindow()
 		{
 			Common::calculateFramerate();
 			if (Common::getBGL())
-				reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E42B0)(Common::getBGL());
+				reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
 		}
 		if (ImGui::RadioButton("Play", &Macrobot::playerMode, 0))
 		{

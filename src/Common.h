@@ -11,8 +11,8 @@ namespace cocos2d
 
 namespace Common
 {
-    inline void* gameManager = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x11f720)();
-    inline void* FMODAudioEngine = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x32b80)();
+    inline void* gameManager = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x120860)();
+    inline void* FMODAudioEngine = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x32BC0)();
 
     cocos2d::CCLayer* getBGL();
 
