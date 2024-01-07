@@ -355,12 +355,12 @@ void Macrobot::initHooks()
 				  reinterpret_cast<void**>(&playerObjectLoadFromCheckpoint));
 
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x3BEF0), GJBaseGameLayerUpdateHook,
-				  reinterpret_cast<void**>(&GJBaseGameLayerUpdate));
+				  reinterpret_cast<void**>(&GJBaseGameLayerUpdate)); 
 
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E8200), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E28D0), playLayerLoadFromCheckpointHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E66C0), playLayerLoadFromCheckpointHook,
 				  reinterpret_cast<void**>(&playLayerLoadFromCheckpoint));
 
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E66C0), checkpointObjectInitHook,
