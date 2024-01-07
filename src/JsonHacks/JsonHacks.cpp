@@ -26,7 +26,8 @@ void JsonHacks::load()
 			if (!mod.contains("toggle"))
 				mod["toggle"] = false;
 
-			toggleHack(mods, i, false);
+			if(mod["toggle"].get<bool>())
+				toggleHack( mods, i, false);
 		}
 	};
 

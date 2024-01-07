@@ -38,7 +38,7 @@ void init()
 		std::filesystem::create_directory("GDMO\\mod");
 
 	Settings::load();
-	//JsonHacks::load();
+	JsonHacks::load();
 	GUI::init();
 
 	GUI::setLateInit([] {
