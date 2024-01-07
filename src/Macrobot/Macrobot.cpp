@@ -363,6 +363,6 @@ void Macrobot::initHooks()
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E66C0), playLayerLoadFromCheckpointHook,
 				  reinterpret_cast<void**>(&playLayerLoadFromCheckpoint));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2d9bc0), checkpointObjectInitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D9BC0), checkpointObjectInitHook,
 				  reinterpret_cast<void**>(&checkpointObjectInit));
 }
