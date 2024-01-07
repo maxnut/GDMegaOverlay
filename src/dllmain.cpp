@@ -18,7 +18,7 @@
 #include "Hacks/StartposSwitcher.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Macrobot.h"
-#include "Hitbox/Hitbox.h"
+// #include "Hitbox/Hitbox.h"
 #include "Settings.h"
 
 void init()
@@ -274,14 +274,14 @@ DWORD WINAPI my_thread(void* hModule)
 	{
 		ImGuiHook::setupHooks(
 			[](void* target, void* hook, void** trampoline) { MH_CreateHook(target, hook, trampoline); });
-		Macrobot::initHooks();
-		StartposSwitcher::initHooks();
-		Common::initHooks();
-		ReplayLastCheckpoint::initHooks();
-		AudioChannelControl::initHooks();
-		Speedhack::initHooks();
-		GUI::initHooks();
-		Labels::initHooks();
+		// Macrobot::initHooks();
+		// StartposSwitcher::initHooks();
+		// Common::initHooks();
+		// ReplayLastCheckpoint::initHooks();
+		// AudioChannelControl::initHooks();
+		// Speedhack::initHooks();
+		// GUI::initHooks();
+		// Labels::initHooks();
 		//Hitbox::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);

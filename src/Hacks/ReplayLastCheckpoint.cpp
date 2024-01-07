@@ -37,12 +37,12 @@ int __fastcall ReplayLastCheckpoint::playLayerResetLevelHook(void* self, void*)
 
 void ReplayLastCheckpoint::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E4210), playLayerResetLevelFromStartHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E8160), playLayerResetLevelFromStartHook,
 				  reinterpret_cast<void**>(&playLayerResetLevelFromStart));
 
-    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2d7f30), playLayerLevelCompleteHook,
+    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DBC80), playLayerLevelCompleteHook,
 				  reinterpret_cast<void**>(&playLayerLevelComplete));
 
-    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E42B0), playLayerResetLevelHook,
+    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E8200), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
 }

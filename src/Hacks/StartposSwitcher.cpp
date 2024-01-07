@@ -9,10 +9,10 @@
 
 void StartposSwitcher::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2e5650), playLayerQuitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E9550), playLayerQuitHook,
 				  reinterpret_cast<void**>(&playLayerQuit));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x3A0C50), createHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x3A4700), createHook,
 				  reinterpret_cast<void**>(&create));
 }
 

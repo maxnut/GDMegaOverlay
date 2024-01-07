@@ -174,9 +174,9 @@ const char* __fastcall Common::splashStringHook()
 
 void Common::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x272A20), splashStringHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0xEA2E0), splashStringHook,
 				  reinterpret_cast<void**>(&splashString));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x276700), menuLayerInitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x279DF0), menuLayerInitHook,
 				  reinterpret_cast<void**>(&menuLayerInit));
 }

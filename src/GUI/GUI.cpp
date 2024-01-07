@@ -51,7 +51,7 @@ void GUI::init()
 
 void GUI::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x276700), menuLayerInitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x279DF0), menuLayerInitHook,
 				  reinterpret_cast<void**>(&menuLayerInit));
 }
 

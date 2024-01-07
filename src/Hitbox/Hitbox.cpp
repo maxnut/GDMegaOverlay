@@ -40,9 +40,9 @@ bool __fastcall Hitbox::playLayerInitHook(cocos2d::CCLayer* self, void*, void* l
 
 void Hitbox::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E1560), playLayerPostUpdateHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E5310), playLayerPostUpdateHook,
 				  reinterpret_cast<void**>(&playLayerPostUpdate));
 
-    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2d69a0), playLayerInitHook,
+    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DA660), playLayerInitHook,
 				  reinterpret_cast<void**>(&playLayerInit));
 }
