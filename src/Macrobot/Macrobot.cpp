@@ -65,10 +65,10 @@ bool __fastcall Macrobot::playerObjectReleaseButtonHook(void* self, void*, int b
 
 void* __fastcall Macrobot::checkpointObjectInitHook(void* self, void*)
 {
-	if (frame > 0 && playerObject1 && *((double*)Common::getBGL() + 1411) > 0)
+	if (frame > 0 && playerObject1 && *((double*)Common::getBGL() + 1412) > 0)
 	{
 		CheckpointData data;
-		data.time = *((double*)Common::getBGL() + 1411);
+		data.time = *((double*)Common::getBGL() + 1412);
 		data.p1.fromPlayer(playerObject1);
 		data.p2.fromPlayer(playerObject2);
 
@@ -159,7 +159,7 @@ void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, voi
 
 		playLayerLoadFromCheckpoint(self, checkpoint);
 
-		*((double*)Common::getBGL() + 1411) = checkpointData.time;
+		*((double*)Common::getBGL() + 1412) = checkpointData.time;
 		frame = checkpointData.time;
 
 		checkpointData.p1.apply(playerObject1);
@@ -179,7 +179,7 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 {
 	if (playerMode != -1 && playerObject1)
 	{
-		double currentTime = *((double*)Common::getBGL() + 1411);
+		double currentTime = *((double*)Common::getBGL() + 1412);
 		frame = currentTime;
 
 		if (playerMode == 0 && actions.size() > 0 && actionIndex < actions.size() &&
@@ -220,8 +220,8 @@ int __fastcall Macrobot::playLayerResetLevelHook(void* self, void*)
 	if (playerMode != -1)
 	{
 		framerate = MBO(float, Common::gameManager, 900);
-		playerObject1 = MBO(cocos2d::CCNode*, self, 2160);
-		playerObject2 = MBO(cocos2d::CCNode*, self, 2164);
+		playerObject1 = MBO(cocos2d::CCNode*, self, 2168);
+		playerObject2 = MBO(cocos2d::CCNode*, self, 2172);
 		actionIndex = 0;
 		correctionIndex = 0;
 		frame = 9999999999;
@@ -230,7 +230,7 @@ int __fastcall Macrobot::playLayerResetLevelHook(void* self, void*)
 
 		if (frame == 9999999999)
 		{
-			*((double*)Common::getBGL() + 1411) = 0.0;
+			*((double*)Common::getBGL() + 1412) = 0.0;
 			frame = 0;
 			if (playerMode == 1)
 			{
@@ -354,8 +354,8 @@ void Macrobot::initHooks()
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D8060), playerObjectLoadFromCheckpointHook,
 				  reinterpret_cast<void**>(&playerObjectLoadFromCheckpoint));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x3BEF0), GJBaseGameLayerUpdateHook,
-				  reinterpret_cast<void**>(&GJBaseGameLayerUpdate)); 
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x1BA700), GJBaseGameLayerUpdateHook,
+				  reinterpret_cast<void**>(&GJBaseGameLayerUpdate));
 
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E8200), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
@@ -363,6 +363,6 @@ void Macrobot::initHooks()
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E66C0), playLayerLoadFromCheckpointHook,
 				  reinterpret_cast<void**>(&playLayerLoadFromCheckpoint));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E66C0), checkpointObjectInitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2d9bc0), checkpointObjectInitHook,
 				  reinterpret_cast<void**>(&checkpointObjectInit));
 }

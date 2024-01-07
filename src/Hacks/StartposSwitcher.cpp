@@ -34,13 +34,13 @@ void StartposSwitcher::change(bool right)
 	int* startPosObject = index == -1 ? nullptr : startposObjects[index];
 
 	// delete the startposcheckpoint (see playlayer_resetlevel line 148 in ida)
-	int* startPosCheckpoint = (int*)Common::getBGL() + 2941;
+	int* startPosCheckpoint = (int*)Common::getBGL() + 2949;
 	*startPosCheckpoint = 0;
 
 	if(!startPosObject && index != -1)
 		return;
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x198E50)(Common::getBGL(), startPosObject);
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x198E10)(Common::getBGL(), startPosObject);
 
 	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
 
