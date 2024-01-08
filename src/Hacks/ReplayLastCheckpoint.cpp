@@ -15,7 +15,7 @@ void __fastcall ReplayLastCheckpoint::playLayerResetLevelFromStartHook(void* sel
 	if (replay && levelCompleted)
 	{
 		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
-        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Common::getBGL()) + 10868) = true;
+        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Common::getBGL()) + 10876) = true;
         levelCompleted = false;
 		return;
 	}
