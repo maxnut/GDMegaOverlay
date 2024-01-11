@@ -4,6 +4,8 @@
 [![Discord](https://img.shields.io/badge/Discord-white?style=flat&logo=discord)](https://discord.gg/nbDjEg7SSU)
 </div>
 
+# Not updated to 2.203 yet
+
 ## How to use
 
 > **Warning**
