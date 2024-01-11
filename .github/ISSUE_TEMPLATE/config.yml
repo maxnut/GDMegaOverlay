@@ -1,0 +1,10 @@
+blank_issue_enabled: false
+
+contact_links:
+  - name: Feature requests
+    url: https://discord.gg/nbDjEg7SSU
+    about: Please submit feature proposals in the discord server, not here.
+
+  - name: Bug report
+    url: https://discord.gg/nbDjEg7SSU
+    about: Please submit bug reports in the discord server, not here.
