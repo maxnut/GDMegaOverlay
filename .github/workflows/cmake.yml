@@ -1,8 +1,8 @@
-name: CMake
+name: "2.2"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "2.2" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
