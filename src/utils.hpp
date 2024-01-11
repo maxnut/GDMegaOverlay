@@ -2,6 +2,7 @@
 #include <MinHook.h>
 #include <cocos2d.h>
 #include <random>
+#include <fstream>
 
 namespace utils
 {
@@ -26,14 +27,34 @@ namespace utils
 		return bytes;
 	}
 
-	inline bool writeBytes(std::uintptr_t const address, std::vector<uint8_t> const& bytes)
+	inline bool writeBytes(std::uintptr_t const address, std::vector<uint8_t> const& bytes, bool vp)
 	{
-		return WriteProcessMemory(
+		DWORD oldprot;
+
+		if (vp)
+			VirtualProtectEx(
+				GetCurrentProcess(),
+				reinterpret_cast<LPVOID>(address),
+				bytes.size(),
+				PAGE_EXECUTE_READWRITE, &oldprot
+			);
+
+		auto ret = WriteProcessMemory(
 			GetCurrentProcess(),
 			reinterpret_cast<LPVOID>(address),
 			bytes.data(), bytes.size(),
 			nullptr
 		);
+
+		if (vp)
+			VirtualProtectEx(
+				GetCurrentProcess(),
+				reinterpret_cast<LPVOID>(address),
+				bytes.size(),
+				oldprot, &oldprot
+			);
+
+		return ret;
 	}
 
 	inline std::vector<std::string> split(std::string s, std::string delimiter)

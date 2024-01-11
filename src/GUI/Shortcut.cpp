@@ -84,9 +84,9 @@ void GUI::Shortcut::renderWindow()
 	}
 
 	if (GUI::button("Toggle Practice") && Common::getBGL())
-		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool)>(utils::gd_base + 0x2E8E00)(
+		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool)>(utils::gd_base + 0x2EA740)(
 			Common::getBGL(), !MBO(bool, Common::getBGL(), 10876));
 
 	if (GUI::button("Reset Level") && Common::getBGL())
-		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
+		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E9B40)(Common::getBGL());
 }

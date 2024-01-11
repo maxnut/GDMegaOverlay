@@ -26,8 +26,7 @@ void JsonHacks::load()
 			if (!mod.contains("toggle"))
 				mod["toggle"] = false;
 
-			if(mod["toggle"].get<bool>())
-				toggleHack( mods, i, false);
+			toggleHack(mods, i, false);
 		}
 	};
 
@@ -56,13 +55,13 @@ void JsonHacks::toggleHack(nlohmann::json& mods, std::size_t index, bool toggle)
 	for (std::size_t i = 0; i < mod["opcodes"].size(); i++)
 	{
 		unsigned long address = std::stoul(mod["opcodes"][i]["address"].get<std::string>(), nullptr, 16);
-
 		std::string opcode = mod["opcodes"][i][mod["toggle"].get<bool>() ? "on" : "off"].get<std::string>();
+		bool vp = mod["opcodes"][i].contains("vp") ? mod["opcodes"][i]["vp"].get<bool>() : false;
 
 		if (mod["opcodes"][i].contains("lib") && mod["opcodes"][i]["lib"].get<std::string>() == "libcocos2d.dll")
-			utils::writeBytes(utils::cc_base + address, utils::hexToBytes(opcode));
+			utils::writeBytes(utils::cc_base + address, utils::hexToBytes(opcode), vp);
 		else
-			utils::writeBytes(utils::gd_base + address, utils::hexToBytes(opcode));
+			utils::writeBytes(utils::gd_base + address, utils::hexToBytes(opcode), vp);
 	}
 }
 

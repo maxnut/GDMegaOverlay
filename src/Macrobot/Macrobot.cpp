@@ -189,9 +189,9 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 			{
 				Action& ac = actions[actionIndex];
 				if (ac.press)
-					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B59A0)(Common::getBGL(), true, ac.key, ac.player1);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B68C0)(Common::getBGL(), true, ac.key, ac.player1);
 				else
-					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B59A0)(Common::getBGL(), false, ac.key, ac.player1);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B68C0)(Common::getBGL(), false, ac.key, ac.player1);
 
 				actionIndex++;
 			} while (actionIndex < actions.size() && frame >= actions[actionIndex].frame);
@@ -316,7 +316,7 @@ void Macrobot::drawWindow()
 		{
 			Common::calculateFramerate();
 			if (Common::getBGL())
-				reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
+				reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E9B40)(Common::getBGL());
 		}
 		if (ImGui::RadioButton("Play", &Macrobot::playerMode, 0))
 		{
@@ -345,24 +345,24 @@ void Macrobot::drawWindow()
 
 void Macrobot::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D0060), playerObjectPushButtonHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D1870), playerObjectPushButtonHook,
 				  reinterpret_cast<void**>(&playerObjectPushButton));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D02A0), playerObjectReleaseButtonHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D1AB0), playerObjectReleaseButtonHook,
 				  reinterpret_cast<void**>(&playerObjectReleaseButton));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D8060), playerObjectLoadFromCheckpointHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D98E0), playerObjectLoadFromCheckpointHook,
 				  reinterpret_cast<void**>(&playerObjectLoadFromCheckpoint));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x1BA700), GJBaseGameLayerUpdateHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x1BB620), GJBaseGameLayerUpdateHook,
 				  reinterpret_cast<void**>(&GJBaseGameLayerUpdate));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E8200), playLayerResetLevelHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E9B40), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E66C0), playLayerLoadFromCheckpointHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D98E0), playLayerLoadFromCheckpointHook,
 				  reinterpret_cast<void**>(&playLayerLoadFromCheckpoint));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D9BC0), checkpointObjectInitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DB480), checkpointObjectInitHook,
 				  reinterpret_cast<void**>(&checkpointObjectInit));
 }

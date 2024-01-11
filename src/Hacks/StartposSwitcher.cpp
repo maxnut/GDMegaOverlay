@@ -9,10 +9,10 @@
 
 void StartposSwitcher::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E9550), playLayerQuitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EAE90), playLayerQuitHook,
 				  reinterpret_cast<void**>(&playLayerQuit));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x3A4700), createHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x3A7160), createHook,
 				  reinterpret_cast<void**>(&create));
 }
 
@@ -40,13 +40,13 @@ void StartposSwitcher::change(bool right)
 	if(!startPosObject && index != -1)
 		return;
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x198E10)(Common::getBGL(), startPosObject);
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, int*)>(utils::gd_base + 0x199DA0)(Common::getBGL(), startPosObject);
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E8200)(Common::getBGL());
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E9B40)(Common::getBGL());
 
 	// apparently you have to start music manually since gd only does it if you dont have a startpos???? (see
 	// playlayer_resetlevel line 272 in ida)
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E9470)(Common::getBGL());
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2EADB0)(Common::getBGL());
 }
 
 int __fastcall StartposSwitcher::playLayerQuitHook(int* self, void*)
