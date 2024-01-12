@@ -1,10 +1,10 @@
 ---
-name: Code Issue
-about: Give an issue about the menu's code
+name: Code Review
+about: Give an issue about the menu's source code
 title: ''
 labels: ''
 assignees: ''
 
 ---
 
-**Do not send an issue about bugs in the menu itself. The place to submit bugs is the discord server**
+**Note: It's preferred if you post your code review in the Merge request (if there is one) instead of here if possible.**
