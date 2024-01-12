@@ -14,7 +14,7 @@ void __fastcall ReplayLastCheckpoint::playLayerResetLevelFromStartHook(void* sel
 
 	if (replay && levelCompleted)
 	{
-		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2E9B40)(Common::getBGL());
+		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(utils::gd_base + 0x2EA130)(Common::getBGL());
         *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(Common::getBGL()) + 10876) = true;
         levelCompleted = false;
 		return;
@@ -37,12 +37,12 @@ int __fastcall ReplayLastCheckpoint::playLayerResetLevelHook(void* self, void*)
 
 void ReplayLastCheckpoint::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E9AA0), playLayerResetLevelFromStartHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EA090), playLayerResetLevelFromStartHook,
 				  reinterpret_cast<void**>(&playLayerResetLevelFromStart));
 
-    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DD590), playLayerLevelCompleteHook,
+    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DDB60), playLayerLevelCompleteHook,
 				  reinterpret_cast<void**>(&playLayerLevelComplete));
 
-    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E9B40), playLayerResetLevelHook,
+    MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EA130), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
 }

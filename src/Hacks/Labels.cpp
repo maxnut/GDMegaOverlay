@@ -257,22 +257,22 @@ void Labels::calculatePositions()
 
 void Labels::initHooks()
 {
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DBF30), playLayerInitHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DC4A0), playLayerInitHook,
 				  reinterpret_cast<void**>(&playLayerInit));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E6C30), playLayerPostUpdateHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E7220), playLayerPostUpdateHook,
 				  reinterpret_cast<void**>(&playLayerPostUpdate));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D1870), playerObjectPushButtonHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D1D30), playerObjectPushButtonHook,
 				  reinterpret_cast<void**>(&playerObjectPushButton));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D1AB0), playerObjectReleaseButtonHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2D1F70), playerObjectReleaseButtonHook,
 				  reinterpret_cast<void**>(&playerObjectReleaseButton));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E9B40), playLayerResetLevelHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EA130), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E6160), playLayerDestroyPlayerHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E6730), playLayerDestroyPlayerHook,
 				  reinterpret_cast<void**>(&playLayerDestroyPlayer));
 }
 

@@ -66,7 +66,7 @@ void AudioChannelControl::initHooks()
 
 	MH_CreateHook(reinterpret_cast<void*>(setVolumeAddress), setVolumeHook, reinterpret_cast<void**>(&setVolume));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2E8200), playLayerResetLevelHook,
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EA130), playLayerResetLevelHook,
 				  reinterpret_cast<void**>(&playLayerResetLevel));
 
 	speed = 1.f;
