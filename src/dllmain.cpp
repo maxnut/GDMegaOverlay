@@ -18,6 +18,8 @@
 #include "Hacks/StartposSwitcher.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Macrobot.h"
+#include "Macrobot/record.hpp"
+#include "Macrobot/Clickpacks.h"
 #include "Settings.h"
 
 void init()
@@ -36,6 +38,10 @@ void init()
 		std::filesystem::create_directory("GDMO");
 	if (!std::filesystem::exists("GDMO\\mod"))
 		std::filesystem::create_directory("GDMO\\mod");
+	if (!std::filesystem::exists("GDMO\\renders"))
+		std::filesystem::create_directory("GDMO\\renders");
+	if (!std::filesystem::exists("GDMO\\clickpacks"))
+		std::filesystem::create_directory("GDMO\\clickpacks");
 
 	Settings::load();
 	JsonHacks::load();
@@ -47,6 +53,7 @@ void init()
 		Common::onAudioSpeedChange();
 		Common::onAudioPitchChange();
 		Common::loadIcons();
+		Clickpacks::init();
 	});
 
 	GUI::Window generalWindow("General", [] {
@@ -132,23 +139,15 @@ void init()
 			Common::setPriority();
 		}
 	});
-	generalWindow.minSize = {200, 120};
-	generalWindow.maxSize = {200, 2000};
 	GUI::addWindow(generalWindow);
 
 	GUI::Window bypassWindow("Bypass", [] { JsonHacks::drawFromJson(JsonHacks::bypass); });
-	bypassWindow.minSize = {200, 120};
-	bypassWindow.maxSize = {200, 2000};
 	GUI::addWindow(bypassWindow);
 
 	GUI::Window creatorWindow("Creator", [] { JsonHacks::drawFromJson(JsonHacks::creator); });
-	creatorWindow.minSize = {200, 120};
-	creatorWindow.maxSize = {200, 2000};
 	GUI::addWindow(creatorWindow);
 
 	GUI::Window globalWindow("Global", [] { JsonHacks::drawFromJson(JsonHacks::global); });
-	globalWindow.minSize = {200, 120};
-	globalWindow.maxSize = {200, 2000};
 	GUI::addWindow(globalWindow);
 
 	GUI::Window levelWindow("Level", [] {
@@ -170,8 +169,6 @@ void init()
 
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
-	levelWindow.minSize = {200, 120};
-	levelWindow.maxSize = {200, 2000};
 	GUI::addWindow(levelWindow);
 
 	GUI::Window menuSettings("Menu Settings", [] {
@@ -207,41 +204,30 @@ void init()
 			ImGui::GetStyle().Colors[ImGuiCol_TitleBgCollapsed] = {windowColor[0], windowColor[1], windowColor[2], 1.f};
 		}
 	});
-	menuSettings.minSize = {200, 120};
-	menuSettings.maxSize = {200, 2000};
 	GUI::addWindow(menuSettings);
 
 	GUI::Window playerWindow("Player", [] { JsonHacks::drawFromJson(JsonHacks::player); });
-	playerWindow.minSize = {200, 120};
-	playerWindow.maxSize = {200, 2000};
 	GUI::addWindow(playerWindow);
 
 	GUI::Window variablesWindow("Variables", [] { JsonHacks::drawFromJson(JsonHacks::variables); });
-	variablesWindow.minSize = {200, 120};
-	variablesWindow.maxSize = {200, 2000};
 	// GUI::addWindow(variablesWindow);
 
 	GUI::Window macrobot("Macrobot", Macrobot::drawWindow);
-	macrobot.minSize = {200, 120};
-	macrobot.maxSize = {200, 2000};
 	GUI::addWindow(macrobot);
 
 	GUI::Window shortcuts("Shortcuts", GUI::Shortcut::renderWindow);
-	shortcuts.minSize = {200, 120};
-	shortcuts.maxSize = {200, 2000};
 	GUI::addWindow(shortcuts);
 
 	GUI::Window labels("Labels", Labels::renderWindow);
-	labels.minSize = {200, 120};
-	labels.maxSize = {200, 2000};
 	GUI::addWindow(labels);
+
+	GUI::Window recorder("Recorder", Record::renderWindow);
+	GUI::addWindow(recorder);
 
 	GUI::Window credits("Credits", [] {
 		GUI::textURL("SpaghettDev", "https://github.com/SpaghettDev");
 		GUI::textURL("TpdEA", "https://github.com/TpdeaX");
 	});
-	credits.minSize = {200, 120};
-	credits.maxSize = {200, 2000};
 	GUI::addWindow(credits);
 }
 
@@ -273,6 +259,7 @@ DWORD WINAPI my_thread(void* hModule)
 	{
 		ImGuiHook::setupHooks(
 			[](void* target, void* hook, void** trampoline) { MH_CreateHook(target, hook, trampoline); });
+
 		Macrobot::initHooks();
 		StartposSwitcher::initHooks();
 		Common::initHooks();
@@ -281,6 +268,7 @@ DWORD WINAPI my_thread(void* hModule)
 		Speedhack::initHooks();
 		GUI::initHooks();
 		Labels::initHooks();
+		Record::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}

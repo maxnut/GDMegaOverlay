@@ -20,8 +20,8 @@ public:
 
 	float randomProperties[2268];
 
-	void apply(cocos2d::CCNode* player);
-	void fromPlayer(cocos2d::CCNode* player);
+	void apply(cocos2d::CCNode* player, bool fullRestore);
+	void fromPlayer(cocos2d::CCNode* player, bool fullCapture);
 };
 
 struct CheckpointData

@@ -32,6 +32,8 @@ target_include_directories(${PROJECT} PRIVATE
   libs/cocos-headers/extensions
   libs/imgui-hook
   libs/imgui-hook/imgui
+  libs/portaudio/include
+    libs/libsndfile/include
 )
 
 add_subdirectory(libs/minhook)
@@ -44,6 +46,8 @@ target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d fmod)
 target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib
   ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib
+  ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
+  ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
 )
 
 # Enable dev console if building in RelWithDebInfo 

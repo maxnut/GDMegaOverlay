@@ -1,10 +1,11 @@
 #include "Widgets.h"
+#include "../Common.h"
 #include "../ConstData.h"
 #include "GUI.h"
 #include "Shortcut.h"
-#include "../Common.h"
 
 #include <imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 
 inline ImVec2 operator+(const ImVec2& a, const ImVec2& b)
 {
@@ -204,6 +205,42 @@ bool GUI::inputInt(std::string name, int* value, int min, int max)
 		*value = min;
 	if (*value > max)
 		*value = max;
+
+	return result;
+}
+
+bool GUI::inputText(std::string name, std::string* value)
+{
+	bool result = false;
+	if (GUI::shouldRender())
+	{
+		ImGui::PushItemWidth(80);
+		result = ImGui::InputText(name.c_str(), value);
+		ImGui::PopItemWidth();
+	}
+
+	return result;
+}
+
+bool GUI::inputInt2(std::string name, int* value, int min1, int max1, int min2, int max2)
+{
+	bool result = false;
+	if (GUI::shouldRender())
+	{
+		ImGui::PushItemWidth(90);
+		result = ImGui::InputInt2(name.c_str(), value, 0);
+		ImGui::PopItemWidth();
+	}
+
+	if (value[0] < min1)
+		value[0] = min1;
+	if (value[0] > max1)
+		value[0] = max1;
+
+	if (value[1] < min2)
+		value[1] = min2;
+	if (value[1] > max2)
+		value[1] = max2;
 
 	return result;
 }

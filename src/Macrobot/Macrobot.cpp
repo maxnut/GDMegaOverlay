@@ -3,8 +3,10 @@
 #include "../Common.h"
 #include "../ConstData.h"
 #include "../GUI/GUI.h"
+#include "../JsonHacks/JsonHacks.h"
 #include "../Settings.h"
 #include "../utils.hpp"
+#include "AudioRecord.h"
 
 #include <MinHook.h>
 #include <fstream>
@@ -31,15 +33,12 @@ bool __fastcall Macrobot::playerObjectPushButtonHook(void* self, void*, int btn)
 	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
 		recordAction(btn, frame, true, self == playerObject1);
-		int correctionType = 0;//Settings::get<int>("macrobot/corrections", 0);
-		if (correctionType == 1)
-		{
-			Correction c;
-			c.frame = frame;
-			c.player1 = self == playerObject1;
-			c.checkpoint.fromPlayer((cocos2d::CCNode*)self);
-			corrections.push_back(c);
-		}
+
+		Correction c;
+		c.frame = frame;
+		c.player1 = self == playerObject1;
+		c.checkpoint.fromPlayer((cocos2d::CCNode*)self, false);
+		corrections.push_back(c);
 	}
 	return res;
 }
@@ -50,15 +49,12 @@ bool __fastcall Macrobot::playerObjectReleaseButtonHook(void* self, void*, int b
 	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
 		recordAction(btn, frame, false, self == playerObject1);
-		int correctionType = 0;//Settings::get<int>("macrobot/corrections", 0);
-		if (correctionType == 1)
-		{
-			Correction c;
-			c.frame = frame;
-			c.player1 = self == playerObject1;
-			c.checkpoint.fromPlayer((cocos2d::CCNode*)self);
-			corrections.push_back(c);
-		}
+
+		Correction c;
+		c.frame = frame;
+		c.player1 = self == playerObject1;
+		c.checkpoint.fromPlayer((cocos2d::CCNode*)self, false);
+		corrections.push_back(c);
 	}
 	return res;
 }
@@ -69,79 +65,85 @@ void* __fastcall Macrobot::checkpointObjectInitHook(void* self, void*)
 	{
 		CheckpointData data;
 		data.time = *((double*)Common::getBGL() + 1412);
-		data.p1.fromPlayer(playerObject1);
-		data.p2.fromPlayer(playerObject2);
+		data.p1.fromPlayer(playerObject1, true);
+		data.p2.fromPlayer(playerObject2, true);
 
 		checkpoints[self] = data;
 	}
 	return checkpointObjectInit(self);
 }
 
-void Macrobot::PlayerCheckpoint::fromPlayer(cocos2d::CCNode* player)
+void Macrobot::PlayerCheckpoint::fromPlayer(cocos2d::CCNode* player, bool fullCapture)
 {
 	// playerObject + 2280 isplatformer
 	// playerObject + 2160 xVelPlatformer
-	cocos2d::CCPoint position = MBO(cocos2d::CCPoint, player, 1068);
-	this->yVel = MBO(double, player, 1944);
+	cocos2d::CCPoint position = MBO(cocos2d::CCPoint, player, 2132);
+	this->yVel = MBO(double, player, 1936);
 	this->rotation = player->getRotation();
-	this->xVel = MBO(double, player, 2160);
+	this->xVel = MBO(double, player, 2192);
 	this->xPos = position.x;
 	this->yPos = position.y;
 	this->nodeXPos = player->getPositionX();
 	this->nodeYPos = player->getPositionY();
 	this->rotationRate = MBO(float, player, 1496);
 
-	//dont ask
-	for (int i = 0; i < 2265; i++)
-		this->randomProperties[i] = MBO(float, player, 160 + i);
+	if (fullCapture)
+	{
+		// dont ask
+		for (int i = 0; i < 2265; i++)
+			this->randomProperties[i] = MBO(float, player, 160 + i);
+	}
 }
 
-void Macrobot::PlayerCheckpoint::apply(cocos2d::CCNode* player)
+void Macrobot::PlayerCheckpoint::apply(cocos2d::CCNode* player, bool fullRestore)
 {
-	if(frame <= 0)
+	if (frame <= 0)
 		return;
-	
-	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 1944) = this->yVel;
+
+	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 1936) =
+		this->yVel; // get all these offsets from playerobject constructor
 	player->setRotation(this->rotation);
 
 	player->setPositionX(this->nodeXPos);
 	player->setPositionY(this->nodeYPos);
 
-	*reinterpret_cast<cocos2d::CCPoint*>(reinterpret_cast<uintptr_t>(player) + 1068) =
+	*reinterpret_cast<cocos2d::CCPoint*>(reinterpret_cast<uintptr_t>(player) + 2132) =
 		cocos2d::CCPoint(this->xPos, this->yPos);
 
-	if (MBO(bool, player, 2280))
-		*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 2160) = this->xVel;
+	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 2192) = this->xVel; // playerobject_updatemove
 
 	*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 1496) = this->rotationRate;
 
-	//🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥
-	//no but seriously this has no right of working so well
-	for (int i = 1410; i < 1600; i++)
+	if (fullRestore)
 	{
-		if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+		// 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥
+		// no but seriously this has no right of working so well
+		for (int i = 1410; i < 1600; i++)
 		{
-			*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+			{
+				*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+			}
+		}
+
+		for (int i = 1800; i < 2265; i++)
+		{
+			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+			{
+				*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+			}
+		}
+
+		for (int i = 0; i < 1200; i++)
+		{
+			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
+			{
+				*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+			}
 		}
 	}
 
-	for (int i = 1800; i < 2265; i++)
-	{
-		if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
-		{
-			*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
-		}
-	}
-
-	for (int i = 0; i < 1200; i++)
-	{
-		if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
-		{
-			*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
-		}
-	}
-
-	//1350 - 1410
+	// 1350 - 1410
 }
 
 void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, void* checkpoint)
@@ -162,8 +164,8 @@ void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, voi
 		*((double*)Common::getBGL() + 1412) = checkpointData.time;
 		frame = checkpointData.time;
 
-		checkpointData.p1.apply(playerObject1);
-		checkpointData.p2.apply(playerObject2);
+		checkpointData.p1.apply(playerObject1, true);
+		checkpointData.p2.apply(playerObject2, true);
 
 		if (playerMode == 1)
 		{
@@ -177,10 +179,18 @@ void __fastcall Macrobot::playLayerLoadFromCheckpointHook(void* self, void*, voi
 
 void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 {
+	GJBaseGameLayerUpdate(self, dt);
+
 	if (playerMode != -1 && playerObject1)
 	{
 		double currentTime = *((double*)Common::getBGL() + 1412);
 		frame = currentTime;
+
+		if (AudioRecord::recording && !JsonHacks::player["mods"][0]["toggle"].get<bool>())
+		{
+			JsonHacks::player["mods"][0]["toggle"] = true;
+			JsonHacks::toggleHack(JsonHacks::player, 0, false);
+		}
 
 		if (playerMode == 0 && actions.size() > 0 && actionIndex < actions.size() &&
 			frame >= actions[actionIndex].frame)
@@ -189,15 +199,20 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 			{
 				Action& ac = actions[actionIndex];
 				if (ac.press)
-					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B69F0)(Common::getBGL(), true, ac.key, ac.player1);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B69F0)(
+						Common::getBGL(), true, ac.key, ac.player1);
 				else
-					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B69F0)(Common::getBGL(), false, ac.key, ac.player1);
+					reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(utils::gd_base + 0x1B69F0)(
+						Common::getBGL(), false, ac.key, ac.player1);
 
 				actionIndex++;
 			} while (actionIndex < actions.size() && frame >= actions[actionIndex].frame);
 		}
 
-		int correctionType = 0;//Settings::get<int>("macrobot/corrections", 0);
+		int correctionType = Settings::get<int>("macrobot/corrections", 0);
+
+		if (AudioRecord::recording)
+			correctionType = 1;
 
 		if (correctionType > 0 && playerMode == 0 && corrections.size() > 0 && correctionIndex < corrections.size() &&
 			frame >= corrections[correctionIndex].frame)
@@ -205,14 +220,12 @@ void __fastcall Macrobot::GJBaseGameLayerUpdateHook(void* self, void*, float dt)
 			do
 			{
 				Correction& co = corrections[correctionIndex];
-				co.checkpoint.apply(co.player1 ? playerObject1 : playerObject2);
+				co.checkpoint.apply(co.player1 ? playerObject1 : playerObject2, false);
 
 				correctionIndex++;
 			} while (correctionIndex < corrections.size() && frame >= corrections[correctionIndex].frame);
 		}
 	}
-
-	return GJBaseGameLayerUpdate(self, dt);
 }
 
 int __fastcall Macrobot::playLayerResetLevelHook(void* self, void*)
@@ -259,7 +272,7 @@ int __fastcall Macrobot::playLayerResetLevelHook(void* self, void*)
 bool __fastcall Macrobot::playerObjectLoadFromCheckpointHook(void* self, void*, void* checkpoint)
 {
 	return playerObjectLoadFromCheckpoint(self, checkpoint);
-	//return false;
+	// return false;
 }
 
 void Macrobot::save(std::string file)
@@ -331,13 +344,12 @@ void Macrobot::drawWindow()
 		if (GUI::button("Load##macro"))
 			load(macroName);
 
-		/* int corrections = Settings::get<int>("macrobot/corrections", 0);
+		int corrections = Settings::get<int>("macrobot/corrections", 0);
 
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
-			Settings::set<int>("macrobot/corrections", corrections); */
+			Settings::set<int>("macrobot/corrections", corrections);
 
-		/* GUI::marker("[INFO]", "The bot is very likely to break without corrections. They're recommended for the time "
-							  "being, until it becomes better"); */
+		GUI::marker("[INFO]", "Corrections are recommended to be safe, but the bot also works decently without.");
 	}
 }
 

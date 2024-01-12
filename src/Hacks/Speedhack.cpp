@@ -2,6 +2,7 @@
 #include "../Common.h"
 #include "../Macrobot/Macrobot.h"
 #include "../Settings.h"
+#include "../Macrobot/AudioRecord.h"
 
 #include <MinHook.h>
 
@@ -12,7 +13,7 @@ void __fastcall Speedhack::CCSchedulerUpdateHook(void* self, void*, float dt)
 
 	dt *= speedhack;
 
-	if (Macrobot::playerMode != -1)
+	if (Macrobot::playerMode != -1 && !AudioRecord::recording)
 	{
 		float framerate;
 
