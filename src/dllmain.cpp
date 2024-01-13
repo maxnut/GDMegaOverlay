@@ -305,7 +305,6 @@ DWORD WINAPI my_thread(void* hModule)
 		Labels::initHooks();
 		Record::initHooks();
 		DiscordRPCManager::initHooks();
-		Record::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}
