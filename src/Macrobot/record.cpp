@@ -658,7 +658,7 @@ void Record::renderWindow()
 		recorder.m_recording = false;
 	}
 
-	if (GUI::button("Stop Audio") && !Record::recorder.m_recording_audio && Common::getBGL())
+	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio && Common::getBGL())
 	{
 		recorder.m_recording_audio = false;
 		AudioRecord::stop();
