@@ -13,6 +13,7 @@ namespace Common
 {
     inline void* gameManager = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x121540)();
     inline void* FMODAudioEngine = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x32BF0)();
+    inline void* gjAccountManager = reinterpret_cast<void*(__stdcall*)()>(utils::gd_base + 0x18A510)();
 
     cocos2d::CCLayer* getBGL();
 

@@ -1,3 +1,4 @@
+#define isnan isnan
 #include <cocos2d.h>
 #include <imgui-hook.hpp>
 #include <imgui.h>
@@ -18,8 +19,9 @@
 #include "Hacks/StartposSwitcher.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Macrobot.h"
-#include "Macrobot/record.hpp"
+#include "Macrobot/Record.h"
 #include "Macrobot/Clickpacks.h"
+#include "DiscordRPCManager/DiscordRPCManager.h"
 #include "Settings.h"
 
 void init()
@@ -46,6 +48,7 @@ void init()
 	Settings::load();
 	JsonHacks::load();
 	GUI::init();
+	DiscordRPCManager::init();
 
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
@@ -148,6 +151,8 @@ void init()
 	GUI::addWindow(creatorWindow);
 
 	GUI::Window globalWindow("Global", [] { JsonHacks::drawFromJson(JsonHacks::global); });
+	globalWindow.minSize = {200, 120};
+	globalWindow.maxSize = {200, 2000};
 	GUI::addWindow(globalWindow);
 
 	GUI::Window levelWindow("Level", [] {
@@ -247,6 +252,9 @@ void render()
 	}
 
 	GUI::draw();
+
+	if (DiscordRPCManager::core)
+		DiscordRPCManager::core->RunCallbacks();
 }
 
 DWORD WINAPI my_thread(void* hModule)
@@ -268,7 +276,7 @@ DWORD WINAPI my_thread(void* hModule)
 		Speedhack::initHooks();
 		GUI::initHooks();
 		Labels::initHooks();
-		Record::initHooks();
+		DiscordRPCManager::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
 	}

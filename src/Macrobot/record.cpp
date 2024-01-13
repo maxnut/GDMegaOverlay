@@ -1,4 +1,4 @@
-#include "record.hpp"
+#include "Record.h"
 #include "../Common.h"
 #include "../GUI/GUI.h"
 #include "../Settings.h"
@@ -11,36 +11,32 @@
 
 bool levelDone = false;
 
-int(__thiscall* playLayerQuit)(int* self);
-int __fastcall playLayerQuitHook(int* self, void*)
+int __fastcall Record::playLayerQuitHook(int* self, void*)
 {
-	if (Record::recorder.m_recording)
-		Record::recorder.stop();
+	if (recorder.m_recording)
+		recorder.stop();
 
 	return playLayerQuit(self);
 }
 
-void(__thiscall* playLayerLevelComplete)(void*);
-void __fastcall playLayerLevelCompleteHook(void* self, void*)
+void __fastcall Record::playLayerLevelCompleteHook(void* self, void*)
 {
 	playLayerLevelComplete(self);
 	levelDone = true;
 }
 
-void(__thiscall* GJBaseGameLayerUpdate)(cocos2d::CCLayer* self, float dt);
-void __fastcall GJBaseGameLayerUpdateHook(cocos2d::CCLayer* self, void*, float dt)
+void __fastcall Record::gjBaseGameLayerUpdateHook(cocos2d::CCLayer* self, void*, float dt)
 {
-	if (Record::recorder.m_recording)
-		Record::recorder.handle_recording(self, dt);
+	if (recorder.m_recording)
+		recorder.handle_recording(self, dt);
 
-	if (Record::recorder.m_recording_audio)
-		Record::recorder.handle_recording_audio(self, dt);
+	if (recorder.m_recording_audio)
+		recorder.handle_recording_audio(self, dt);
 
-	GJBaseGameLayerUpdate(self, dt);
+	gjBaseGameLayerUpdate(self, dt);
 }
 
-int(__thiscall* playLayerResetLevel)(void*);
-int __fastcall playLayerResetLevelHook(void* self, void*)
+int __fastcall Record::playLayerResetLevelHook(void* self, void*)
 {
 	levelDone = false;
 	return playLayerResetLevel(self);
@@ -51,8 +47,8 @@ void Record::initHooks()
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DDB60), playLayerLevelCompleteHook,
 				  reinterpret_cast<void**>(&playLayerLevelComplete));
 
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x1BB780), GJBaseGameLayerUpdateHook,
-				  reinterpret_cast<void**>(&GJBaseGameLayerUpdate));
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x1BB780), gjBaseGameLayerUpdateHook,
+				  reinterpret_cast<void**>(&gjBaseGameLayerUpdate));
 
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EB480), playLayerQuitHook,
 				  reinterpret_cast<void**>(&playLayerQuit));
@@ -95,9 +91,8 @@ inline auto widen(const std::string& str)
 	return widen(str.c_str());
 }
 
-Recorder::Recorder() : m_width(1280), m_height(720), m_fps(60)
-{
-}
+Recorder::Recorder()
+	: m_width(1280), m_height(720), m_fps(60) {}
 
 void Recorder::start()
 {

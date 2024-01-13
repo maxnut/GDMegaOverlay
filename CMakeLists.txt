@@ -13,6 +13,8 @@ file(GLOB_RECURSE SOURCE_FILES
   src/*.c
   src/GUI/*.cpp
   src/GUI/*.h
+
+  libs/discord_game_sdk/cpp/*.cpp
 )
 
 add_library(${PROJECT} SHARED ${SOURCE_FILES})
@@ -32,8 +34,9 @@ target_include_directories(${PROJECT} PRIVATE
   libs/cocos-headers/extensions
   libs/imgui-hook
   libs/imgui-hook/imgui
+  libs/discord_game_sdk/cpp
   libs/portaudio/include
-    libs/libsndfile/include
+  libs/libsndfile/include
 )
 
 add_subdirectory(libs/minhook)
@@ -46,6 +49,7 @@ target_link_libraries(${PROJECT} minhook imgui-hook opengl32 cocos2d fmod)
 target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/glew/glew32.lib
   ${CMAKE_SOURCE_DIR}/libs/cocos-headers/cocos2dx/robtop/glfw/glfw3.lib
+  ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
   ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
   ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
 )

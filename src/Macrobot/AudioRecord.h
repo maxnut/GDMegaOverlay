@@ -6,9 +6,9 @@
 
 namespace AudioRecord
 {
-    inline FMOD::DSP* dsp;
-    inline bool recording = false;
+	inline FMOD::DSP* dsp;
+	inline bool recording = false;
 
-    void start();
-    void stop();
+	void start();
+	void stop();
 }

@@ -15,5 +15,5 @@ void AudioRecord::stop()
 {
 	auto system = MBO(FMOD::System*, Common::FMODAudioEngine, 400);
 	system->setOutput(FMOD_OUTPUTTYPE_AUTODETECT);
-    recording = false;
+	recording = false;
 }

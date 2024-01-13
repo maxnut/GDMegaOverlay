@@ -5,7 +5,7 @@
 
 class Clickpack
 {
-  public:
+public:
 	std::string name = "None";
 	std::vector<std::string> clicks, softclicks, releases, platClicks, platReleases;
 	std::string noise = "";
@@ -15,8 +15,8 @@ class Clickpack
 
 namespace Clickpacks
 {
-inline Clickpack currentClickpack;
+	inline Clickpack currentClickpack;
 
-void init();
-void drawGUI();
-} // namespace Clickpacks
+	void init();
+	void drawGUI();
+}
