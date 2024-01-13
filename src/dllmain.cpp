@@ -51,6 +51,8 @@ void init()
 	DiscordRPCManager::init();
 
 	GUI::setLateInit([] {
+		ImGuiHook::setKeybind(Settings::get<int>("menu/togglekey", VK_TAB));
+
 		Common::calculateFramerate();
 		Common::setPriority();
 		Common::onAudioSpeedChange();
@@ -196,6 +198,7 @@ void init()
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Settings::set<float>("menu/window/opacity", windowOpacity);
 
+
 		GUI::checkbox("Rainbow Menu", Settings::get<bool*>("menu/window/rainbow/enabled"));
 
 		GUI::arrowButton("Rainbow Menu Settings");
@@ -210,6 +213,7 @@ void init()
 		},
 		ImGuiWindowFlags_AlwaysAutoResize);
 
+
 		float windowColor[3]{
 			Settings::get<float>("menu/window/color/r", 1.f),
 			Settings::get<float>("menu/window/color/g", .0f),
@@ -221,6 +225,14 @@ void init()
 			Settings::set<float>("menu/window/color/r", windowColor[0]);
 			Settings::set<float>("menu/window/color/g", windowColor[1]);
 			Settings::set<float>("menu/window/color/b", windowColor[2]);
+		}
+
+
+		int togglekey = Settings::get<int>("menu/togglekey");
+		if (GUI::hotkey("Toggle Menu", &togglekey))
+		{
+			Settings::set<int>("menu/togglekey", togglekey);
+			ImGuiHook::setKeybind(Settings::get<int>("menu/togglekey"));
 		}
 	});
 	GUI::addWindow(menuSettings);
@@ -291,6 +303,7 @@ DWORD WINAPI my_thread(void* hModule)
 		Speedhack::initHooks();
 		GUI::initHooks();
 		Labels::initHooks();
+		Record::initHooks();
 		DiscordRPCManager::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);

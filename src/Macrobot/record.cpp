@@ -327,9 +327,8 @@ void MyRenderTexture::end()
 
 void Recorder::capture_frame()
 {
-	while (m_frame_has_data)
-	{
-	}
+	while (m_frame_has_data) {}
+
 	m_renderer.capture(m_lock, m_current_frame, m_frame_has_data);
 }
 
@@ -337,9 +336,9 @@ void Recorder::stop_audio()
 {
 	AudioRecord::stop();
 
-	gd::GJGameLevel* level = MBO(void*, Common::getBGL(), 1504); // found in playlayer_init
+	gd::GJGameLevel* level = MBO(gd::GJGameLevel*, Common::getBGL(), 1504); // found in playlayer_init
 
-	std::string level_id = std::to_string(level->m_levelID);
+	std::string level_id = std::to_string(level->m_levelID.value());
 
 	std::string video_path = "GDMO/renders/" + level_id + "/final.mp4";
 
@@ -639,7 +638,7 @@ void Record::renderWindow()
 	if (GUI::button("Start Recording") && Common::getBGL())
 		Record::recorder.start();
 
-	if (GUI::button("Stop Recording") && !Record::recorder.m_recording && Common::getBGL())
+	if (GUI::button("Stop Recording") && Record::recorder.m_recording && Common::getBGL())
 		Record::recorder.stop();
 
 	if (GUI::button("Start Audio") && Common::getBGL())
