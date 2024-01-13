@@ -150,7 +150,11 @@ void init()
 	GUI::Window creatorWindow("Creator", [] { JsonHacks::drawFromJson(JsonHacks::creator); });
 	GUI::addWindow(creatorWindow);
 
-	GUI::Window globalWindow("Global", [] { JsonHacks::drawFromJson(JsonHacks::global); });
+	GUI::Window globalWindow("Global", [] {
+		GUI::checkbox("Discord Rich Presence", Settings::get<bool*>("general/discordrpc/enabled"));
+
+		JsonHacks::drawFromJson(JsonHacks::global);
+	});
 	globalWindow.minSize = {200, 120};
 	globalWindow.maxSize = {200, 2000};
 	GUI::addWindow(globalWindow);
@@ -261,7 +265,7 @@ DWORD WINAPI my_thread(void* hModule)
 {
 	ImGuiHook::setRenderFunction(render);
 	ImGuiHook::setInitFunction(init);
-	ImGuiHook::setToggleCallback([]() { GUI::toggle(); });
+	ImGuiHook::setToggleCallback([] { GUI::toggle(); });
 
 	if (MH_Initialize() == MH_OK)
 	{
