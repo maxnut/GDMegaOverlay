@@ -289,7 +289,43 @@ void Macrobot::save(std::string file)
 	size = corrections.size();
 	f.write((const char*)&size, sizeof(size_t));
 	for (Correction& co : corrections)
-		f.write((const char*)&co, sizeof(Correction));
+		f.write((const char*)&co, 56);
+
+	f.close();
+
+	void* level = MBO(void*, Common::getBGL(), 1504); // found in playlayer_init
+
+	int levelId = MBO(int, level, 268) - MBO(int, level, 272);
+	std::string levelName = MBO(std::string, level, 0x118);
+
+	json macroJson = json::object();
+	macroJson["gameVersion"] = "2.204";
+	macroJson["version"] = 1.0;
+	macroJson["duration"] = actions[actions.size() - 1].frame;
+	macroJson["bot"]["name"] = "Macrobot";
+	macroJson["bot"]["version"] = 1.0;
+	macroJson["level"]["id"] = levelId;
+	macroJson["level"]["name"] = levelName;
+	macroJson["author"] = "maxnu";
+	macroJson["seed"] = 2;
+	macroJson["ldm"] = false;
+	macroJson["inputs"] = json::array();
+
+	for (Action& ac : actions)
+	{
+		json actionJson = json::object();
+		actionJson["frame"] = ac.frame;
+		actionJson["btn"] = ac.key;
+		actionJson["2p"] = !ac.player1;
+		actionJson["down"] = ac.press;
+		macroJson["inputs"].push_back(actionJson);
+	}
+
+	f.open("GDMO\\macros\\" + file + ".json");
+
+	f << macroJson.dump(4);
+
+	f.close();
 }
 
 void Macrobot::load(std::string file)
@@ -314,9 +350,13 @@ void Macrobot::load(std::string file)
 	for (size_t i = 0; i < size_c; i++)
 	{
 		Correction co;
-		f.read((char*)&co, sizeof(Correction));
+		f.read((char*)&co, 56);
 		corrections.push_back(co);
 	}
+
+	std::cout << size << std::endl;
+
+	f.close();
 }
 
 void Macrobot::drawWindow()

@@ -9,6 +9,7 @@
 #include "sndfile.h"
 #include <CCGL.h>
 #include <MinHook.h>
+#include "../types/GJGameLevel.hpp"
 
 bool levelDone = false;
 
@@ -337,9 +338,9 @@ void Recorder::stop_audio()
 {
 	AudioRecord::stop();
 
-	gd::GJGameLevel* level = MBO(void*, Common::getBGL(), 1504); // found in playlayer_init
+	gd::GJGameLevel* level = MBO(gd::GJGameLevel*, Common::getBGL(), 1504); // found in playlayer_init
 
-	std::string level_id = std::to_string(level->m_levelID);
+	std::string level_id = std::to_string(level->m_levelID.value());
 
 	std::string video_path = "GDMO/renders/" + level_id + "/final.mp4";
 
@@ -636,11 +637,20 @@ bool Recorder::generate_clicks(std::string outputPath)
 
 void Record::renderWindow()
 {
+	if (Record::recorder.m_recording_audio)
+		ImGui::BeginDisabled();
+
 	if (GUI::button("Start Recording") && Common::getBGL())
 		Record::recorder.start();
 
-	if (GUI::button("Stop Recording") && !Record::recorder.m_recording && Common::getBGL())
+	if (GUI::button("Stop Recording") && Record::recorder.m_recording && Common::getBGL())
 		Record::recorder.stop();
+
+	if (Record::recorder.m_recording_audio)
+		ImGui::EndDisabled();
+
+	if (Record::recorder.m_recording)
+		ImGui::BeginDisabled();
 
 	if (GUI::button("Start Audio") && Common::getBGL())
 	{
@@ -654,6 +664,9 @@ void Record::renderWindow()
 		recorder.m_recording_audio = false;
 		AudioRecord::stop();
 	}
+
+	if (Record::recorder.m_recording)
+		ImGui::EndDisabled();
 
 	int resolution[2];
 	resolution[0] = Settings::get<int>("recorder/resolution/x", 1920);
@@ -672,13 +685,13 @@ void Record::renderWindow()
 	if (ImGui::IsItemDeactivatedAfterEdit())
 		Settings::set<int>("recorder/bitrate", bitrate);
 
-	std::string codec = Settings::get<std::string>("recorder/codec", "h264_nvenc");
+	std::string codec = Settings::get<std::string>("recorder/codec", "");
 
 	if (GUI::inputText("Codec", &codec))
 		Settings::set<std::string>("recorder/codec", codec);
 
 	std::string extraArgs =
-		Settings::get<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
+		Settings::get<std::string>("recorder/extraArgs", "");
 	if (GUI::inputText("Extra Args", &extraArgs))
 		Settings::set<std::string>("recorder/extraArgs", extraArgs);
 
@@ -697,6 +710,20 @@ void Record::renderWindow()
 	GUI::checkbox("Record clicks", Settings::get<bool*>("recorder/clicks/enabled"));
 	GUI::arrowButton("Clickpacks");
 	Clickpacks::drawGUI();
+
+	if(GUI::button("NVIDIA"))
+	{
+		Settings::set<std::string>("recorder/codec", "h264_nvenc");
+		Settings::set<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
+	}
+
+	ImGui::SameLine();
+
+	if(GUI::button("AMD"))
+	{
+		Settings::set<std::string>("recorder/codec", "h264_amf");
+		Settings::set<std::string>("recorder/extraArgs", "");
+	}
 
 	GUI::marker("[INFO]",
 				"Press start recording to get a smooth recording of the level with optionally added clicks. "
