@@ -163,16 +163,14 @@ void init()
 		GUI::checkbox("Startpos Switcher", Settings::get<bool*>("level/startpos_switcher"));
 
 		GUI::arrowButton("Startpos Switcher Settings");
-		GUI::modalPopup(
-			"Startpos Switcher Settings",
-			[] {
-				if (GUI::button("Switch Left"))
-					StartposSwitcher::change(false);
+		GUI::modalPopup("Startpos Switcher Settings",[] {
+			if (GUI::button("Switch Left"))
+				StartposSwitcher::change(false);
 
-				if (GUI::button("Switch Right"))
-					StartposSwitcher::change(true);
-			},
-			ImGuiWindowFlags_AlwaysAutoResize);
+			if (GUI::button("Switch Right"))
+				StartposSwitcher::change(true);
+		},
+		ImGuiWindowFlags_AlwaysAutoResize);
 
 		GUI::checkbox("Replay Last Checkpoint", Settings::get<bool*>("level/replay_checkpoint"));
 
@@ -198,19 +196,31 @@ void init()
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Settings::set<float>("menu/window/opacity", windowOpacity);
 
-		float windowColor[3]{};
-		windowColor[0] = Settings::get<float>("menu/window/color/r", 1.f);
-		windowColor[1] = Settings::get<float>("menu/window/color/g", 0.f);
-		windowColor[2] = Settings::get<float>("menu/window/color/b", 0.f);
+		GUI::checkbox("Rainbow Menu", Settings::get<bool*>("menu/window/rainbow/enabled"));
+
+		GUI::arrowButton("Rainbow Menu Settings");
+		GUI::modalPopup("Rainbow Menu Settings", [] {
+			float speed = Settings::get<float>("menu/window/rainbow/speed", .4f);
+			if (GUI::inputFloat("Rainbow Speed", &speed, .1f, 2.f))
+				Settings::set<float>("menu/window/rainbow/speed", speed);
+
+			float brightness = Settings::get<float>("menu/window/rainbow/brightness", .8f);
+			if (GUI::inputFloat("Rainbow Brightness", &brightness, .1f, 2.f))
+				Settings::set<float>("menu/window/rainbow/brightness", brightness);
+		},
+		ImGuiWindowFlags_AlwaysAutoResize);
+
+		float windowColor[3]{
+			Settings::get<float>("menu/window/color/r", 1.f),
+			Settings::get<float>("menu/window/color/g", .0f),
+			Settings::get<float>("menu/window/color/b", .0f)
+		};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{
 			Settings::set<float>("menu/window/color/r", windowColor[0]);
 			Settings::set<float>("menu/window/color/g", windowColor[1]);
 			Settings::set<float>("menu/window/color/b", windowColor[2]);
-			ImGui::GetStyle().Colors[ImGuiCol_TitleBg] = {windowColor[0], windowColor[1], windowColor[2], 1.f};
-			ImGui::GetStyle().Colors[ImGuiCol_TitleBgActive] = {windowColor[0], windowColor[1], windowColor[2], 1.f};
-			ImGui::GetStyle().Colors[ImGuiCol_TitleBgCollapsed] = {windowColor[0], windowColor[1], windowColor[2], 1.f};
 		}
 	});
 	GUI::addWindow(menuSettings);
@@ -256,6 +266,7 @@ void render()
 	}
 
 	GUI::draw();
+	GUI::setStyle();
 
 	if (DiscordRPCManager::core)
 		DiscordRPCManager::core->RunCallbacks();

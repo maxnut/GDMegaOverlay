@@ -53,6 +53,7 @@ namespace GUI
 
     void saveStyle(std::string name);
     void loadStyle(std::string name);
+    void setStyle();
 
     bool shouldRender();
 };

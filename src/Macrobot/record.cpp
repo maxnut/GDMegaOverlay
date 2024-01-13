@@ -2,6 +2,7 @@
 #include "../Common.h"
 #include "../GUI/GUI.h"
 #include "../Settings.h"
+#include "../types/GJGameLevel.hpp"
 #include "AudioRecord.h"
 #include "Clickpacks.h"
 #include "Macrobot.h"
@@ -336,9 +337,9 @@ void Recorder::stop_audio()
 {
 	AudioRecord::stop();
 
-	void* level = MBO(void*, Common::getBGL(), 1504); // found in playlayer_init
+	gd::GJGameLevel* level = MBO(void*, Common::getBGL(), 1504); // found in playlayer_init
 
-	std::string level_id = std::to_string(MBO(int, level, 268) - MBO(int, level, 272));
+	std::string level_id = std::to_string(level->m_levelID);
 
 	std::string video_path = "GDMO/renders/" + level_id + "/final.mp4";
 

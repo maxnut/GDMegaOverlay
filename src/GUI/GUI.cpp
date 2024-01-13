@@ -274,6 +274,42 @@ void GUI::loadStyle(std::string name)
 	styleFile.close();
 }
 
+void GUI::setStyle()
+{
+	ImGuiStyle& style = ImGui::GetStyle();
+
+	float r = Settings::get<float>("menu/window/color/r", 1.f);
+	float g = Settings::get<float>("menu/window/color/g", 0.f);
+	float b = Settings::get<float>("menu/window/color/b", 0.f);
+
+	if (Settings::get<bool>("menu/window/rainbow/enabled"))
+	{
+		ImGui::ColorConvertHSVtoRGB(
+			ImGui::GetTime() * Settings::get<float>("menu/window/rainbow/speed", .4f),
+			Settings::get<float>("menu/window/rainbow/brightness", .8f),
+			Settings::get<float>("menu/window/rainbow/brightness"),
+			r, g, b
+		);
+
+		style.Colors[ImGuiCol_Border] = { r, g, b, 1 };
+		style.Colors[ImGuiCol_TitleBg] = { r, g, b, 1 };
+		style.Colors[ImGuiCol_TitleBgCollapsed] = { r, g, b, 1 };
+		style.Colors[ImGuiCol_TitleBgActive] = { r, g, b, 1 };
+
+		style.Colors[ImGuiCol_Tab] = { r * .85f, g * .85f, b * .85f, 1 };
+		style.Colors[ImGuiCol_TabActive] = { r * .85f, g * .85f, b * .85f, 1 };
+		style.Colors[ImGuiCol_TabHovered] = { r * .70f, g * .70f, b * .70f, 1 };
+		style.Colors[ImGuiCol_TabUnfocused] = { r * .60f, g * .60f, b * .60f, 1 };
+		style.Colors[ImGuiCol_TabUnfocusedActive] = { r * .60f, g * .60f, b * .60f, 1 };
+	}
+	else
+	{
+		style.Colors[ImGuiCol_TitleBg] = { r, g, b, 1.f };
+		style.Colors[ImGuiCol_TitleBgActive] = { r, g, b, 1.f };
+		style.Colors[ImGuiCol_TitleBgCollapsed] = { r, g, b, 1.f };
+	}
+}
+
 bool GUI::shouldRender()
 {
 	return isVisible && !shortcutLoop;
