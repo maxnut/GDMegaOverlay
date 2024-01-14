@@ -68,6 +68,9 @@ void DiscordRPCManager::updateRPC(State state, gd::GJGameLevel* level)
 
 std::string DiscordRPCManager::getLevelDifficultyAssetName(gd::GJGameLevel* level)
 {
+	if (level->m_ratingsSum != 0)
+		level->m_difficulty = static_cast<gd::GJDifficulty>(level->m_ratingsSum / 10);
+
 	if (level->m_demon.value())
 	{
 		switch (level->m_demonDifficulty)

@@ -23,8 +23,8 @@ namespace gd
 	enum class GJLevelType
 	{
 		kGJLevelTypeLocal = 1,
-		kGJLevelTypeEditor = 2,
-		kGJLevelTypeSaved = 3
+		kGJLevelTypeEditor,
+		kGJLevelTypeSaved
 	};
 
 	class GJGameLevel : public cocos2d::CCNode
