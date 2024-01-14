@@ -23,7 +23,7 @@ namespace GUI
 		{
 			return function != nullptr;
 		}
-	}
+	};
 
 	bool button(std::string);
 	bool checkbox(std::string, bool*);
