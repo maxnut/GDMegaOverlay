@@ -160,6 +160,38 @@ bool GUI::modalPopup(std::string name, const std::function<void()>& popupFunctio
 	return true;
 }
 
+bool GUI::alertPopup(std::string name, std::string content, const ButtonFunc& yesButton, const ButtonFunc& noButton, int flags)
+{
+	if (!GUI::isVisible || ImGui::BeginPopupModal(name.c_str(), NULL, flags) || GUI::shortcutLoop)
+	{
+		ImGui::Text(content.c_str());
+
+		if (GUI::shouldRender())
+		{
+			if (ImGui::Button(yesButton.name.c_str()))
+			{
+				yesButton.function();
+				ImGui::CloseCurrentPopup();
+			}
+
+			if (noButton)
+			{
+				ImGui::SameLine();
+
+				if (ImGui::Button(noButton.name.c_str()))
+				{
+					noButton.function();
+					ImGui::CloseCurrentPopup();
+				}
+			}
+
+			ImGui::EndPopup();
+		}
+	}
+
+	return true;
+}
+
 void GUI::arrowButton(std::string popupName)
 {
 	if (!GUI::shouldRender())
