@@ -9,7 +9,6 @@
 #include "sndfile.h"
 #include <CCGL.h>
 #include <MinHook.h>
-#include "../types/GJGameLevel.hpp"
 
 bool levelDone = false;
 
@@ -93,8 +92,9 @@ inline auto widen(const std::string& str)
 	return widen(str.c_str());
 }
 
-Recorder::Recorder()
-	: m_width(1280), m_height(720), m_fps(60) {}
+Recorder::Recorder() : m_width(1280), m_height(720), m_fps(60)
+{
+}
 
 void Recorder::start()
 {
@@ -328,7 +328,9 @@ void MyRenderTexture::end()
 
 void Recorder::capture_frame()
 {
-	while (m_frame_has_data) {}
+	while (m_frame_has_data)
+	{
+	}
 
 	m_renderer.capture(m_lock, m_current_frame, m_frame_has_data);
 }
@@ -640,7 +642,21 @@ void Record::renderWindow()
 		ImGui::BeginDisabled();
 
 	if (GUI::button("Start Recording") && Common::getBGL())
+	{
+		if (!std::filesystem::exists("GDMO\\ffmpeg.exe"))
+		{
+			auto process = subprocess::Popen("Updater/GDMOUpdater.exe ffmpeg");
+			try
+			{
+				process.close();
+			}
+			catch (const std::exception& e)
+			{
+				std::cout << e.what() << '\n';
+			}
+		}
 		Record::recorder.start();
+	}
 
 	if (GUI::button("Stop Recording") && Record::recorder.m_recording && Common::getBGL())
 		Record::recorder.stop();
@@ -653,6 +669,18 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Audio") && Common::getBGL())
 	{
+		if (!std::filesystem::exists("GDMO\\ffmpeg.exe"))
+		{
+			auto process = subprocess::Popen("Updater/GDMOUpdater ffmpeg");
+			try
+			{
+				process.close();
+			}
+			catch (const std::exception& e)
+			{
+				std::cout << e.what() << '\n';
+			}
+		}
 		recorder.m_recording_audio = true;
 		Record::recorder.start();
 		recorder.m_recording = false;
@@ -689,8 +717,7 @@ void Record::renderWindow()
 	if (GUI::inputText("Codec", &codec))
 		Settings::set<std::string>("recorder/codec", codec);
 
-	std::string extraArgs =
-		Settings::get<std::string>("recorder/extraArgs", "");
+	std::string extraArgs = Settings::get<std::string>("recorder/extraArgs", "");
 	if (GUI::inputText("Extra Args", &extraArgs))
 		Settings::set<std::string>("recorder/extraArgs", extraArgs);
 
@@ -710,7 +737,7 @@ void Record::renderWindow()
 	GUI::arrowButton("Clickpacks");
 	Clickpacks::drawGUI();
 
-	if(GUI::button("NVIDIA"))
+	if (GUI::button("NVIDIA"))
 	{
 		Settings::set<std::string>("recorder/codec", "h264_nvenc");
 		Settings::set<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
@@ -718,7 +745,7 @@ void Record::renderWindow()
 
 	ImGui::SameLine();
 
-	if(GUI::button("AMD"))
+	if (GUI::button("AMD"))
 	{
 		Settings::set<std::string>("recorder/codec", "h264_amf");
 		Settings::set<std::string>("recorder/extraArgs", "");
