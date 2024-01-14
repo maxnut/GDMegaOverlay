@@ -645,7 +645,7 @@ void Record::renderWindow()
 	{
 		if (!std::filesystem::exists("GDMO\\ffmpeg.exe"))
 		{
-			auto process = subprocess::Popen("Updater/GDMOUpdater.exe ffmpeg");
+			auto process = subprocess::Popen("GDMO/Updater/GDMOUpdater ffmpeg");
 			try
 			{
 				process.close();
@@ -671,7 +671,7 @@ void Record::renderWindow()
 	{
 		if (!std::filesystem::exists("GDMO\\ffmpeg.exe"))
 		{
-			auto process = subprocess::Popen("Updater/GDMOUpdater ffmpeg");
+			auto process = subprocess::Popen("GDMO/Updater/GDMOUpdater ffmpeg");
 			try
 			{
 				process.close();

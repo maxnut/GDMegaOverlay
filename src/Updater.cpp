@@ -32,7 +32,7 @@ void Updater::draw()
 
 	GUI::ButtonFunc yes("Yes", [&] {
         Settings::set<int>("updater/id", request["id"]);
-		auto process = subprocess::Popen("Updater/GDMOUpdater");
+		auto process = subprocess::Popen("GDMO/Updater/GDMOUpdater");
 		try
 		{
 			process.close();
