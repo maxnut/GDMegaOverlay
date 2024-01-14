@@ -32,6 +32,8 @@ bool __fastcall Macrobot::playerObjectPushButtonHook(void* self, void*, int btn)
 	int res = playerObjectPushButton(self, btn);
 	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
+		if (btn != 1)
+			std::cout << "Pressed " << btn << std::endl;
 		recordAction(btn, frame, true, self == playerObject1);
 
 		Correction c;
@@ -48,6 +50,12 @@ bool __fastcall Macrobot::playerObjectReleaseButtonHook(void* self, void*, int b
 	int res = playerObjectReleaseButton(self, btn);
 	if (playerObject1 && playerMode == 1 && frame != 9999999999)
 	{
+		if (btn == 3 && (ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)))
+			return res;
+
+		if (btn == 2 && (ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
+			return res;
+			
 		recordAction(btn, frame, false, self == playerObject1);
 
 		Correction c;

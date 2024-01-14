@@ -11,6 +11,7 @@
 #include <fstream>
 
 #include "Common.h"
+#include "DiscordRPCManager/DiscordRPCManager.h"
 #include "GUI/GUI.h"
 #include "Hacks/AudioChannelControl.h"
 #include "Hacks/Labels.h"
@@ -18,11 +19,11 @@
 #include "Hacks/Speedhack.h"
 #include "Hacks/StartposSwitcher.h"
 #include "JsonHacks/JsonHacks.h"
+#include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
 #include "Macrobot/Record.h"
-#include "Macrobot/Clickpacks.h"
-#include "DiscordRPCManager/DiscordRPCManager.h"
 #include "Settings.h"
+#include "Updater.h"
 
 void init()
 {
@@ -59,6 +60,7 @@ void init()
 		Common::onAudioPitchChange();
 		Common::loadIcons();
 		Clickpacks::init();
+		Updater::checkForUpdate();
 	});
 
 	GUI::Window generalWindow("General", [] {
@@ -144,12 +146,19 @@ void init()
 			Common::setPriority();
 		}
 	});
+	generalWindow.position = {50, 50};
+	generalWindow.size.y = 250;
 	GUI::addWindow(generalWindow);
 
 	GUI::Window bypassWindow("Bypass", [] { JsonHacks::drawFromJson(JsonHacks::bypass); });
+	bypassWindow.position = {1050, 50};
+	bypassWindow.size.y = 180;
 	GUI::addWindow(bypassWindow);
+	
 
 	GUI::Window creatorWindow("Creator", [] { JsonHacks::drawFromJson(JsonHacks::creator); });
+	creatorWindow.position = {1300, 50};
+	creatorWindow.size.y = 200;
 	GUI::addWindow(creatorWindow);
 
 	GUI::Window globalWindow("Global", [] {
@@ -157,27 +166,31 @@ void init()
 
 		JsonHacks::drawFromJson(JsonHacks::global);
 	});
-	globalWindow.minSize = {200, 120};
-	globalWindow.maxSize = {200, 2000};
+	globalWindow.position = {300, 50};
+	globalWindow.size.y = 230;
 	GUI::addWindow(globalWindow);
 
 	GUI::Window levelWindow("Level", [] {
 		GUI::checkbox("Startpos Switcher", Settings::get<bool*>("level/startpos_switcher"));
 
 		GUI::arrowButton("Startpos Switcher Settings");
-		GUI::modalPopup("Startpos Switcher Settings",[] {
-			if (GUI::button("Switch Left"))
-				StartposSwitcher::change(false);
+		GUI::modalPopup(
+			"Startpos Switcher Settings",
+			[] {
+				if (GUI::button("Switch Left"))
+					StartposSwitcher::change(false);
 
-			if (GUI::button("Switch Right"))
-				StartposSwitcher::change(true);
-		},
-		ImGuiWindowFlags_AlwaysAutoResize);
+				if (GUI::button("Switch Right"))
+					StartposSwitcher::change(true);
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
 
 		GUI::checkbox("Replay Last Checkpoint", Settings::get<bool*>("level/replay_checkpoint"));
 
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
+	levelWindow.position = {550, 50};
+	levelWindow.size.y = 180;
 	GUI::addWindow(levelWindow);
 
 	GUI::Window menuSettings("Menu Settings", [] {
@@ -198,27 +211,25 @@ void init()
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Settings::set<float>("menu/window/opacity", windowOpacity);
 
-
 		GUI::checkbox("Rainbow Menu", Settings::get<bool*>("menu/window/rainbow/enabled"));
 
 		GUI::arrowButton("Rainbow Menu Settings");
-		GUI::modalPopup("Rainbow Menu Settings", [] {
-			float speed = Settings::get<float>("menu/window/rainbow/speed", .4f);
-			if (GUI::inputFloat("Rainbow Speed", &speed, .1f, 2.f))
-				Settings::set<float>("menu/window/rainbow/speed", speed);
+		GUI::modalPopup(
+			"Rainbow Menu Settings",
+			[] {
+				float speed = Settings::get<float>("menu/window/rainbow/speed", .4f);
+				if (GUI::inputFloat("Rainbow Speed", &speed, .1f, 2.f))
+					Settings::set<float>("menu/window/rainbow/speed", speed);
 
-			float brightness = Settings::get<float>("menu/window/rainbow/brightness", .8f);
-			if (GUI::inputFloat("Rainbow Brightness", &brightness, .1f, 2.f))
-				Settings::set<float>("menu/window/rainbow/brightness", brightness);
-		},
-		ImGuiWindowFlags_AlwaysAutoResize);
+				float brightness = Settings::get<float>("menu/window/rainbow/brightness", .8f);
+				if (GUI::inputFloat("Rainbow Brightness", &brightness, .1f, 2.f))
+					Settings::set<float>("menu/window/rainbow/brightness", brightness);
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
 
-
-		float windowColor[3]{
-			Settings::get<float>("menu/window/color/r", 1.f),
-			Settings::get<float>("menu/window/color/g", .0f),
-			Settings::get<float>("menu/window/color/b", .0f)
-		};
+		float windowColor[3]{Settings::get<float>("menu/window/color/r", 1.f),
+							 Settings::get<float>("menu/window/color/g", .0f),
+							 Settings::get<float>("menu/window/color/b", .0f)};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{
@@ -227,38 +238,54 @@ void init()
 			Settings::set<float>("menu/window/color/b", windowColor[2]);
 		}
 
-
 		int togglekey = Settings::get<int>("menu/togglekey");
 		if (GUI::hotkey("Toggle Menu", &togglekey))
 		{
 			Settings::set<int>("menu/togglekey", togglekey);
 			ImGuiHook::setKeybind(Settings::get<int>("menu/togglekey"));
 		}
+
+		if(GUI::button("Check for updates"))
+			Updater::checkForUpdate();
 	});
+	menuSettings.position = {1050, 250};
+	menuSettings.size.y = 300;
 	GUI::addWindow(menuSettings);
 
 	GUI::Window playerWindow("Player", [] { JsonHacks::drawFromJson(JsonHacks::player); });
+	playerWindow.position = {800, 50};
+	playerWindow.size.y = 180;
 	GUI::addWindow(playerWindow);
 
 	GUI::Window variablesWindow("Variables", [] { JsonHacks::drawFromJson(JsonHacks::variables); });
 	// GUI::addWindow(variablesWindow);
 
 	GUI::Window macrobot("Macrobot", Macrobot::drawWindow);
+	macrobot.position = {50, 350};
+	macrobot.size.y = 260;
 	GUI::addWindow(macrobot);
 
 	GUI::Window shortcuts("Shortcuts", GUI::Shortcut::renderWindow);
+	shortcuts.position = {1550, 50};
+	shortcuts.size.y = 400;
 	GUI::addWindow(shortcuts);
 
 	GUI::Window labels("Labels", Labels::renderWindow);
+	labels.position = {1300, 300};
+	labels.size.y = 180;
 	GUI::addWindow(labels);
 
 	GUI::Window recorder("Recorder", Record::renderWindow);
+	recorder.position = {800, 280};
+	recorder.size.y = 450;
 	GUI::addWindow(recorder);
 
 	GUI::Window credits("Credits", [] {
 		GUI::textURL("SpaghettDev", "https://github.com/SpaghettDev");
 		GUI::textURL("TpdEA", "https://github.com/TpdeaX");
 	});
+	credits.position = {1550, 480};
+	credits.size.y = 120;
 	GUI::addWindow(credits);
 }
 
@@ -278,6 +305,7 @@ void render()
 	}
 
 	GUI::draw();
+	Updater::draw();
 	GUI::setStyle();
 
 	if (DiscordRPCManager::core)

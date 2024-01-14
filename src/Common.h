@@ -31,5 +31,9 @@ namespace Common
     void saveIcons();
     void loadIcons();
 
+    void checkForUpdate();
+
+    int getRequest(std::string url, std::string* buffer, std::string userAgent = "");
+
     void openLink(const char* path);
 };

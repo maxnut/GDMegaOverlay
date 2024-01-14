@@ -27,7 +27,7 @@ void GUI::setJsonPosition(std::string name, ImVec2 pos)
 
 ImVec2 GUI::getJsonSize(std::string name)
 {
-	if (!windowPositions.contains(name))
+	if (!windowPositions.contains(name) || !windowPositions["name"].contains("w"))
 	{
 		windowPositions[name]["w"] = 220.f;
 		windowPositions[name]["h"] = 120.f;
@@ -46,6 +46,7 @@ void GUI::init()
 {
 	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF("GDMO\\arial.ttf", 14);
 	ImGui::GetIO().FontDefault = fnt;
+	windowPositions = json::object();
 	load();
 }
 

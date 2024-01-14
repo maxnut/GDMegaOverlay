@@ -52,6 +52,7 @@ target_link_libraries(${PROJECT}
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
   ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
   ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
+  ${CMAKE_SOURCE_DIR}/libs/libcurl.lib
 )
 
 # Enable dev console if building in RelWithDebInfo 

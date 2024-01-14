@@ -4,16 +4,16 @@
 #include "GUI.h"
 #include "Shortcut.h"
 
-#include <imgui_internal.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
+#include <imgui_internal.h>
 
 inline ImVec2 operator+(const ImVec2& a, const ImVec2& b)
 {
-	return { a.x + b.x, a.y + b.y };
+	return {a.x + b.x, a.y + b.y};
 }
 inline ImVec2 operator-(const ImVec2& a, const ImVec2& b)
 {
-	return { a.x - b.x, a.y - b.y };
+	return {a.x - b.x, a.y - b.y};
 }
 
 bool GUI::button(std::string name)
@@ -160,33 +160,38 @@ bool GUI::modalPopup(std::string name, const std::function<void()>& popupFunctio
 	return true;
 }
 
-bool GUI::alertPopup(std::string name, std::string content, const ButtonFunc& yesButton, const ButtonFunc& noButton, int flags)
+bool GUI::alertPopup(std::string name, std::string content, const ButtonFunc& yesButton, const ButtonFunc& noButton,
+					 int flags)
 {
-	if (!GUI::isVisible || ImGui::BeginPopupModal(name.c_str(), NULL, flags) || GUI::shortcutLoop)
+	if (!ImGui::IsPopupOpen(name.c_str()))
+		ImGui::OpenPopup(name.c_str());
+
+	if (ImGui::BeginPopupModal(name.c_str(), NULL, flags))
 	{
+		ImVec2 displaySize = ImGui::GetIO().DisplaySize;
+		ImVec2 windowSize = ImGui::GetWindowSize();
+
+		ImGui::SetWindowPos({(displaySize.x - windowSize.x) * 0.5f, (displaySize.y - windowSize.y) * 0.5f});
+
 		ImGui::Text(content.c_str());
 
-		if (GUI::shouldRender())
+		if (ImGui::Button(yesButton.name.c_str()))
 		{
-			if (ImGui::Button(yesButton.name.c_str()))
+			yesButton.function();
+			ImGui::CloseCurrentPopup();
+		}
+
+		if (noButton)
+		{
+			ImGui::SameLine();
+
+			if (ImGui::Button(noButton.name.c_str()))
 			{
-				yesButton.function();
+				noButton.function();
 				ImGui::CloseCurrentPopup();
 			}
-
-			if (noButton)
-			{
-				ImGui::SameLine();
-
-				if (ImGui::Button(noButton.name.c_str()))
-				{
-					noButton.function();
-					ImGui::CloseCurrentPopup();
-				}
-			}
-
-			ImGui::EndPopup();
 		}
+		ImGui::EndPopup();
 	}
 
 	return true;
