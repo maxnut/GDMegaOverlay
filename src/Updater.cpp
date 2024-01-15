@@ -32,16 +32,20 @@ void Updater::draw()
 
 	GUI::ButtonFunc yes("Yes", [&] {
         Settings::set<int>("updater/id", request["id"]);
-		auto process = subprocess::Popen("GDMO/Updater/GDMOUpdater");
-		try
-		{
-			process.close();
-		}
-		catch (const std::exception& e)
-		{
-			std::cout << e.what() << '\n';
-		}
-		hasUpdate = false;
+		Settings::save();
+
+		char pBuf[256];
+		size_t len = sizeof(pBuf);
+		int bytes = GetModuleFileName(NULL, pBuf, len);
+		std::filesystem::path p = pBuf;
+		p = p.parent_path();
+
+		auto gdpath = p.string();
+
+		std::stringstream ss;
+		ss << '"' << gdpath << "/GDMO/Updater/GDMOUpdater.exe" << '"';
+		std::cout << ss.str() << std::endl;
+		std::system(ss.str().c_str());
 	});
 
 	GUI::ButtonFunc no("No", [&] { hasUpdate = false; });
