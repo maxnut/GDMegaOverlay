@@ -531,7 +531,7 @@ bool Recorder::generate_clicks(std::string outputPath)
 	bool wasLastPlatActionPressP1 = false;
 	bool wasLastPlatActionPressP2 = false;
 
-	for (const Macrobot::Action& ac : Macrobot::actions)
+	for (const Macrobot::Action& ac : Macrobot::macro.inputs)
 	{
 		double timestamp = ac.frame;
 
@@ -539,25 +539,25 @@ bool Recorder::generate_clicks(std::string outputPath)
 			continue;
 
 		std::string soundPath;
-		if (ac.key <= 2)
+		if (ac.button <= 1)
 		{
-			if (ac.player1)
+			if (!ac.player2)
 			{
-				if (ac.press == wasLastActionPressP1)
+				if (ac.down == wasLastActionPressP1)
 					continue;
 
-				wasLastActionPressP1 = ac.press;
+				wasLastActionPressP1 = ac.down;
 			}
 			else
 			{
-				if (ac.press == wasLastActionPressP2)
+				if (ac.down == wasLastActionPressP2)
 					continue;
 
-				wasLastActionPressP2 = ac.press;
+				wasLastActionPressP2 = ac.down;
 			}
 
 			soundPath =
-				ac.press
+				ac.down
 					? (timestamp - previousTimestamp <= softclickAt
 						   ? Clickpacks::currentClickpack
 								 .softclicks[utils::randomInt(0, Clickpacks::currentClickpack.softclicks.size() - 1)]
@@ -568,23 +568,23 @@ bool Recorder::generate_clicks(std::string outputPath)
 		}
 		else
 		{
-			if (ac.player1)
+			if (!ac.player2)
 			{
-				if (ac.press == wasLastPlatActionPressP1)
+				if (ac.down == wasLastPlatActionPressP1)
 					continue;
 
-				wasLastPlatActionPressP1 = ac.press;
+				wasLastPlatActionPressP1 = ac.down;
 			}
 			else
 			{
-				if (ac.press == wasLastPlatActionPressP2)
+				if (ac.down == wasLastPlatActionPressP2)
 					continue;
 
-				wasLastPlatActionPressP2 = ac.press;
+				wasLastPlatActionPressP2 = ac.down;
 			}
 
 			soundPath =
-				ac.press ? Clickpacks::currentClickpack
+				ac.down ? Clickpacks::currentClickpack
 							   .platClicks[utils::randomInt(0, Clickpacks::currentClickpack.platClicks.size() - 1)]
 						 : Clickpacks::currentClickpack
 							   .platReleases[utils::randomInt(0, Clickpacks::currentClickpack.platReleases.size() - 1)];

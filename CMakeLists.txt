@@ -37,6 +37,8 @@ target_include_directories(${PROJECT} PRIVATE
   libs/discord_game_sdk/cpp
   libs/portaudio/include
   libs/libsndfile/include
+  libs/gdr
+  src/
 )
 
 add_subdirectory(libs/minhook)
