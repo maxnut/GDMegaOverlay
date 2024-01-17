@@ -15,7 +15,8 @@ namespace DiscordRPCManager
 	const discord::ClientId clientID = 1055528380956672081;
 
 	inline std::string playerName = "";
-	inline long long rpcTimeStart = 0;
+	inline long long rpcStartTime = 0;
+	inline long long levelStartTime = 0;
 
 	void init();
 	void initHooks();
@@ -25,8 +26,8 @@ namespace DiscordRPCManager
 
 	inline static bool(__thiscall* playLayerInit)(int*, gd::GJGameLevel*, bool, bool);
 	bool __fastcall playLayerInitHook(int*, void*, gd::GJGameLevel*, bool, bool);
-	inline int(__thiscall* playLayerOnExit)(int*, int);
-	int __fastcall playLayerOnExitHook(int*, void*, int);
+	inline int(__thiscall* playLayerOnQuit)(int*);
+	int __fastcall playLayerOnQuitHook(int*, void*);
 
 	inline static bool(__thiscall* levelEditorLayerInit)(int*, gd::GJGameLevel*, bool);
 	bool __fastcall levelEditorLayerInitHook(int*, void*, gd::GJGameLevel*, bool);

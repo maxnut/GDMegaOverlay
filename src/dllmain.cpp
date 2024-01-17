@@ -228,9 +228,11 @@ void init()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		float windowColor[3]{Settings::get<float>("menu/window/color/r", 1.f),
-							 Settings::get<float>("menu/window/color/g", .0f),
-							 Settings::get<float>("menu/window/color/b", .0f)};
+		float windowColor[3]{
+			Settings::get<float>("menu/window/color/r", 1.f),
+			Settings::get<float>("menu/window/color/g", .0f),
+			Settings::get<float>("menu/window/color/b", .0f)
+		};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{

@@ -10,7 +10,7 @@ void DiscordRPCManager::init()
 	if (!core) discord::Core::Create(clientID, DiscordCreateFlags_NoRequireDiscord, &core);
 	if (!core) return;
 
-	rpcTimeStart = std::chrono::duration_cast<std::chrono::seconds>(
+	rpcStartTime = std::chrono::duration_cast<std::chrono::seconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
 	playerName = MBO(std::string, Common::gjAccountManager, 0x10C);
@@ -35,6 +35,9 @@ void DiscordRPCManager::updateRPC(State state, gd::GJGameLevel* level)
 		switch (state)
 		{
 		case State::PLAYING_LEVEL:
+			levelStartTime = std::chrono::duration_cast<std::chrono::seconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+			).count();
 			activity.SetState("Playing a level");
 			if (level->m_creatorName == "") // usually only happens on main levels
 				activity.SetDetails(std::format("{}", level->m_levelName).c_str());
@@ -58,7 +61,7 @@ void DiscordRPCManager::updateRPC(State state, gd::GJGameLevel* level)
 			break;
 		}
 
-		activity.GetTimestamps().SetStart(rpcTimeStart);
+		activity.GetTimestamps().SetStart(state == State::PLAYING_LEVEL ? levelStartTime : rpcStartTime);
 		activity.GetAssets().SetLargeText(playerName.c_str());
 		activity.GetAssets().SetLargeImage("cool");
 		activity.SetType(discord::ActivityType::Playing);
@@ -68,6 +71,9 @@ void DiscordRPCManager::updateRPC(State state, gd::GJGameLevel* level)
 
 std::string DiscordRPCManager::getLevelDifficultyAssetName(gd::GJGameLevel* level)
 {
+	if (level->m_autoLevel)
+		return "auto";
+
 	if (level->m_ratingsSum != 0)
 		level->m_difficulty = static_cast<gd::GJDifficulty>(level->m_ratingsSum / 10);
 
@@ -86,14 +92,12 @@ std::string DiscordRPCManager::getLevelDifficultyAssetName(gd::GJGameLevel* leve
 
 	switch (level->m_difficulty)
 	{
-	case gd::GJDifficulty::kGJDifficultyAuto: return "auto";
 	case gd::GJDifficulty::kGJDifficultyEasy: return "easy";
 	case gd::GJDifficulty::kGJDifficultyNormal: return "normal";
 	case gd::GJDifficulty::kGJDifficultyHard: return "hard";
 	case gd::GJDifficulty::kGJDifficultyHarder: return "harder";
 	case gd::GJDifficulty::kGJDifficultyInsane: return "insane";
 	case gd::GJDifficulty::kGJDifficultyDemon: return "hard_demon";
-	default: return "na";
 	}
 
 	return "na";
@@ -106,11 +110,11 @@ bool __fastcall DiscordRPCManager::playLayerInitHook(int* self, void*, gd::GJGam
 
 	return playLayerInit(self, level, unk1, unk2);
 }
-int __fastcall DiscordRPCManager::playLayerOnExitHook(int* self, void*, int unk)
+int __fastcall DiscordRPCManager::playLayerOnQuitHook(int* self, void*)
 {
 	updateRPC(DiscordRPCManager::State::DEFAULT);
 
-	return playLayerOnExit(self, unk);
+	return playLayerOnQuit(self);
 }
 
 bool __fastcall DiscordRPCManager::levelEditorLayerInitHook(int* self, void*, gd::GJGameLevel* level, bool unk)
@@ -137,8 +141,8 @@ void DiscordRPCManager::initHooks()
 {
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2DC4A0), playLayerInitHook,
 				  reinterpret_cast<void**>(&playLayerInit));
-	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2BA240), playLayerOnExitHook,
-				  reinterpret_cast<void**>(&playLayerOnExit));
+	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x2EB480), playLayerOnQuitHook,
+				  reinterpret_cast<void**>(&playLayerOnQuit));
 
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0x239A70), levelEditorLayerInitHook,
 				  reinterpret_cast<void**>(&levelEditorLayerInit));
