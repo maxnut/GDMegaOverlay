@@ -35,7 +35,7 @@ namespace GUI
     ImVec2 getJsonPosition(std::string);
     void setJsonPosition(std::string, ImVec2);
 
-    ImVec2 getJsonSize(std::string);
+    ImVec2 getJsonSize(std::string, ImVec2 defaultSize);
     void setJsonSize(std::string, ImVec2);
 
     void init();

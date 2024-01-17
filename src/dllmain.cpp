@@ -60,7 +60,9 @@ void init()
 		Common::onAudioPitchChange();
 		Common::loadIcons();
 		Clickpacks::init();
-		Updater::checkForUpdate();
+
+		if (Settings::get<bool>("menu/updates/check_on_start", true))
+			Updater::checkForUpdate();
 	});
 
 	GUI::Window generalWindow("General", [] {
@@ -154,7 +156,6 @@ void init()
 	bypassWindow.position = {1050, 50};
 	bypassWindow.size.y = 180;
 	GUI::addWindow(bypassWindow);
-	
 
 	GUI::Window creatorWindow("Creator", [] { JsonHacks::drawFromJson(JsonHacks::creator); });
 	creatorWindow.position = {1300, 50};
@@ -245,7 +246,9 @@ void init()
 			ImGuiHook::setKeybind(Settings::get<int>("menu/togglekey"));
 		}
 
-		if(GUI::button("Check for updates"))
+		GUI::checkbox("Check updates on start", Settings::get<bool*>("menu/updates/check_on_start", true));
+
+		if (GUI::button("Check for updates"))
 			Updater::checkForUpdate();
 	});
 	menuSettings.position = {1050, 250};

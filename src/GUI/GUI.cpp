@@ -25,12 +25,12 @@ void GUI::setJsonPosition(std::string name, ImVec2 pos)
 	windowPositions[name]["y"] = pos.y;
 }
 
-ImVec2 GUI::getJsonSize(std::string name)
+ImVec2 GUI::getJsonSize(std::string name, ImVec2 defaultSize)
 {
-	if (!windowPositions.contains(name) || !windowPositions["name"].contains("w"))
+	if (!windowPositions.contains(name) || !windowPositions[name].contains("w"))
 	{
-		windowPositions[name]["w"] = 220.f;
-		windowPositions[name]["h"] = 120.f;
+		windowPositions[name]["w"] = defaultSize.x;
+		windowPositions[name]["h"] = defaultSize.y;
 	}
 
 	return {windowPositions[name]["w"].get<float>(), windowPositions[name]["h"].get<float>()};
@@ -163,7 +163,7 @@ void GUI::addWindow(Window window)
 	if (windowPositions.contains(window.name))
 	{
 		window.position = getJsonPosition(window.name);
-		window.size = getJsonSize(window.name);
+		window.size = getJsonSize(window.name, window.size);
 	}
 
 	int direction = std::rand() % 4 + 1;
