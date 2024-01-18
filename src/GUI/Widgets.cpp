@@ -47,6 +47,8 @@ bool GUI::checkbox(std::string name, bool* value)
 
 bool GUI::hotkey(std::string name, int* keyPointer, const ImVec2& size_arg)
 {
+	if (!GUI::shouldRender()) return false;
+
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
 		return false;

@@ -18,6 +18,7 @@
 #include "Hacks/ReplayLastCheckpoint.h"
 #include "Hacks/Speedhack.h"
 #include "Hacks/StartposSwitcher.h"
+#include "Hacks/SafeMode.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
@@ -60,6 +61,7 @@ void init()
 		Common::onAudioPitchChange();
 		Common::loadIcons();
 		Clickpacks::init();
+		SafeMode::updateState();
 
 		if (Settings::get<bool>("menu/updates/check_on_start", true))
 			Updater::checkForUpdate();
@@ -187,6 +189,9 @@ void init()
 			ImGuiWindowFlags_AlwaysAutoResize);
 
 		GUI::checkbox("Replay Last Checkpoint", Settings::get<bool*>("level/replay_checkpoint"));
+		if (GUI::checkbox("Safe Mode", Settings::get<bool*>("level/safe_mode/enabled")))
+			SafeMode::updateState();
+		GUI::checkbox("Safe Mode End Screen Label", Settings::get<bool*>("level/safe_mode/endscreen_enabled", true));
 
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
@@ -337,6 +342,7 @@ DWORD WINAPI my_thread(void* hModule)
 		GUI::initHooks();
 		Labels::initHooks();
 		Record::initHooks();
+		SafeMode::initHooks();
 		DiscordRPCManager::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);

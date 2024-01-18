@@ -213,7 +213,7 @@ const char* __fastcall Common::splashStringHook()
 	if (utils::randomInt(0, 100) == 2)
 		return "Bella ragazzi qua e' St3pNy e bentornati in questo nuovo video";
 	else
-		return "GD Mega Overlay - Made by maxnut";
+		return "GD Mega Overlay - Made by maxnut & SpaghettDev";
 }
 
 void Common::initHooks()
