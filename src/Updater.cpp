@@ -44,7 +44,6 @@ void Updater::draw()
 
 		std::stringstream ss;
 		ss << '"' << gdpath << "/GDMO/Updater/GDMOUpdater.exe" << '"';
-		std::cout << ss.str() << std::endl;
 		std::system(ss.str().c_str());
 	});
 

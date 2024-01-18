@@ -171,7 +171,7 @@ size_t CurlWrite_CallbackFunc_StdString(void* contents, size_t size, size_t nmem
 	{
 		s->append((char*)contents, newLength);
 	}
-	catch (std::bad_alloc& e)
+	catch (...)
 	{
 		// handle memory problem
 		return 0;

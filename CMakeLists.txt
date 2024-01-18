@@ -38,6 +38,7 @@ target_include_directories(${PROJECT} PRIVATE
   libs/portaudio/include
   libs/libsndfile/include
   libs/gdr
+  libs/lru_cache
   src/
 )
 

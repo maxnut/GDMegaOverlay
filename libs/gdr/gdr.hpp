@@ -97,9 +97,11 @@ class Replay {
 		Self replay;
 		json replayJson;
 
-		try {
+		try
+		{
 			replayJson = json::from_msgpack(data);
-		} catch(std::exception& e) {
+		} catch(...)
+		{
 			replayJson = json::parse(data);
 		}
 

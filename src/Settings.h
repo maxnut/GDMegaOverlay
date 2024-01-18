@@ -4,8 +4,7 @@
 #include <string_view>
 #include <iostream>
 #include "utils.hpp"
-
-using json = nlohmann::json;
+#include "lru_cache.hpp"
 
 namespace
 {
@@ -26,12 +25,21 @@ namespace
 
 namespace Settings
 {
-	inline json settingsJson;
+	inline nlohmann::json settingsJson;
+	// increment max_size after adding settings
+	inline LRUCache<std::string, nlohmann::json> cache{ 100 };
+	inline bool shouldSave = false;
 
 
 	template<typename T>
 	T get(std::string name, std::remove_pointer_t<T> default_val = get_default<std::remove_pointer_t<T>>())
 	{
+		try
+		{
+			return cache.get(name).get<T>();
+		}
+		catch (...) {}
+
 		if (
 			auto split_name = utils::split(name, "/");
 			split_name.size() > 1
@@ -48,34 +56,35 @@ namespace Settings
 				token = &token->at(split_name[i]);
 			}
 
+			cache.push(name, *token);
 			return token->get<T>();
 		}
 
+		cache.push(name, settingsJson[name]);
 		return settingsJson[name].get<T>();
 	}
 
 	template<typename T>
 	void set(std::string name, T value)
 	{
-		if (
-			auto split_name = utils::split(name, "/");
-			split_name.size() > 1
-		) {
-			nlohmann::json* token = &settingsJson;
+		try
+		{
+			// auto& setting = cache.get(name);
 
-			for (unsigned int i = 0; i < split_name.size(); i++)
-			{
-				if (token && token->contains(split_name[i]) && i == split_name.size() - 1)
-					(*token)[split_name[i]] = value;
-				else if (token && token->contains(split_name[i]))
-					token = &token->at(split_name[i]);
-			}
+			// if (setting.get<T>() != value)
+			// 	shouldSave = true;
+
+			// setting = value;
+			cache.get(name) = value;
 		}
-		else
-			settingsJson[name] = value;
+		catch (...)
+		{
+			std::cout << "this is bad... key wasn't found!" << '\n';
+		}
 	}
 
 
+	void dumpCacheToJson();
 	void save();
 	void load();
 };

@@ -309,7 +309,6 @@ void render()
 			GUI::shortcutLoop = true;
 			GUI::draw();
 			GUI::shortcutLoop = false;
-			Settings::save();
 			JsonHacks::save();
 		}
 	}

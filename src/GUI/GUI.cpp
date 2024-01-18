@@ -156,6 +156,8 @@ void GUI::toggle()
 			transitionDuration, &w, toggle ? w.position : ImVec2(w.position.x + dir.x, w.position.y + dir.y));
 		windowActions.push_back(action);
 	}
+
+	Settings::save();
 }
 
 void GUI::addWindow(Window window)

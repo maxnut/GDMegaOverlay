@@ -307,8 +307,6 @@ void Macrobot::load(std::string file)
 
 	f.close();
 
-	std::cout << macroData.size();
-
 	macro = Macro::importData(macroData);
 }
 
