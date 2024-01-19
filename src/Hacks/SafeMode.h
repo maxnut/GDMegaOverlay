@@ -21,18 +21,20 @@ namespace SafeMode
 
 	void updateState();
 
-	inline const std::array<Opcode, 13> opcodes{
+	inline const std::array<Opcode, 15> opcodes{
 		// PlayLayer::levelComplete
 		Opcode{ 0x2DDC7E, "0F 85 CA 00 00 00", "0F 84 CA 00 00 00" },
 		{ 0x2DDD6A, "0F 85 EA 01 00 00", "0F 84 EA 01 00 00" },
 		{ 0x2DDD70, "80 BB 7C 2A 00 00 00", "90 90 90 90 90 90 90" },
 		{ 0x2DDD77, "0F 85 DD 01 00 00", "90 90 90 90 90 90" },
+		{ 0x2DDEE5, "40", "90" },
 		{ 0x2DDF6E, "0F 85 C2 02 00 00", "0F 84 C2 02 00 00" },
 
 		// PlayLayer::destroyPlayer
-		{ 0x2E6993, "0F 85 85 01 00 00", "90 E9 85 01 00 00" },
-		{ 0x2E6B32, "75 0D", "EB 0D" },
 		{ 0x2E6BDE, "0F 85 AD 00 00 00", "90 E9 AD 00 00 00" },
+		{ 0x2E6B32, "75 0D", "EB 0D" },
+		{ 0x2E69F4, "0F 4F C1", "0F 4C C1" },
+		{ 0x2E6993, "0F 85 85 01 00 00", "90 E9 85 01 00 00" },
 
 		// PlayLayer::incrementJumps
 		{ 0x2EACD0, "FF 81 AC 2E 00 00", "90 90 90 90 90 90" },

@@ -34,7 +34,7 @@ void StartposSwitcher::change(bool right)
 	int* startPosObject = index == -1 ? nullptr : startposObjects[index];
 
 	// delete the startposcheckpoint (see playlayer_resetlevel line 148 in ida)
-	int* startPosCheckpoint = MBO(int*, Common::getBGL(), 2949);
+	int* startPosCheckpoint = reinterpret_cast<int*>(Common::getBGL() + 2949);
 	*startPosCheckpoint = 0;
 
 	if (!startPosObject && index != -1)
