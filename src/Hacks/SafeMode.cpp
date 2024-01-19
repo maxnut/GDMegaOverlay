@@ -3,15 +3,6 @@
 #include "../Settings.h"
 #include "../utils.hpp"
 
-namespace
-{
-	// typeid(...).name() returns "class ClassName", the "+ 6" removes "class "
-	std::string_view getClassName(cocos2d::CCObject* obj)
-	{
-		return (typeid(*obj).name() + 6);
-	}
-}
-
 void SafeMode::initHooks()
 {
 	MH_CreateHook(reinterpret_cast<void*>(utils::gd_base + 0xE74F0), endLevelLayerCustomSetupHook,
@@ -39,18 +30,27 @@ void __fastcall SafeMode::endLevelLayerCustomSetupHook(cocos2d::CCLayer* self, v
 		) return;
 
 	auto layer = reinterpret_cast<cocos2d::CCLayer*>(self->getChildren()->objectAtIndex(0));
+	cocos2d::CCLabelBMFont* messageLabel = nullptr;
 	void* textAreaEndScreen = nullptr; 
 
 	for (unsigned int i = 0; i < layer->getChildrenCount(); i++)
 	{
 		auto object = layer->getChildren()->objectAtIndex(i);
 
-		if (getClassName(object) == "TextArea")
+		if (utils::getClassName(object) == "TextArea")
 			textAreaEndScreen = object;
 	}
+	try
+	{
+		messageLabel = dynamic_cast<cocos2d::CCLabelBMFont*>(layer->getChildren()->objectAtIndex(8));
+	}
+	catch (...) {}
 
-	if (!textAreaEndScreen) return;
 
-	// TextArea::setString
-	reinterpret_cast<void(__thiscall*)(void*, std::string)>(utils::gd_base + 0x52460)(textAreaEndScreen, "- Safe Mode -");
+	if (textAreaEndScreen)
+		// TextArea::setString
+		reinterpret_cast<void(__thiscall*)(void*, std::string)>(utils::gd_base + 0x52460)(textAreaEndScreen, "- Safe Mode -");
+
+	if (messageLabel)
+		messageLabel->setString("- Safe Mode -");
 }

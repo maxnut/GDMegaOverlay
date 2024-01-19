@@ -3,6 +3,7 @@
 #include <cocos2d.h>
 #include <random>
 #include <fstream>
+#include <string_view>
 
 namespace utils
 {
@@ -81,5 +82,11 @@ namespace utils
 		std::uniform_int_distribution<int> distribution(min, max);
 
 		return distribution(generator);
+	}
+
+	// typeid(...).name() returns "class ClassName", the "+ 6" removes "class "
+	inline std::string_view getClassName(cocos2d::CCObject* obj)
+	{
+		return (typeid(*obj).name() + 6);
 	}
 }

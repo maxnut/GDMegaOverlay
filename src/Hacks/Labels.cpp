@@ -304,10 +304,11 @@ void Labels::renderWindow()
 {
 	settingsForLabel("Framerate", [] {});
 	settingsForLabel("CPS", [] {
-		float clickColor[3];
-		clickColor[0] = Settings::get<float>("labels/CPS/color/r", 1.f);
-		clickColor[1] = Settings::get<float>("labels/CPS/color/g", 0.f);
-		clickColor[2] = Settings::get<float>("labels/CPS/color/b", 0.f);
+		float clickColor[3]{
+			Settings::get<float>("labels/CPS/color/r", 1.f),
+			Settings::get<float>("labels/CPS/color/g", 0.f),
+			Settings::get<float>("labels/CPS/color/b", 0.f)
+		};
 
 		if (GUI::colorEdit("Click color", clickColor))
 		{

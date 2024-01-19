@@ -19,6 +19,7 @@
 #include "Hacks/Speedhack.h"
 #include "Hacks/StartposSwitcher.h"
 #include "Hacks/SafeMode.h"
+#include "Hacks/EndLeveLayerInfo.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
@@ -193,6 +194,8 @@ void init()
 			SafeMode::updateState();
 		GUI::checkbox("Safe Mode End Screen Label", Settings::get<bool*>("level/safe_mode/endscreen_enabled", true));
 
+		GUI::checkbox("End Level Layer Info", Settings::get<bool*>("level/endlevellayerinfo/enabled", true));
+
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
 	levelWindow.position = {550, 50};
@@ -342,6 +345,7 @@ DWORD WINAPI my_thread(void* hModule)
 		Labels::initHooks();
 		Record::initHooks();
 		SafeMode::initHooks();
+		EndLevelLayerInfo::initHooks();
 		DiscordRPCManager::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
