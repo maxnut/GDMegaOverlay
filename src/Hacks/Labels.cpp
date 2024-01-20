@@ -1,7 +1,9 @@
 #include "Labels.h"
+#include <cocos2d.h>
 #include "../ConstData.h"
 #include "../GUI/GUI.h"
 #include "../JsonHacks/JsonHacks.h"
+#include "../Common.h"
 
 Labels::Label Labels::setupLabel(std::string labelSettingName,
 								 const std::function<void(cocos2d::CCLabelBMFont*)>& function,
@@ -169,7 +171,9 @@ void __fastcall Labels::playLayerPostUpdateHook(cocos2d::CCLayer* self, void*, f
 }
 
 void Labels::calculatePositions()
-{
+{	
+	if (!MBO(cocos2d::CCLayer*, Common::gameManager, 0x198)) return;
+
 	auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
 	tl.clear();
@@ -177,34 +181,37 @@ void Labels::calculatePositions()
 	bl.clear();
 	br.clear();
 
-	for (Label& l : labels)
+	// TODO: crash keeps happening in this loop for some reason
+	for (auto& label : labels)
 	{
-		int position = Settings::get<int>("labels/" + l.settingName + "/position", 0);
+		if (!label.pointer) continue;
+		int position = Settings::get<int>("labels/" + label.settingName + "/position", 0);
 
 		switch (position)
 		{
 		case 0:
-			l.pointer->setAnchorPoint({0.f, 0.5f});
-			tl.push_back(l);
+			label.pointer->setAnchorPoint({ .0f, .5f });
+			tl.push_back(label);
 			break;
 		case 1:
-			l.pointer->setAnchorPoint({1.f, 0.5f});
-			tr.push_back(l);
+			label.pointer->setAnchorPoint({ 1.f, .5f });
+			tr.push_back(label);
 			break;
 		case 2:
-			l.pointer->setAnchorPoint({0.f, 0.5f});
-			bl.push_back(l);
+			label.pointer->setAnchorPoint({ .0f, .5f });
+			bl.push_back(label);
 			break;
 		case 3:
-			l.pointer->setAnchorPoint({1.f, 0.5f});
-			br.push_back(l);
+			label.pointer->setAnchorPoint({ 1.f, .5f });
+			br.push_back(label);
 			break;
 		}
 	}
 
 	size_t counter = 0;
-	for (auto label : tl)
+	for (auto& label : tl)
 	{
+		if (!label.pointer) continue;
 		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(5.f);
@@ -216,8 +223,10 @@ void Labels::calculatePositions()
 	}
 
 	counter = 0;
-	for (auto label : tr)
+	for (auto& label : tr)
 	{
+		if (!label.pointer) continue;
+
 		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(size.width - 5.f);
@@ -229,8 +238,10 @@ void Labels::calculatePositions()
 	}
 
 	counter = 0;
-	for (auto label : bl)
+	for (auto& label : bl)
 	{
+		if (!label.pointer) continue;
+
 		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(5.f);
@@ -242,8 +253,10 @@ void Labels::calculatePositions()
 	}
 
 	counter = 0;
-	for (auto label : br)
+	for (auto& label : br)
 	{
+		if (!label.pointer) continue;
+
 		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(size.width - 5.f);

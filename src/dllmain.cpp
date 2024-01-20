@@ -20,6 +20,7 @@
 #include "Hacks/StartposSwitcher.h"
 #include "Hacks/SafeMode.h"
 #include "Hacks/EndLevelLayerInfo.h"
+#include "Hacks/HidePause.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
@@ -70,7 +71,6 @@ void init()
 
 	GUI::Window generalWindow("General", [] {
 		float framerate = Settings::get<float>("general/fps/value", 60.f);
-
 		if (GUI::inputFloat("##FPSValue", &framerate))
 			Settings::set<float>("general/fps/value", framerate);
 
@@ -84,6 +84,7 @@ void init()
 
 		if (GUI::checkbox("FPS", Settings::get<bool*>("general/fps/enabled")))
 			Common::calculateFramerate();
+
 
 		float speedhack = Settings::get<float>("general/speedhack/value", 60.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
@@ -99,6 +100,7 @@ void init()
 
 		if (GUI::checkbox("Speedhack", Settings::get<bool*>("general/speedhack/enabled")))
 			Common::calculateFramerate();
+
 
 		float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
 		if (GUI::inputFloat("##PitchShiftValue", &pitch, 0.5f, 2.f))
@@ -143,8 +145,8 @@ void init()
 		if (GUI::checkbox("Tie Music To Game Speed", Settings::get<bool*>("general/tie_to_game_speed/music/enabled")))
 			Common::onAudioSpeedChange();
 
-		int priority = Settings::get<int>("general/priority", 2);
 
+		int priority = Settings::get<int>("general/priority", 2);
 		if (GUI::combo("Thread Priority", &priority, priorities, 5))
 		{
 			Settings::set<int>("general/priority", priority);
@@ -167,6 +169,9 @@ void init()
 
 	GUI::Window globalWindow("Global", [] {
 		GUI::checkbox("Discord Rich Presence", Settings::get<bool*>("general/discordrpc/enabled"));
+
+		GUI::checkbox("Hide Pause Button", Settings::get<bool*>("general/hide_pause/button"));
+		GUI::checkbox("Hide Pause Menu", Settings::get<bool*>("general/hide_pause/menu"));
 
 		JsonHacks::drawFromJson(JsonHacks::global);
 	});
@@ -204,19 +209,18 @@ void init()
 
 	GUI::Window menuSettings("Menu Settings", [] {
 		int snap = Settings::get<int>("menu/window/snap", 10);
-		int snapSize = Settings::get<int>("menu/window/size_snap", 10);
-		float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
-		float windowOpacity = Settings::get<float>("menu/window/opacity", 0.98f);
-
 		if (GUI::dragInt("Window Snap", &snap, 0))
 			Settings::set<int>("menu/window/snap", snap);
 
+		int snapSize = Settings::get<int>("menu/window/size_snap", 10);
 		if (GUI::dragInt("Size Snap", &snapSize, 0))
 			Settings::set<int>("menu/window/size_snap", snapSize);
 
+		float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
 		if (GUI::dragFloat("Transition Duration", &transitionDuration, 0))
 			Settings::set<float>("menu/transition_duration", transitionDuration);
 
+		float windowOpacity = Settings::get<float>("menu/window/opacity", 0.98f);
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Settings::set<float>("menu/window/opacity", windowOpacity);
 
@@ -346,6 +350,7 @@ DWORD WINAPI my_thread(void* hModule)
 		Record::initHooks();
 		SafeMode::initHooks();
 		EndLevelLayerInfo::initHooks();
+		HidePause::initHooks();
 		DiscordRPCManager::initHooks();
 
 		MH_EnableHook(MH_ALL_HOOKS);
