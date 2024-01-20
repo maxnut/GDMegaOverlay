@@ -39,13 +39,15 @@ void __fastcall SafeMode::endLevelLayerCustomSetupHook(cocos2d::CCLayer* self, v
 
 		if (utils::getClassName(object) == "TextArea")
 			textAreaEndScreen = object;
-	}
-	try
-	{
-		messageLabel = dynamic_cast<cocos2d::CCLabelBMFont*>(layer->getChildren()->objectAtIndex(8));
-	}
-	catch (...) {}
+		else if (utils::getClassName(object) == "cocos2d::CCLabelBMFont")
+		{
+			auto label = reinterpret_cast<cocos2d::CCLabelBMFont*>(object);
+			std::string labelText = label->getString();
 
+			if (!labelText.starts_with("Attempts: ") && !labelText.starts_with("Jumps: ") && !labelText.starts_with("Time: "))
+				messageLabel = label;
+		}
+	}
 
 	if (textAreaEndScreen)
 		// TextArea::setString

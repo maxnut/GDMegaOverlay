@@ -4,11 +4,35 @@
 #include <random>
 #include <fstream>
 #include <string_view>
+#include <algorithm>
+
+inline bool operator==(const cocos2d::CCPoint& a, const cocos2d::CCPoint& b)
+{
+	return a.x == b.x && a.y == b.y;
+}
+inline bool operator==(const cocos2d::CCRect& a, const cocos2d::CCRect& b)
+{
+	return a.origin == b.origin && a.size == b.size;
+}
 
 namespace utils
 {
 #define MEMBERBYOFFSET(type, class, offset) *reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(class) + offset)
 #define MBO MEMBERBYOFFSET
+
+#define public_cast(value, member) [](auto* v) { \
+	class FriendClass__; \
+	using T = std::remove_pointer<decltype(v)>::type; \
+	class FriendeeClass__: public T { \
+	protected: \
+		friend FriendClass__; \
+	}; \
+	class FriendClass__ { \
+	public: \
+		auto& get(FriendeeClass__* v) { return v->member; } \
+	} c; \
+	return c.get(reinterpret_cast<FriendeeClass__*>(v)); \
+}(value)
 
 	inline uintptr_t gd_base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
 	inline uintptr_t cc_base = reinterpret_cast<uintptr_t>(GetModuleHandle("libcocos2d.dll"));
@@ -88,5 +112,17 @@ namespace utils
 	inline std::string_view getClassName(cocos2d::CCObject* obj)
 	{
 		return (typeid(*obj).name() + 6);
+	}
+
+	template<typename T, std::size_t S>
+	inline std::size_t getElementCount(std::array<T, S> const& array, T elem)
+	{
+		return std::count(array.begin(), array.end(), elem);
+	}
+	// nullptr overload
+	template<typename T, std::size_t S>
+	inline std::size_t getElementCount(std::array<T*, S> const& array, std::nullptr_t elem)
+	{
+		return std::count(array.begin(), array.end(), elem);
 	}
 }

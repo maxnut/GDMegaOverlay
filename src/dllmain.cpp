@@ -19,7 +19,7 @@
 #include "Hacks/Speedhack.h"
 #include "Hacks/StartposSwitcher.h"
 #include "Hacks/SafeMode.h"
-#include "Hacks/EndLeveLayerInfo.h"
+#include "Hacks/EndLevelLayerInfo.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
