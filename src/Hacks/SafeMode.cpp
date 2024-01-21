@@ -44,7 +44,10 @@ void __fastcall SafeMode::endLevelLayerCustomSetupHook(cocos2d::CCLayer* self, v
 			auto label = reinterpret_cast<cocos2d::CCLabelBMFont*>(object);
 			std::string labelText = label->getString();
 
-			if (!labelText.starts_with("Attempts: ") && !labelText.starts_with("Jumps: ") && !labelText.starts_with("Time: "))
+			// TODO: create a CCLabelBMFont if this is false
+			if (
+				!labelText.starts_with("Attempts: ") && !labelText.starts_with("Jumps: ") &&
+				!labelText.starts_with("Time: ") && !labelText.starts_with("Points: "))
 				messageLabel = label;
 		}
 	}

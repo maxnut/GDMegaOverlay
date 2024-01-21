@@ -1,4 +1,5 @@
 #include <cocos2d.h>
+#include <fstream>
 #include "HidePause.h"
 #include "../Settings.h"
 #include "../Common.h"
@@ -20,10 +21,14 @@ void __fastcall HidePause::CCSchedulerUpdateHook(cocos2d::CCScheduler* self, voi
 	{
 		auto uiLayer = reinterpret_cast<cocos2d::CCLayer*>(playLayer->getChildren()->objectAtIndex(8));
 
+		if (utils::getClassName(uiLayer) == "EndLevelLayer")
+			uiLayer = reinterpret_cast<cocos2d::CCLayer*>(playLayer->getChildren()->objectAtIndex(9));
+
 		if (uiLayer && uiLayer->getChildrenCount() > 0)
 			reinterpret_cast<cocos2d::CCMenu*>(
 				uiLayer->getChildren()->objectAtIndex(0)
 			)->setVisible(!Settings::get<bool>("general/hide_pause/button"));
+
 
 		if (
 			MBO(bool, MBO(cocos2d::CCLayer*, Common::gameManager, 0x198), 0x2F17) &&

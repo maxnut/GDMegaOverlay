@@ -2,6 +2,7 @@
 #include <cocos2d.h>
 #include "EndLevelLayerInfo.h"
 #include "Labels.h"
+#include "../types/GJGameLevel.hpp"
 #include "../Settings.h"
 #include "../Common.h"
 #include "../utils.hpp"
@@ -65,8 +66,11 @@ void __fastcall EndLevelLayerInfo::endLevelLayerCustomSetupHook(cocos2d::CCLayer
 			// bool m_isPlatformer; [[PlayLayer + 0x878] + 0x920]
 			if (MBO(bool, MBO(cocos2d::CCNode*, playLayer, 0x878), 0x920))
 			{
-				labelsCountLimit = 1;
-				node->setPositionY(node->getPositionY() - 10.f);
+				// unk m_unkPoints; [[EndLevelLayer + 0x1E0] + 0x5D8]
+				if (MBO(int, MBO(void*, self, 0x1E0), 0x5D8))
+					labelsCountLimit = 2;
+				else
+					labelsCountLimit = 1;
 			}
 
 			textPosition.x = node->getPositionX();
@@ -76,6 +80,7 @@ void __fastcall EndLevelLayerInfo::endLevelLayerCustomSetupHook(cocos2d::CCLayer
 	}
 
 
+	// TODO: centering when level is platformer
 	auto noclipAccuracyLabelELL = cocos2d::CCLabelBMFont::create(
 		cocos2d::CCString::createWithFormat(
 			"Accuracy: %.2f%%",
@@ -118,6 +123,7 @@ void __fastcall EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(cocos2d::CCLay
 		// stars // orbs  // keys
 		nullptr, nullptr, nullptr
 	};
+	cocos2d::CCLabelBMFont* completionLabel = nullptr;
 	auto setCoinXPos = [&](std::size_t index, float position)
 	{
 		if (coins.at(index))
@@ -158,6 +164,20 @@ void __fastcall EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(cocos2d::CCLay
 				coinsBgCount++;
 			}
 		}
+
+		if (utils::getClassName(node) == "cocos2d::CCLabelBMFont")
+		{
+			auto label = reinterpret_cast<cocos2d::CCLabelBMFont*>(node);
+			std::string labelText = label->getString();
+
+			// wtf
+			if (
+				!labelText.starts_with("Attempts: ") && !labelText.starts_with("Jumps: ") &&
+				!labelText.starts_with("Time: ") && !labelText.starts_with("Accuracy: ") &&
+				!labelText.starts_with("Deaths: ")
+				)
+				completionLabel = label;
+		}
 	}
 
 
@@ -180,6 +200,15 @@ void __fastcall EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(cocos2d::CCLay
 		case 2:
 			for (std::size_t i = 0; i < coins.size(); i++)
 				setCoinXPos(i, coinsPositions1[i]);
+
+			break;
+
+		case 3:
+			if (completionLabel)
+			{
+				completionLabel->setPositionX(200.f);
+				completionLabel->limitLabelWidth(200.f, .9f, .3f);
+			}
 
 			break;
 
