@@ -1,0 +1,9 @@
+{
+	"geode": "2.0.0-beta.4",
+	"gd": "2.204",
+	"version": "v2.1.0",
+	"id": "maxnu.gd_mega_overlay",
+	"name": "GD Mega Overlay",
+	"developer": "maxnu",
+	"description": "Free, feature-rich, gui-integrated geometry dash mod menu"
+}
