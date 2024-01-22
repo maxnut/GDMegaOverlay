@@ -21,10 +21,10 @@ class $modify(PlayLayer)
 		return PlayLayer::init(level, unk1, unk2);
 	}
 
-	void onExit()
+	void onQuit()
 	{
 		updateRPC(DiscordRPCManager::State::DEFAULT);
-		PlayLayer::onExit();
+		PlayLayer::onQuit();
 	}
 };
 
@@ -34,12 +34,6 @@ class $modify(LevelEditorLayer)
 	{
 		updateRPC(DiscordRPCManager::State::EDITING_LEVEL, level);
 		return LevelEditorLayer::init(level, unk);
-	}
-
-	void onExit()
-	{
-		updateRPC(DiscordRPCManager::State::DEFAULT);
-		LevelEditorLayer::onExit();
 	}
 };
 
@@ -57,7 +51,7 @@ void DiscordRPCManager::init()
 	if (!core) discord::Core::Create(clientID, DiscordCreateFlags_NoRequireDiscord, &core);
 	if (!core) return;
 
-	rpcTimeStart = std::chrono::duration_cast<std::chrono::seconds>(
+	rpcStartTime = std::chrono::duration_cast<std::chrono::seconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
 	playerName = GJAccountManager::sharedState()->m_username; //MBO(std::string, Common::gjAccountManager, 0x10C);
@@ -83,6 +77,10 @@ void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 		{
 		case State::PLAYING_LEVEL:
 			activity.SetState("Playing a level");
+			levelStartTime = std::chrono::duration_cast<std::chrono::seconds>(
+				std::chrono::system_clock::now().time_since_epoch()
+			).count();
+
 			if (level->m_creatorName.empty()) // usually only happens on main levels
 				activity.SetDetails(std::format("{}", level->m_levelName.c_str()).c_str());
 			else
@@ -105,7 +103,7 @@ void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 			break;
 		}
 
-		activity.GetTimestamps().SetStart(rpcTimeStart);
+		activity.GetTimestamps().SetStart(state == State::PLAYING_LEVEL ? levelStartTime : rpcStartTime);
 		activity.GetAssets().SetLargeText(playerName.c_str());
 		activity.GetAssets().SetLargeImage("cool");
 		activity.SetType(discord::ActivityType::Playing);
@@ -133,15 +131,26 @@ std::string DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
 
 	switch (level->m_difficulty)
 	{
-	case GJDifficulty::Auto: return "auto";
+	case GJDifficulty::Auto && level->m_ratingsSum != 0: return "auto";
 	case GJDifficulty::Easy: return "easy";
 	case GJDifficulty::Normal: return "normal";
 	case GJDifficulty::Hard: return "hard";
 	case GJDifficulty::Harder: return "harder";
 	case GJDifficulty::Insane: return "insane";
 	case GJDifficulty::Demon: return "hard_demon";
-	default: return "na";
 	}
 
 	return "na";
+}
+
+void DiscordRPCManager::editorPauseLayerOnExitEditorHook(void* self, void* sender)
+{
+	updateRPC(DiscordRPCManager::State::DEFAULT);
+
+	return reinterpret_cast<void(__thiscall*)(void*, void*)>(util::gd_base + 0xA2EF0)(self, sender);
+}
+
+$execute
+{
+	Mod::get()->hook(reinterpret_cast<void*>(util::gd_base + 0xA2EF0), &editorPauseLayerOnExitEditorHook, "EditorPauseLayer::onExitEditor", tulip::hook::TulipConvention::Thiscall);
 }
