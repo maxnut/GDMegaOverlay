@@ -4,15 +4,22 @@
 #include <fstream>
 #include <imgui.h>
 
+#include <Geode/Geode.hpp>
+
+using namespace geode::prelude;
+
 void JsonHacks::load()
 {
 	auto read_or_default = [](std::string modsName, nlohmann::json& mods) {
-		std::ifstream file(modsName);
+
+		std::string path = Mod::get()->getResourcesDir().string() + "/" + modsName;
+
+		std::ifstream file(path);
 
 		if (file.peek() == std::ifstream::traits_type::eof())
 		{
 			file.close();
-			std::ofstream file_write(modsName);
+			std::ofstream file_write(path);
 			file_write << mods;
 			file_write.close();
 		}
@@ -37,12 +44,12 @@ void JsonHacks::load()
 	player = nlohmann::json::object();
 	variables = nlohmann::json::object();
 
-	read_or_default("GDMO\\mod\\bypass.json", bypass);
-	read_or_default("GDMO\\mod\\creator.json", creator);
-	read_or_default("GDMO\\mod\\global.json", global);
-	read_or_default("GDMO\\mod\\level.json", level);
-	read_or_default("GDMO\\mod\\player.json", player);
-	read_or_default("GDMO\\mod\\variables.json", variables);
+	read_or_default("bypass.json", bypass);
+	read_or_default("creator.json", creator);
+	read_or_default("global.json", global);
+	read_or_default("level.json", level);
+	read_or_default("player.json", player);
+	read_or_default("variables.json", variables);
 }
 
 void JsonHacks::toggleHack(nlohmann::json& mods, std::size_t index, bool toggle)
@@ -85,15 +92,16 @@ void JsonHacks::drawFromJson(nlohmann::json& mods)
 void JsonHacks::save()
 {
 	auto write_mods = [](std::string modsName, nlohmann::json& mods) {
-		std::ofstream file_write(modsName);
+		std::string path = Mod::get()->getResourcesDir().string() + "/" + modsName;
+		std::ofstream file_write(path);
 		file_write << mods.dump(4);
 		file_write.close();
 	};
 
-	write_mods("GDMO\\mod\\bypass.json", bypass);
-	write_mods("GDMO\\mod\\creator.json", creator);
-	write_mods("GDMO\\mod\\global.json", global);
-	write_mods("GDMO\\mod\\level.json", level);
-	write_mods("GDMO\\mod\\player.json", player);
-	write_mods("GDMO\\mod\\variables.json", variables);
+	write_mods("bypass.json", bypass);
+	write_mods("creator.json", creator);
+	write_mods("global.json", global);
+	write_mods("level.json", level);
+	write_mods("player.json", player);
+	write_mods("variables.json", variables);
 }

@@ -13,7 +13,13 @@ bool GUI::Shortcut::handleShortcut(std::string& name)
 	{
 		bool openPopup = false;
 
-		if (ImGui::BeginPopupContextItem(name.c_str(), ImGuiPopupFlags_MouseButtonRight))
+		if(ImGui::IsKeyDown(ImGuiKey_LeftShift) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			ImGui::OpenPopup(name.c_str());
+			std::cout << "dioporco" << std::endl;
+		}
+
+		if (ImGui::BeginPopupContextItem(name.c_str()))
 		{
 			if (ImGui::MenuItem(("Add shortcut##" + name).c_str()))
 				openPopup = true;

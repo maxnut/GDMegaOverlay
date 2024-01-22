@@ -31,7 +31,6 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   libs/discord_game_sdk/cpp
-  libs/portaudio/include
   libs/libsndfile/include
   libs/gdr
   src/
@@ -46,7 +45,6 @@ target_link_libraries(${PROJECT_NAME} imgui-cocos)
 
 target_link_libraries(${PROJECT_NAME}
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
-  ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
   ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
 )
 

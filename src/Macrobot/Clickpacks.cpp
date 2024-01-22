@@ -6,6 +6,10 @@
 #include "../portable-file-dialogs.h"
 #include <filesystem>
 
+#include <Geode/Geode.hpp>
+
+using namespace geode::prelude;
+
 namespace fs = std::filesystem;
 
 Clickpack Clickpack::fromPath(std::string pathString)
@@ -60,7 +64,7 @@ void Clickpacks::drawGUI()
 		{
 			std::string clickPath = Settings::get<std::string>("clickpacks/path", "");
 
-			const auto result = pfd::select_folder("Choose a folder", "GDMO\\clickpacks").result();
+			const auto result = pfd::select_folder("Choose a folder", Mod::get()->getSaveDir().string() + "\\clickpacks").result();
 
 			if (!result.empty())
 			{

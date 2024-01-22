@@ -9,12 +9,12 @@
 	"name": "GD Mega Overlay",
 	"developer": "maxnu",
 	"description": "Free, feature-rich, gui-integrated geometry dash mod menu",
-	"repository": "https://github.com/maxnut/GDMegaOverlay",
 	"resources": {
 		"files": [
-			"libs/discord_game_sdk/discord_game_sdk.dll",
-			"libs/libsndfile/sndfile.dll",
-			"libs/portaudio/portaudio_x86.dll"
+			"res/bin/*.dll",
+			"res/hacks/*.json",
+			"res/Style.style",
+			"res/arial.ttf"
 		]
 	}
 }

@@ -24,11 +24,10 @@ using namespace geode::prelude;
 #include "Macrobot/Macrobot.h"
 #include "Macrobot/Record.h"
 #include "Settings.h"
-#include "Updater.h"
 
 void init()
 {
-#ifdef DEV_CONSOLE
+
 	if (AllocConsole())
 	{
 		freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
@@ -36,16 +35,16 @@ void init()
 		SetConsoleCP(CP_UTF8);
 		SetConsoleOutputCP(CP_UTF8);
 	}
-#endif
 
-	if (!std::filesystem::exists("GDMO"))
-		std::filesystem::create_directory("GDMO");
-	if (!std::filesystem::exists("GDMO\\mod"))
-		std::filesystem::create_directory("GDMO\\mod");
-	if (!std::filesystem::exists("GDMO\\renders"))
-		std::filesystem::create_directory("GDMO\\renders");
-	if (!std::filesystem::exists("GDMO\\clickpacks"))
-		std::filesystem::create_directory("GDMO\\clickpacks");
+
+	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\mod"))
+		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\mod");
+		if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\macros"))
+		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\macros");
+	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\renders"))
+		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\renders");
+	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\clickpacks"))
+		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\clickpacks");
 
 	Settings::load();
 	JsonHacks::load();
@@ -59,9 +58,6 @@ void init()
 		Common::onAudioPitchChange();
 		Common::loadIcons();
 		Clickpacks::init();
-
-		if (Settings::get<bool>("menu/updates/check_on_start", true))
-			Updater::checkForUpdate();
 	});
 
 	GUI::Window generalWindow("General", [] {
@@ -244,10 +240,10 @@ void init()
 		if (GUI::hotkey("Toggle Menu", &togglekey))
 			Settings::set<int>("menu/togglekey", togglekey);
 
-		GUI::checkbox("Check updates on start", Settings::get<bool*>("menu/updates/check_on_start", true));
-
-		if (GUI::button("Check for updates"))
-			Updater::checkForUpdate();
+		if(GUI::button("Open Resources Folder"))
+			ShellExecute(0, NULL, Mod::get()->getResourcesDir().string().c_str(), NULL, NULL, SW_SHOW);
+		if(GUI::button("Open Save Folder"))
+			ShellExecute(0, NULL, Mod::get()->getSaveDir().string().c_str(), NULL, NULL, SW_SHOW);
 	});
 	menuSettings.position = {1050, 250};
 	menuSettings.size.y = 300;
@@ -292,21 +288,7 @@ void init()
 
 void render()
 {
-	for (GUI::Shortcut& s : GUI::shortcuts)
-	{
-		if (ImGui::IsKeyPressed((ImGuiKey)s.key, false))
-		{
-			GUI::currentShortcut = s.name;
-			GUI::shortcutLoop = true;
-			GUI::draw();
-			GUI::shortcutLoop = false;
-			Settings::save();
-			JsonHacks::save();
-		}
-	}
-
 	GUI::draw();
-	Updater::draw();
 	GUI::setStyle();
 
 	if (DiscordRPCManager::core)
