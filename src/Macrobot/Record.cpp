@@ -129,7 +129,7 @@ void Recorder::start()
 
 	GameManager::get()->getPlayLayer()->resetLevel();
 
-	std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelID;
+	std::string level_id = std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value());
 	auto bg_volume = 1;
 	auto sfx_volume = 1;
 
