@@ -2,7 +2,7 @@
 #include "../ConstData.h"
 #include "../GUI/GUI.h"
 #include "../JsonHacks/JsonHacks.h"
-#include "../Settings.h"
+
 #include "../util.hpp"
 #include "AudioRecord.h"
 
@@ -101,7 +101,7 @@ class $modify(GJBaseGameLayer)
 				JsonHacks::toggleHack(JsonHacks::player, 0, false);
 			}
 
-			int correctionType = Settings::get<int>("macrobot/corrections", 0);
+			int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
 			if (AudioRecord::recording)
 				correctionType = 1;
 
@@ -346,10 +346,10 @@ void Macrobot::drawWindow()
 		if (GUI::button("Load##macro"))
 			load(macroName);
 
-		int corrections = Settings::get<int>("macrobot/corrections", 0);
+		int corrections = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
 
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
-			Settings::set<int>("macrobot/corrections", corrections);
+			Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);
 
 		GUI::marker("[INFO]", "Corrections are recommended to be safe, but the bot also works decently without.");
 	}

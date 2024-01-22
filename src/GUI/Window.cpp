@@ -1,7 +1,8 @@
 #include "Window.h"
 #include "GUI.h"
 
-#include "../Settings.h"
+#include <Geode/Geode.hpp>
+using namespace geode::prelude;
 
 using namespace GUI;
 
@@ -34,12 +35,12 @@ bool Window::visibleInScreen()
 
 void Window::draw()
 {
-	if (GUI::isVisible)
+	if (GUI::isVisible && visibleInScreen())
 	{
 		if (maxSize.x != 0 && maxSize.y != 0)
 			ImGui::SetNextWindowSizeConstraints(minSize, maxSize);
 
-		float windowTransparency = Settings::get<float>("menu/window/opacity", 0.98f);
+		float windowTransparency = Mod::get()->getSavedValue<float>("menu/window/opacity", 0.98f);
 
 		ImGui::SetNextWindowBgAlpha(windowTransparency);
 
@@ -49,11 +50,11 @@ void Window::draw()
 		{
 			position = ImGui::GetWindowPos();
 			size = ImGui::GetWindowSize();
-			int snap = Settings::get<int>("menu/window/snap", 10);
+			int snap = Mod::get()->getSavedValue<int>("menu/window/snap", 10);
 			if (snap > 1.f)
 				position = {roundSnap(position.x, snap), roundSnap(position.y, snap)};
 
-			int sizeSnap = Settings::get<int>("menu/window/size_snap", 10);
+			int sizeSnap = Mod::get()->getSavedValue<int>("menu/window/size_snap", 10);
 			if (sizeSnap > 1.f)
 				size = {roundSnap(size.x, sizeSnap), roundSnap(size.y, sizeSnap)};
 

@@ -1,6 +1,6 @@
 #include "ReplayLastCheckpoint.h"
 #include "../Common.h"
-#include "../Settings.h"
+
 #include "../util.hpp"
 
 #include <Geode/modify/PlayLayer.hpp>
@@ -14,7 +14,7 @@ class $modify(PlayLayer)
 	// he calls togglepracticemode tho :)
 	void resetLevelFromStart()
 	{
-		bool replay = Settings::get<bool>("level/replay_checkpoint");
+		bool replay = Mod::get()->getSavedValue<bool>("level/replay_checkpoint");
 	
 		if (replay && levelCompleted)
 		{

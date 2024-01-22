@@ -1,9 +1,11 @@
 #pragma once
 
 #include "../Common.h"
-#include "../Settings.h"
+
 
 #include <functional>
+#include <Geode/Geode.hpp>
+using namespace geode::prelude;
 
 namespace Labels
 {
@@ -17,7 +19,7 @@ public:
 
 	void process()
 	{
-		if (Settings::get<bool>("labels/" + settingName + "/enabled", false))
+		if (Mod::get()->getSavedValue<bool>("labels/" + settingName + "/enabled", false))
 			function(pointer);
 	}
 };

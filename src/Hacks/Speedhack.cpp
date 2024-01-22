@@ -1,7 +1,7 @@
 #include "Speedhack.h"
 #include "../Common.h"
 #include "../Macrobot/Macrobot.h"
-#include "../Settings.h"
+
 #include "../Macrobot/AudioRecord.h"
 
 #include <Geode/modify/CCScheduler.hpp>
@@ -14,7 +14,7 @@ class $modify(CCScheduler)
 	void update(float dt)
 	{
 		float speedhack =
-		Settings::get<bool>("general/speedhack/enabled") ? Settings::get<float>("general/speedhack/value") : 1.f;
+		Mod::get()->getSavedValue<bool>("general/speedhack/enabled") ? Mod::get()->getSavedValue<float>("general/speedhack/value") : 1.f;
 
 		dt *= speedhack;
 
@@ -22,8 +22,8 @@ class $modify(CCScheduler)
 		{
 			float framerate;
 
-			if (Settings::get<bool>("general/fps/enabled"))
-				framerate = Settings::get<float>("general/fps/value", 60.f);
+			if (Mod::get()->getSavedValue<bool>("general/fps/enabled"))
+				framerate = Mod::get()->getSavedValue<float>("general/fps/value", 60.f);
 			else
 				framerate = GameManager::get()->m_customFPSTarget;
 

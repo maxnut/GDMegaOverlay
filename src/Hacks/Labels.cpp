@@ -6,6 +6,8 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/PlayerObject.hpp>
 
+#include <Geode/Geode.hpp>
+
 using namespace geode::prelude;
 using namespace Labels;
 
@@ -13,7 +15,7 @@ Labels::Label Labels::setupLabel(std::string labelSettingName,
 								 const std::function<void(cocos2d::CCLabelBMFont*)>& function,
 								 cocos2d::CCLayer* playLayer)
 {
-	int opacity = Settings::get<int>("labels/" + labelSettingName + "/opacity", 150);
+	int opacity = Mod::get()->getSavedValue<int>("labels/" + labelSettingName + "/opacity", 150);
 
 	auto label = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
 	label->setZOrder(1000);
@@ -60,9 +62,9 @@ class $modify(PlayLayer)
 				if (click)
 				{
 					float clickColor[3];
-					clickColor[0] = Settings::get<float>("labels/CPS/color/r", 1) * 255.f;
-					clickColor[1] = Settings::get<float>("labels/CPS/color/g", 0.2f) * 255.f;
-					clickColor[2] = Settings::get<float>("labels/CPS/color/b", 0.2f) * 255.f;
+					clickColor[0] = Mod::get()->getSavedValue<float>("labels/CPS/color/r", 1) * 255.f;
+					clickColor[1] = Mod::get()->getSavedValue<float>("labels/CPS/color/g", 0.2f) * 255.f;
+					clickColor[2] = Mod::get()->getSavedValue<float>("labels/CPS/color/b", 0.2f) * 255.f;
 
 					pointer->setColor({(GLubyte)clickColor[0], (GLubyte)clickColor[1], (GLubyte)clickColor[2]});
 				}
@@ -80,7 +82,7 @@ class $modify(PlayLayer)
 				auto tm = *std::localtime(&t);
 				std::ostringstream s;
 
-				bool h12 = Settings::get<bool>("labels/Time/12h", false);
+				bool h12 = Mod::get()->getSavedValue<bool>("labels/Time/12h", false);
 
 				if (!h12)
 					s << std::put_time(&tm, "%H:%M:%S");
@@ -96,7 +98,7 @@ class $modify(PlayLayer)
 			[&](cocos2d::CCLabelBMFont* pointer) {
 				float p = (float)(frames - deaths) / (float)frames;
 				float acc = p * 100.f;
-				float limit = Settings::get<float>("labels/Noclip Accuracy/limit", 0.f);
+				float limit = Mod::get()->getSavedValue<float>("labels/Noclip Accuracy/limit", 0.f);
 
 				if (!dead)
 				{
@@ -198,7 +200,7 @@ void Labels::calculatePositions()
 
 	for (Label& l : labels)
 	{
-		int position = Settings::get<int>("labels/" + l.settingName + "/position", 0);
+		int position = Mod::get()->getSavedValue<int>("labels/" + l.settingName + "/position", 0);
 
 		switch (position)
 		{
@@ -224,7 +226,7 @@ void Labels::calculatePositions()
 	size_t counter = 0;
 	for (auto label : tl)
 	{
-		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
+		if (Mod::get()->getSavedValue<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(5.f);
 			label.pointer->setPositionY(size.height - 10 - (15 * counter));
@@ -237,7 +239,7 @@ void Labels::calculatePositions()
 	counter = 0;
 	for (auto label : tr)
 	{
-		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
+		if (Mod::get()->getSavedValue<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(size.width - 5.f);
 			label.pointer->setPositionY(size.height - 10 - (15 * counter));
@@ -250,7 +252,7 @@ void Labels::calculatePositions()
 	counter = 0;
 	for (auto label : bl)
 	{
-		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
+		if (Mod::get()->getSavedValue<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(5.f);
 			label.pointer->setPositionY(10 + (15 * counter));
@@ -263,7 +265,7 @@ void Labels::calculatePositions()
 	counter = 0;
 	for (auto label : br)
 	{
-		if (Settings::get<bool>("labels/" + label.settingName + "/enabled", false))
+		if (Mod::get()->getSavedValue<bool>("labels/" + label.settingName + "/enabled", false))
 		{
 			label.pointer->setPositionX(size.width - 5.f);
 			label.pointer->setPositionY(10 + (15 * counter));
@@ -276,23 +278,23 @@ void Labels::calculatePositions()
 
 void Labels::settingsForLabel(std::string labelSettingName, std::function<void()> extraSettings)
 {
-	if (GUI::checkbox(labelSettingName.c_str(), Settings::get<bool*>("labels/" + labelSettingName + "/enabled", false)))
+	if (GUI::checkbox(labelSettingName.c_str(), "labels/" + labelSettingName + "/enabled"))
 		calculatePositions();
 
 	GUI::arrowButton("Settings##" + labelSettingName);
 
 	GUI::modalPopup("Settings##" + labelSettingName, [&] {
-		int position = Settings::get<int>("labels/" + labelSettingName + "/position", 0); // 0 tl 1 tr 2 bl 3 br
+		int position = Mod::get()->getSavedValue<int>("labels/" + labelSettingName + "/position", 0); // 0 tl 1 tr 2 bl 3 br
 		if (GUI::combo("Position##" + labelSettingName, &position, positions, 4))
 		{
-			Settings::set<int>("labels/" + labelSettingName + "/position", position);
+			Mod::get()->setSavedValue<int>("labels/" + labelSettingName + "/position", position);
 			calculatePositions();
 		}
 
-		int opacity = Settings::get<int>("labels/" + labelSettingName + "/opacity", 150);
+		int opacity = Mod::get()->getSavedValue<int>("labels/" + labelSettingName + "/opacity", 150);
 
 		if (GUI::inputInt("Opacity##" + labelSettingName, &opacity, 10, 255))
-			Settings::set<int>("labels/" + labelSettingName + "/opacity", opacity);
+			Mod::get()->setSavedValue<int>("labels/" + labelSettingName + "/opacity", opacity);
 
 		extraSettings();
 	});
@@ -303,22 +305,22 @@ void Labels::renderWindow()
 	settingsForLabel("Framerate", [] {});
 	settingsForLabel("CPS", [] {
 		float clickColor[3];
-		clickColor[0] = Settings::get<float>("labels/CPS/color/r", 1.f);
-		clickColor[1] = Settings::get<float>("labels/CPS/color/g", 0.f);
-		clickColor[2] = Settings::get<float>("labels/CPS/color/b", 0.f);
+		clickColor[0] = Mod::get()->getSavedValue<float>("labels/CPS/color/r", 1.f);
+		clickColor[1] = Mod::get()->getSavedValue<float>("labels/CPS/color/g", 0.f);
+		clickColor[2] = Mod::get()->getSavedValue<float>("labels/CPS/color/b", 0.f);
 
 		if (GUI::colorEdit("Click color", clickColor))
 		{
-			Settings::set<float>("labels/CPS/color/r", clickColor[0]);
-			Settings::set<float>("labels/CPS/color/g", clickColor[1]);
-			Settings::set<float>("labels/CPS/color/b", clickColor[2]);
+			Mod::get()->setSavedValue<float>("labels/CPS/color/r", clickColor[0]);
+			Mod::get()->setSavedValue<float>("labels/CPS/color/g", clickColor[1]);
+			Mod::get()->setSavedValue<float>("labels/CPS/color/b", clickColor[2]);
 		}
 	});
-	settingsForLabel("Time", [] { GUI::checkbox("Use 12h format", Settings::get<bool*>("labels/Time/12h", false)); });
+	settingsForLabel("Time", [] { GUI::checkbox("Use 12h format", "labels/Time/12h"); });
 	settingsForLabel("Noclip Accuracy", [] {
-		float limit = Settings::get<float>("labels/Noclip Accuracy/limit", 0.f);
+		float limit = Mod::get()->getSavedValue<float>("labels/Noclip Accuracy/limit", 0.f);
 
 		if (GUI::inputFloat("Limit", &limit, 0, 100))
-			Settings::set<float>("labels/Noclip Accuracy/limit", limit);
+			Mod::get()->setSavedValue<float>("labels/Noclip Accuracy/limit", limit);
 	});
 }

@@ -1,6 +1,6 @@
 #include "Clickpacks.h"
 #include "../Common.h"
-#include "../Settings.h"
+
 
 #include "../GUI/GUI.h"
 #include "../portable-file-dialogs.h"
@@ -48,7 +48,7 @@ Clickpack Clickpack::fromPath(std::string pathString)
 
 void Clickpacks::init()
 {
-	std::string clickPath = Settings::get<std::string>("clickpacks/path", "");
+	std::string clickPath = Mod::get()->getSavedValue<std::string>("clickpacks/path", "");
 
 	if (clickPath != "")
 		currentClickpack = Clickpack::fromPath(clickPath);
@@ -62,37 +62,37 @@ void Clickpacks::drawGUI()
 
 		if (GUI::button("Select clickpack"))
 		{
-			std::string clickPath = Settings::get<std::string>("clickpacks/path", "");
+			std::string clickPath = Mod::get()->getSavedValue<std::string>("clickpacks/path", "");
 
 			const auto result = pfd::select_folder("Choose a folder", Mod::get()->getSaveDir().string() + "\\clickpacks").result();
 
 			if (!result.empty())
 			{
 				currentClickpack = Clickpack::fromPath(result);
-				Settings::set<std::string>("clickpacks/path", result);
+				Mod::get()->setSavedValue<std::string>("clickpacks/path", result);
 			}
 		}
 
-		GUI::checkbox("Use Noise", Settings::get<bool*>("clickpacks/noise/enabled"));
+		GUI::checkbox("Use Noise", "clickpacks/noise/enabled");
 
-		float clickVolume = Settings::get<float>("clickpacks/click/volume", 2.f);
+		float clickVolume = Mod::get()->getSavedValue<float>("clickpacks/click/volume", 2.f);
 		GUI::inputFloat("Click Volume", &clickVolume);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())
-			Settings::set<float>("clickpacks/click/volume", clickVolume);
+			Mod::get()->setSavedValue<float>("clickpacks/click/volume", clickVolume);
 
 
-		float noiseVolume = Settings::get<float>("clickpacks/noise/volume", 1.f);
+		float noiseVolume = Mod::get()->getSavedValue<float>("clickpacks/noise/volume", 1.f);
 		GUI::inputFloat("Noise Volume", &noiseVolume);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())
-			Settings::set<float>("clickpacks/noise/volume", noiseVolume);
+			Mod::get()->setSavedValue<float>("clickpacks/noise/volume", noiseVolume);
 		
 
-		float softclickAt = Settings::get<float>("clickpacks/softclicks_at", 0.1f);
+		float softclickAt = Mod::get()->getSavedValue<float>("clickpacks/softclicks_at", 0.1f);
 		GUI::inputFloat("Softclicks at", &softclickAt);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())
-			Settings::set<float>("clickpacks/softclicks_at", softclickAt);
+			Mod::get()->setSavedValue<float>("clickpacks/softclicks_at", softclickAt);
 	});
 }

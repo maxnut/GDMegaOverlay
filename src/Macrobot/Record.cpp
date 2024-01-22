@@ -1,7 +1,7 @@
 #include "Record.h"
 #include "../Common.h"
 #include "../GUI/GUI.h"
-#include "../Settings.h"
+
 
 #include "AudioRecord.h"
 #include "Clickpacks.h"
@@ -87,21 +87,21 @@ void Recorder::start()
 {
 	levelDone = false;
 	int resolution[2];
-	resolution[0] = Settings::get<int>("recorder/resolution/x", 1920);
-	resolution[1] = Settings::get<int>("recorder/resolution/y", 1080);
+	resolution[0] = Mod::get()->getSavedValue<int>("recorder/resolution/x", 1920);
+	resolution[1] = Mod::get()->getSavedValue<int>("recorder/resolution/y", 1080);
 
-	int framerate = Settings::get<int>("recorder/fps", 60);
+	int framerate = Mod::get()->getSavedValue<int>("recorder/fps", 60);
 
 	m_width = resolution[0];
 	m_height = resolution[1];
 	m_fps = framerate;
 
-	std::string codec = Settings::get<std::string>("recorder/codec", "h264_nvenc");
+	std::string codec = Mod::get()->getSavedValue<std::string>("recorder/codec", "h264_nvenc");
 	if (codec != "")
 		m_codec = codec;
 
 	std::string extraArgs =
-		Settings::get<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
+		Mod::get()->getSavedValue<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
 
 	if (extraArgs != "")
 		m_extra_args = extraArgs;
@@ -113,10 +113,10 @@ void Recorder::start()
 	m_finished_level = false;
 	m_last_frame_t = m_extra_t = 0;
 
-	int bitrate = Settings::get<int>("recorder/bitrate", 30);
+	int bitrate = Mod::get()->getSavedValue<int>("recorder/bitrate", 30);
 	m_bitrate = std::to_string(bitrate) + "M";
 
-	float afterEnd = Settings::get<float>("recorder/after_end", 5.f);
+	float afterEnd = Mod::get()->getSavedValue<float>("recorder/after_end", 5.f);
 
 	m_after_end_extra_time = 0.f;
 	m_after_end_duration = afterEnd; // hacks.afterEndDuration;
@@ -198,9 +198,9 @@ void Recorder::start()
 			}
 		}
 
-		float noiseVolume = Settings::get<float>("clickpacks/noise/volume", 1.f);
+		float noiseVolume = Mod::get()->getSavedValue<float>("clickpacks/noise/volume", 1.f);
 
-		if (Settings::get<bool>("clickpacks/noise/enabled", false) && Clickpacks::currentClickpack.noise != "")
+		if (Mod::get()->getSavedValue<bool>("clickpacks/noise/enabled", false) && Clickpacks::currentClickpack.noise != "")
 		{
 			std::cout << Clickpacks::currentClickpack.noise << std::endl;
 			std::stringstream f;
@@ -221,13 +221,13 @@ void Recorder::start()
 			std::filesystem::rename(notfinalpath2, widen(notfinalpath));
 		}
 
-		if (!Settings::get<bool>("recorder/clicks/enabled", false))
+		if (!Mod::get()->getSavedValue<bool>("recorder/clicks/enabled", false))
 			return;
 
 		generate_clicks(clickpath);
 
 		{
-			float clickVolume = Settings::get<float>("clickpacks/click/volume", 1.f);
+			float clickVolume = Mod::get()->getSavedValue<float>("clickpacks/click/volume", 1.f);
 			std::stringstream f;
 			f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -i " << '"' << clickpath
 			  << '"' << " -c:v copy -map 0:v -map 1:a " << '"' << finalpath << '"';
@@ -465,7 +465,7 @@ bool Recorder::areAudioFilesValid(const std::vector<std::string>& files)
 
 bool Recorder::generate_clicks(std::string outputPath)
 {
-	std::string clickPath = Settings::get<std::string>("clickpacks/path", "");
+	std::string clickPath = Mod::get()->getSavedValue<std::string>("clickpacks/path", "");
 
 	if (clickPath == "")
 		return false;
@@ -502,7 +502,7 @@ bool Recorder::generate_clicks(std::string outputPath)
 
 	std::vector<int16_t> mixedBuffer;
 
-	float softclickAt = Settings::get<float>("clickpacks/softclicks_at", 0.1f);
+	float softclickAt = Mod::get()->getSavedValue<float>("clickpacks/softclicks_at", 0.1f);
 
 	bool wasLastActionPressP1 = false;
 	bool wasLastActionPressP2 = false;
@@ -659,59 +659,59 @@ void Record::renderWindow()
 		ImGui::EndDisabled();
 
 	int resolution[2];
-	resolution[0] = Settings::get<int>("recorder/resolution/x", 1920);
-	resolution[1] = Settings::get<int>("recorder/resolution/y", 1080);
+	resolution[0] = Mod::get()->getSavedValue<int>("recorder/resolution/x", 1920);
+	resolution[1] = Mod::get()->getSavedValue<int>("recorder/resolution/y", 1080);
 
 	GUI::inputInt2("Resolution", resolution, 256, 7680, 144, 4320);
 	if (ImGui::IsItemDeactivatedAfterEdit())
 	{
-		Settings::set<int>("recorder/resolution/x", resolution[0]);
-		Settings::set<int>("recorder/resolution/y", resolution[1]);
+		Mod::get()->setSavedValue<int>("recorder/resolution/x", resolution[0]);
+		Mod::get()->setSavedValue<int>("recorder/resolution/y", resolution[1]);
 	}
 
-	int bitrate = Settings::get<int>("recorder/bitrate", 30);
+	int bitrate = Mod::get()->getSavedValue<int>("recorder/bitrate", 30);
 	GUI::inputInt("Bitrate", &bitrate);
 
 	if (ImGui::IsItemDeactivatedAfterEdit())
-		Settings::set<int>("recorder/bitrate", bitrate);
+		Mod::get()->setSavedValue<int>("recorder/bitrate", bitrate);
 
-	std::string codec = Settings::get<std::string>("recorder/codec", "");
+	std::string codec = Mod::get()->getSavedValue<std::string>("recorder/codec", "");
 
 	if (GUI::inputText("Codec", &codec))
-		Settings::set<std::string>("recorder/codec", codec);
+		Mod::get()->setSavedValue<std::string>("recorder/codec", codec);
 
-	std::string extraArgs = Settings::get<std::string>("recorder/extraArgs", "");
+	std::string extraArgs = Mod::get()->getSavedValue<std::string>("recorder/extraArgs", "");
 	if (GUI::inputText("Extra Args", &extraArgs))
-		Settings::set<std::string>("recorder/extraArgs", extraArgs);
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", extraArgs);
 
-	int framerate = Settings::get<int>("recorder/fps", 60);
+	int framerate = Mod::get()->getSavedValue<int>("recorder/fps", 60);
 	GUI::inputInt("Framerate", &framerate);
 
 	if (ImGui::IsItemDeactivatedAfterEdit())
-		Settings::set<int>("recorder/fps", framerate);
+		Mod::get()->setSavedValue<int>("recorder/fps", framerate);
 
-	float afterEnd = Settings::get<float>("recorder/after_end", 5.f);
+	float afterEnd = Mod::get()->getSavedValue<float>("recorder/after_end", 5.f);
 	GUI::inputFloat("Show Endscreen For", &afterEnd);
 
 	if (ImGui::IsItemDeactivatedAfterEdit())
-		Settings::set<float>("recorder/after_end", afterEnd);
+		Mod::get()->setSavedValue<float>("recorder/after_end", afterEnd);
 
-	GUI::checkbox("Record clicks", Settings::get<bool*>("recorder/clicks/enabled"));
+	GUI::checkbox("Record clicks", "recorder/clicks/enabled");
 	GUI::arrowButton("Clickpacks");
 	Clickpacks::drawGUI();
 
 	if (GUI::button("NVIDIA"))
 	{
-		Settings::set<std::string>("recorder/codec", "h264_nvenc");
-		Settings::set<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
+		Mod::get()->setSavedValue<std::string>("recorder/codec", "h264_nvenc");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
 	}
 
 	GUI::sameLine();
 
 	if (GUI::button("AMD"))
 	{
-		Settings::set<std::string>("recorder/codec", "h264_amf");
-		Settings::set<std::string>("recorder/extraArgs", "");
+		Mod::get()->setSavedValue<std::string>("recorder/codec", "h264_amf");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", "");
 	}
 
 	GUI::marker("[INFO]",

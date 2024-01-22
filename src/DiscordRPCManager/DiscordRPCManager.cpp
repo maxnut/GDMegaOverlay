@@ -1,5 +1,5 @@
 #include "DiscordRPCManager.h"
-#include "../Settings.h"
+
 #include "../Common.h"
 #include <Geode/utils/SeedValue.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
@@ -17,8 +17,9 @@ class $modify(PlayLayer)
 {
 	bool init(GJGameLevel* level, bool unk1, bool unk2)
 	{
+		bool res = PlayLayer::init(level, unk1, unk2);
 		updateRPC(DiscordRPCManager::State::PLAYING_LEVEL, level);
-		return PlayLayer::init(level, unk1, unk2);
+		return res;
 	}
 
 	void onQuit()
@@ -56,14 +57,14 @@ void DiscordRPCManager::init()
 	).count();
 	playerName = GJAccountManager::sharedState()->m_username; //MBO(std::string, Common::gjAccountManager, 0x10C);
 
-	if (!Settings::get<bool>("general/discordrpc/enabled")) return;
+	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled")) return;
 
 	updateRPC(State::DEFAULT);
 }
 
 void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 {
-	if (!Settings::get<bool>("general/discordrpc/enabled")) return;
+	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled")) return;
 
 	if (core)
 	{

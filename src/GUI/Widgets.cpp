@@ -7,6 +7,9 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
+#include <Geode/Geode.hpp>
+using namespace geode::prelude;
+
 inline ImVec2 operator+(const ImVec2& a, const ImVec2& b)
 {
 	return {a.x + b.x, a.y + b.y};
@@ -41,6 +44,29 @@ bool GUI::checkbox(std::string name, bool* value)
 		if (result)
 			*value = !*value;
 	}
+
+	return result;
+}
+
+bool GUI::checkbox(std::string name, std::string settingName)
+{
+	bool result = false;
+
+	bool value = Mod::get()->getSavedValue(settingName, false);
+
+	if (GUI::shouldRender())
+		result = customCheckbox(name.c_str(), &value);
+
+	if (!result)
+	{
+		result = GUI::Shortcut::handleShortcut(name);
+
+		if (result)
+			value = !value;
+	}
+
+	if(result)
+		Mod::get()->setSavedValue(settingName, value);
 
 	return result;
 }

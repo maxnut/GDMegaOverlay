@@ -25,7 +25,6 @@ using namespace geode::prelude;
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
 #include "Macrobot/Record.h"
-#include "Settings.h"
 
 void init()
 {
@@ -48,7 +47,6 @@ void init()
 	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\clickpacks"))
 		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\clickpacks");
 
-	Settings::load();
 	JsonHacks::load();
 	GUI::init();
 	DiscordRPCManager::init();
@@ -63,10 +61,10 @@ void init()
 	});
 
 	GUI::Window generalWindow("General", [] {
-		float framerate = Settings::get<float>("general/fps/value", 60.f);
+		float framerate = Mod::get()->getSavedValue<float>("general/fps/value", 60.f);
 
 		if (GUI::inputFloat("##FPSValue", &framerate))
-			Settings::set<float>("general/fps/value", framerate);
+			Mod::get()->setSavedValue<float>("general/fps/value", framerate);
 
 		if (GUI::shouldRender())
 		{
@@ -76,12 +74,12 @@ void init()
 			GUI::sameLine();
 		}
 
-		if (GUI::checkbox("FPS", Settings::get<bool*>("general/fps/enabled")))
+		if (GUI::checkbox("FPS", "general/fps/enabled"))
 			Common::calculateFramerate();
 
-		float speedhack = Settings::get<float>("general/speedhack/value", 60.f);
+		float speedhack = Mod::get()->getSavedValue<float>("general/speedhack/value", 60.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
-			Settings::set<float>("general/speedhack/value", speedhack);
+			Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
 
 		if (GUI::shouldRender())
 		{
@@ -91,12 +89,12 @@ void init()
 			GUI::sameLine();
 		}
 
-		if (GUI::checkbox("Speedhack", Settings::get<bool*>("general/speedhack/enabled")))
+		if (GUI::checkbox("Speedhack", "general/speedhack/enabled"))
 			Common::calculateFramerate();
 
-		float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
+		float pitch = Mod::get()->getSavedValue<float>("general/music/pitch/value", 1.f);
 		if (GUI::inputFloat("##PitchShiftValue", &pitch, 0.5f, 2.f))
-			Settings::set<float>("general/music/pitch/value", pitch);
+			Mod::get()->setSavedValue<float>("general/music/pitch/value", pitch);
 
 		if (GUI::shouldRender())
 		{
@@ -105,12 +103,12 @@ void init()
 
 			GUI::sameLine();
 		}
-		if (GUI::checkbox("Pitch Shift", Settings::get<bool*>("general/music/pitch/enabled")))
+		if (GUI::checkbox("Pitch Shift", "general/music/pitch/enabled"))
 			Common::onAudioPitchChange();
 
-		float music_speed = Settings::get<float>("general/music/speed/value", 1.f);
+		float music_speed = Mod::get()->getSavedValue<float>("general/music/speed/value", 1.f);
 		if (GUI::inputFloat("##MusicSpeedValue", &music_speed))
-			Settings::set<float>("general/music/speed/value", music_speed);
+			Mod::get()->setSavedValue<float>("general/music/speed/value", music_speed);
 
 		if (GUI::shouldRender())
 		{
@@ -120,28 +118,28 @@ void init()
 			GUI::sameLine();
 		}
 
-		if (Settings::get<bool>("general/tie_to_game_speed/music/enabled"))
+		if (Mod::get()->getSavedValue<bool>("general/tie_to_game_speed/music/enabled"))
 		{
-			Settings::set<bool>("general/music/speed/enabled", false);
+			Mod::get()->setSavedValue<bool>("general/music/speed/enabled", false);
 
 			ImGui::BeginDisabled();
-			GUI::checkbox("Music Speed", Settings::get<bool*>("general/music/speed/enabled"));
+			GUI::checkbox("Music Speed", "general/music/speed/enabled");
 			ImGui::EndDisabled();
 		}
 		else
 		{
-			if (GUI::checkbox("Music Speed", Settings::get<bool*>("general/music/speed/enabled")))
+			if (GUI::checkbox("Music Speed", "general/music/speed/enabled"))
 				Common::onAudioSpeedChange();
 		}
 
-		if (GUI::checkbox("Tie Music To Game Speed", Settings::get<bool*>("general/tie_to_game_speed/music/enabled")))
+		if (GUI::checkbox("Tie Music To Game Speed", "general/tie_to_game_speed/music/enabled"))
 			Common::onAudioSpeedChange();
 
-		int priority = Settings::get<int>("general/priority", 2);
+		int priority = Mod::get()->getSavedValue<int>("general/priority", 2);
 
 		if (GUI::combo("Thread Priority", &priority, priorities, 5))
 		{
-			Settings::set<int>("general/priority", priority);
+			Mod::get()->setSavedValue<int>("general/priority", priority);
 			Common::setPriority();
 		}
 	});
@@ -160,7 +158,7 @@ void init()
 	GUI::addWindow(creatorWindow);
 
 	GUI::Window globalWindow("Global", [] {
-		GUI::checkbox("Discord Rich Presence", Settings::get<bool*>("general/discordrpc/enabled"));
+		GUI::checkbox("Discord Rich Presence", "general/discordrpc/enabled");
 
 		JsonHacks::drawFromJson(JsonHacks::global);
 	});
@@ -169,7 +167,7 @@ void init()
 	GUI::addWindow(globalWindow);
 
 	GUI::Window levelWindow("Level", [] {
-		GUI::checkbox("Startpos Switcher", Settings::get<bool*>("level/startpos_switcher"));
+		GUI::checkbox("Startpos Switcher", "level/startpos_switcher");
 
 		GUI::arrowButton("Startpos Switcher Settings");
 		GUI::modalPopup(
@@ -183,7 +181,7 @@ void init()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		GUI::checkbox("Replay Last Checkpoint", Settings::get<bool*>("level/replay_checkpoint"));
+		GUI::checkbox("Replay Last Checkpoint", "level/replay_checkpoint");
 
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
@@ -192,53 +190,53 @@ void init()
 	GUI::addWindow(levelWindow);
 
 	GUI::Window menuSettings("Menu Settings", [] {
-		int snap = Settings::get<int>("menu/window/snap", 10);
-		int snapSize = Settings::get<int>("menu/window/size_snap", 10);
-		float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
-		float windowOpacity = Settings::get<float>("menu/window/opacity", 0.98f);
+		int snap = Mod::get()->getSavedValue<int>("menu/window/snap", 10);
+		int snapSize = Mod::get()->getSavedValue<int>("menu/window/size_snap", 10);
+		float transitionDuration = Mod::get()->getSavedValue<float>("menu/transition_duration", 0.35f);
+		float windowOpacity = Mod::get()->getSavedValue<float>("menu/window/opacity", 0.98f);
 
 		if (GUI::dragInt("Window Snap", &snap, 0))
-			Settings::set<int>("menu/window/snap", snap);
+			Mod::get()->setSavedValue<int>("menu/window/snap", snap);
 
 		if (GUI::dragInt("Size Snap", &snapSize, 0))
-			Settings::set<int>("menu/window/size_snap", snapSize);
+			Mod::get()->setSavedValue<int>("menu/window/size_snap", snapSize);
 
 		if (GUI::dragFloat("Transition Duration", &transitionDuration, 0))
-			Settings::set<float>("menu/transition_duration", transitionDuration);
+			Mod::get()->setSavedValue<float>("menu/transition_duration", transitionDuration);
 
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
-			Settings::set<float>("menu/window/opacity", windowOpacity);
+			Mod::get()->setSavedValue<float>("menu/window/opacity", windowOpacity);
 
-		GUI::checkbox("Rainbow Menu", Settings::get<bool*>("menu/window/rainbow/enabled"));
+		GUI::checkbox("Rainbow Menu", "menu/window/rainbow/enabled");
 
 		GUI::arrowButton("Rainbow Menu Settings");
 		GUI::modalPopup(
 			"Rainbow Menu Settings",
 			[] {
-				float speed = Settings::get<float>("menu/window/rainbow/speed", .4f);
+				float speed = Mod::get()->getSavedValue<float>("menu/window/rainbow/speed", .4f);
 				if (GUI::inputFloat("Rainbow Speed", &speed, .1f, 2.f))
-					Settings::set<float>("menu/window/rainbow/speed", speed);
+					Mod::get()->setSavedValue<float>("menu/window/rainbow/speed", speed);
 
-				float brightness = Settings::get<float>("menu/window/rainbow/brightness", .8f);
+				float brightness = Mod::get()->getSavedValue<float>("menu/window/rainbow/brightness", .8f);
 				if (GUI::inputFloat("Rainbow Brightness", &brightness, .1f, 2.f))
-					Settings::set<float>("menu/window/rainbow/brightness", brightness);
+					Mod::get()->setSavedValue<float>("menu/window/rainbow/brightness", brightness);
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		float windowColor[3]{Settings::get<float>("menu/window/color/r", 1.f),
-							 Settings::get<float>("menu/window/color/g", .0f),
-							 Settings::get<float>("menu/window/color/b", .0f)};
+		float windowColor[3]{Mod::get()->getSavedValue<float>("menu/window/color/r", 1.f),
+							 Mod::get()->getSavedValue<float>("menu/window/color/g", .0f),
+							 Mod::get()->getSavedValue<float>("menu/window/color/b", .0f)};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{
-			Settings::set<float>("menu/window/color/r", windowColor[0]);
-			Settings::set<float>("menu/window/color/g", windowColor[1]);
-			Settings::set<float>("menu/window/color/b", windowColor[2]);
+			Mod::get()->setSavedValue<float>("menu/window/color/r", windowColor[0]);
+			Mod::get()->setSavedValue<float>("menu/window/color/g", windowColor[1]);
+			Mod::get()->setSavedValue<float>("menu/window/color/b", windowColor[2]);
 		}
 
-		int togglekey = Settings::get<int>("menu/togglekey");
+		int togglekey = Mod::get()->getSavedValue<int>("menu/togglekey");
 		if (GUI::hotkey("Toggle Menu", &togglekey))
-			Settings::set<int>("menu/togglekey", togglekey);
+			Mod::get()->setSavedValue<int>("menu/togglekey", togglekey);
 
 		if(GUI::button("Open Resources Folder"))
 			ShellExecute(0, NULL, Mod::get()->getResourcesDir().string().c_str(), NULL, NULL, SW_SHOW);
