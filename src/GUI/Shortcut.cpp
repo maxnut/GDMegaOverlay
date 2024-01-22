@@ -65,7 +65,7 @@ void GUI::Shortcut::renderWindow()
 	{
 		if (GUI::shortcuts.size() <= 0)
 		{
-			ImGui::Text("Right click an option\nto make a shortcut");
+			ImGui::Text("Shift+Left Click click an option\nto make a shortcut");
 			ImGui::Spacing();
 			return;
 		}

@@ -113,6 +113,9 @@ void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 
 std::string DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
 {
+	if (level->m_autoLevel)
+		return "auto";
+
 	if (level->m_ratingsSum != 0)
 		level->m_difficulty = static_cast<GJDifficulty>(level->m_ratingsSum / 10);
 
@@ -131,7 +134,6 @@ std::string DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
 
 	switch (level->m_difficulty)
 	{
-	case GJDifficulty::Auto && level->m_ratingsSum != 0: return "auto";
 	case GJDifficulty::Easy: return "easy";
 	case GJDifficulty::Normal: return "normal";
 	case GJDifficulty::Hard: return "hard";
@@ -143,11 +145,12 @@ std::string DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
 	return "na";
 }
 
+// geode bindings pls accept my pr
 void DiscordRPCManager::editorPauseLayerOnExitEditorHook(void* self, void* sender)
 {
 	updateRPC(DiscordRPCManager::State::DEFAULT);
 
-	return reinterpret_cast<void(__thiscall*)(void*, void*)>(util::gd_base + 0xA2EF0)(self, sender);
+	reinterpret_cast<void(__thiscall*)(void*, void*)>(util::gd_base + 0xA2EF0)(self, sender);
 }
 
 $execute
