@@ -1,3 +1,50 @@
 {
-    "mods": null
+    "mods": [
+        {
+            "description": "Speeds up chest opening animation.",
+            "name": "Fast Chest Open",
+            "opcodes": [
+                {
+                    "address": "0x2F82F4",
+                    "off": "C7 04 24 EC 51 B8 3E",
+                    "on": "C7 04 24 00 00 00 00"
+                },
+                {
+                    "address": "0x2F840D",
+                    "off": "C7 04 24 9A 99 99 3F",
+                    "on": "C7 04 24 00 00 00 00"
+                },
+                {
+                    "address": "0x2F8504",
+                    "off": "C7 04 24 CD CC 4C 3E",
+                    "on": "C7 04 24 00 00 00 00"
+                }
+            ],
+            "toggle": true
+        },
+        {
+            "description": "Disable the player's level ending animation.",
+            "name": "No Player Ending Animation",
+            "opcodes": [
+                {
+                    "address": "0x2DECEC",
+                    "off": "75 52",
+                    "on": "74 52"
+                }
+            ],
+            "toggle": true
+        },
+        {
+            "description": "Disables Mana Orb check",
+            "name": "No Mana Orb Amount Check",
+            "opcodes": [
+                {
+                    "address": "0x175953",
+                    "off": "2B C6",
+                    "on": "03 C6"
+                }
+            ],
+            "toggle": true
+        }
+    ]
 }

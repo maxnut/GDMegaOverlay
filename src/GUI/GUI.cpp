@@ -15,18 +15,21 @@
 
 using namespace geode::prelude;
 
-class $modify(CCKeyboardDispatcher) {
-    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr) {
+class $modify(CCKeyboardDispatcher)
+{
+    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
+	{
 		int menuKey = Settings::get<int>("menu/togglekey", VK_TAB);
 
-        if (down && (key == menuKey)) {
+        if (down && (key == menuKey))
+		{
             GUI::toggle();
 			return true;
         }
 
 		bool activatedShortcut = false;
 
-		if(down)
+		if (down)
 		{
 			for (GUI::Shortcut& s : GUI::shortcuts)
 			{
@@ -44,31 +47,32 @@ class $modify(CCKeyboardDispatcher) {
 			}
 		}
 
-		if(activatedShortcut)
+		if (activatedShortcut)
 			return true;
 
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
     }
 };
 
-//mat is dumdum and didnt add proper keyboard support
-class $modify(CCKeyboardDispatcher) {
-	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool idk) {
+// mat is dumdum and didnt add proper keyboard support
+class $modify(CCKeyboardDispatcher)
+{
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool unk)
+	{
 		if (!ImGuiCocos::get().isInitialized())
-			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, idk);
+			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, unk);
 
-		const auto imKey = ConvertKeyEnum(key);
-		if (imKey != ImGuiKey_None) 
-		{
+		if (const auto imKey = ConvertKeyEnum(key); imKey != ImGuiKey_None)
 			ImGui::GetIO().AddKeyEvent(imKey, down);
-		}
 
-		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, idk);
+		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, unk);
 	}
 };
 
-class $modify(MenuLayer) {
-    bool init() {
+class $modify(MenuLayer)
+{
+    bool init()
+	{
 		static bool init = false;
 		if (!init)
 		{
@@ -77,6 +81,7 @@ class $modify(MenuLayer) {
 			GUI::canToggle = true;
 		}
 		init = true;
+
         return MenuLayer::init();
     }
 };
