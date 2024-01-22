@@ -112,11 +112,9 @@ class $modify(GJBaseGameLayer)
 				{
 					Action& ac = macro.inputs[actionIndex];
 					if (ac.down)
-						reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(util::gd_base + 0x1B69F0)(
-							GameManager::get()->getPlayLayer(), true, ac.button, !ac.player2);
+						GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
 					else
-						reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(util::gd_base + 0x1B69F0)(
-							GameManager::get()->getPlayLayer(), false, ac.button, !ac.player2);
+						GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
 
 					if (correctionType > 0 && ac.correction.has_value())
 					{
@@ -187,18 +185,19 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool pr
 	return &macro.inputs[macro.inputs.size() - 1];
 }
 
-void* Macrobot::checkpointObjectCreateHook(void* self)
+void* Macrobot::checkpointObjectCreateHook()
 {
-	if (gameTime > 0 && playerObject1 && MBO(double, GameManager::get()->getPlayLayer(), 0x584) > 0)
+	void* self = reinterpret_cast<void*(__thiscall*)()>(util::gd_base + 0x2EB9A0)();
+	if (gameTime > 0 && playerObject1)
 	{
 		CheckpointData data;
-		data.time = MBO(double, GameManager::get()->getPlayLayer(), 0x584);
+		data.time = gameTime;
 		data.p1.fromPlayer(playerObject1, true);
 		data.p2.fromPlayer(playerObject2, true);
 
 		checkpoints[self] = data;
 	}
-	return reinterpret_cast<void*(__thiscall*)()>(util::gd_base + 0x2EB9A0)();
+	return self;
 }
 
 $execute
@@ -210,15 +209,15 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject* player, bool fullCaptu
 {
 	// playerObject + 2280 isplatformer
 	// playerObject + 2160 xVelPlatformer
-	cocos2d::CCPoint position = MBO(cocos2d::CCPoint, player, 2132);
-	this->yVel = MBO(double, player, 1936);
+	cocos2d::CCPoint position = player->m_position;
+	this->yVel = player->m_yVelocity;
 	this->rotation = player->getRotation();
-	this->xVel = MBO(double, player, 2192);
+	this->xVel = player->m_platformerXVelocity;
 	this->xPos = position.x;
 	this->yPos = position.y;
 	this->nodeXPos = player->getPositionX();
 	this->nodeYPos = player->getPositionY();
-	this->rotationRate = MBO(float, player, 1496);
+	this->rotationRate = player->m_rotationSpeed;
 
 	if (fullCapture)
 	{
@@ -233,19 +232,19 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	if (gameTime <= 0)
 		return;
 
-	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 1936) =
+	player->m_yVelocity =
 		this->yVel; // get all these offsets from playerobject constructor
 	player->setRotation(this->rotation);
 
 	player->setPositionX(this->nodeXPos);
 	player->setPositionY(this->nodeYPos);
 
-	*reinterpret_cast<cocos2d::CCPoint*>(reinterpret_cast<uintptr_t>(player) + 2132) =
+	player->m_position =
 		cocos2d::CCPoint(this->xPos, this->yPos);
 
-	*reinterpret_cast<double*>(reinterpret_cast<uintptr_t>(player) + 2192) = this->xVel; // playerobject_updatemove
+	player->m_platformerXVelocity = this->xVel; // playerobject_updatemove
 
-	*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 1496) = this->rotationRate;
+	player->m_rotationSpeed = this->rotationRate;
 
 	if (fullRestore)
 	{
@@ -315,8 +314,6 @@ void Macrobot::load(std::string file)
 
 	f.close();
 
-	std::cout << macroData.size();
-
 	macro = Macro::importData(macroData);
 }
 
@@ -330,7 +327,7 @@ void Macrobot::drawWindow()
 		{
 			Common::calculateFramerate();
 			if (GameManager::get()->getPlayLayer())
-				reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base + 0x2EA130)(GameManager::get()->getPlayLayer());
+				GameManager::get()->getPlayLayer()->resetLevelFromStart();
 		}
 		if (ImGui::RadioButton("Play", &Macrobot::playerMode, 0))
 			Common::calculateFramerate();

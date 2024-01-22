@@ -93,10 +93,8 @@ void GUI::Shortcut::renderWindow()
 	}
 
 	if (GUI::button("Toggle Practice") && GameManager::get()->getPlayLayer())
-		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool)>(util::gd_base + 0x2EAD30)(
-			GameManager::get()->getPlayLayer(), !MBO(bool, GameManager::get()->getPlayLayer(), 10876));
+		GameManager::get()->getPlayLayer()->togglePracticeMode(!GameManager::get()->getPlayLayer()->m_isPracticeMode);
 
 	if (GUI::button("Reset Level") && GameManager::get()->getPlayLayer())
-		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base +
-															   0x2EA130)(GameManager::get()->getPlayLayer());
+		GameManager::get()->getPlayLayer()->resetLevel();
 }

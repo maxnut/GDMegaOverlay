@@ -124,15 +124,12 @@ void Recorder::start()
 	m_renderer.m_height = m_height;
 	m_renderer.begin();
 	tfx = 0;
+	
+	m_song_start_offset = GameManager::get()->getPlayLayer()->m_levelSettings->m_songOffset;
 
-	void* idk = MBO(void*, GameManager::get()->getPlayLayer(), 2176);
-	m_song_start_offset = MBO(float, idk, 284);
+	GameManager::get()->getPlayLayer()->resetLevel();
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base +
-														   0x2EA130)(GameManager::get()->getPlayLayer());
-	void* level = MBO(void*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
-
-	std::string level_id = std::to_string(MBO(int, level, 268) - MBO(int, level, 272));
+	std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelID;
 	auto bg_volume = 1;
 	auto sfx_volume = 1;
 
