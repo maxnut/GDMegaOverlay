@@ -42,7 +42,7 @@ void StartposSwitcher::change(bool right)
 	int* startPosCheckpoint = (int*)GameManager::get()->getPlayLayer() + 2949;
 	*startPosCheckpoint = 0;
 
-	if(!startPosObject && index != -1)
+	if (!startPosObject && index != -1)
 		return;
 
 	reinterpret_cast<void(__thiscall*)(PlayLayer*, StartPosObject*)>(util::gd_base + 0x199E90)(GameManager::get()->getPlayLayer(), startPosObject);

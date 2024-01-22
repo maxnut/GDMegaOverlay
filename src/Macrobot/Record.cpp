@@ -616,9 +616,7 @@ bool Recorder::generate_clicks(std::string outputPath)
 			mixedBuffer.resize(frameTime + (inputSfInfo.frames * inputSfInfo.channels), 0);
 
 		for (long long i = 0; i < inputSfInfo.frames * inputSfInfo.channels; ++i)
-		{
 			mixedBuffer[frameTime + i] += outputBuffer[i];
-		}
 
 		delete[] outputBuffer;
 	}

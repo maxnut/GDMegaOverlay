@@ -1,5 +1,3 @@
-#define isnan isnan
-
 #include "imgui_internal.h"
 
 #include <Geode/Geode.hpp>
@@ -229,9 +227,11 @@ void init()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		float windowColor[3]{Settings::get<float>("menu/window/color/r", 1.f),
-							 Settings::get<float>("menu/window/color/g", .0f),
-							 Settings::get<float>("menu/window/color/b", .0f)};
+		float windowColor[3]{
+			Settings::get<float>("menu/window/color/r", 1.f),
+			Settings::get<float>("menu/window/color/g", .0f),
+			Settings::get<float>("menu/window/color/b", .0f)
+		};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{
@@ -242,9 +242,7 @@ void init()
 
 		int togglekey = Settings::get<int>("menu/togglekey");
 		if (GUI::hotkey("Toggle Menu", &togglekey))
-		{
 			Settings::set<int>("menu/togglekey", togglekey);
-		}
 
 		GUI::checkbox("Check updates on start", Settings::get<bool*>("menu/updates/check_on_start", true));
 

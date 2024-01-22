@@ -15,7 +15,8 @@ using namespace cocos2d;
 
 using u8 = uint8_t;
 
-class MyRenderTexture {
+class MyRenderTexture
+{
 public:
 	unsigned m_width, m_height;
 	int m_old_fbo, m_old_rbo;
@@ -26,7 +27,8 @@ public:
 	void capture(std::mutex& lock, std::vector<u8>& data, volatile bool& lul);
 };
 
-class Recorder {
+class Recorder
+{
 public:
 	Recorder();
 	std::vector<u8> m_current_frame;

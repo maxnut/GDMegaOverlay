@@ -1,9 +1,20 @@
 {
 	"geode": "2.0.0-beta.4",
-	"gd": "2.204",
+	"gd": {
+		"win": "2.204",
+		"android": "2.200"
+    },
 	"version": "v2.1.0",
 	"id": "maxnu.gd_mega_overlay",
 	"name": "GD Mega Overlay",
 	"developer": "maxnu",
-	"description": "Free, feature-rich, gui-integrated geometry dash mod menu"
+	"description": "Free, feature-rich, gui-integrated geometry dash mod menu",
+	"repository": "https://github.com/maxnut/GDMegaOverlay",
+	"resources": {
+		"files": [
+			"libs/discord_game_sdk/discord_game_sdk.dll",
+			"libs/libsndfile/sndfile.dll",
+			"libs/portaudio/portaudio_x86.dll"
+		]
+	}
 }

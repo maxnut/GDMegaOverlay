@@ -7,28 +7,26 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 project(GDMegaOverlay VERSION 1.0.0)
 
 file(GLOB SOURCES
-src/*.cpp
-src/*.h
-src/*.c
-src/GUI/*.cpp
-src/GUI/*.h
-src/Hacks/*.cpp
-src/JsonHacks/*.cpp
-src/Macrobot/*.cpp
-src/DiscordRPCManager/*.cpp
+  src/*.cpp
+  src/*.h
+  src/*.c
+  src/GUI/*.cpp
+  src/GUI/*.h
+  src/Hacks/*.cpp
+  src/JsonHacks/*.cpp
+  src/Macrobot/*.cpp
+  src/DiscordRPCManager/*.cpp
 
-libs/discord_game_sdk/cpp/*.cpp
+  libs/discord_game_sdk/cpp/*.cpp
 )
 
 # Set up the mod binary
-add_library(${PROJECT_NAME} SHARED
-${SOURCES}
-)
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
 
 if (NOT DEFINED ENV{GEODE_SDK})
-    message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
+  message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
 else()
-    message(STATUS "Found Geode: $ENV{GEODE_SDK}")
+  message(STATUS "Found Geode: $ENV{GEODE_SDK}")
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -50,6 +48,12 @@ target_link_libraries(${PROJECT_NAME}
   ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
   ${CMAKE_SOURCE_DIR}/libs/portaudio/lib/portaudio_x86.lib
   ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
+)
+
+# doesn't work lol!
+set_target_properties(${PROJECT_NAME} PROPERTIES
+  LINK_SEARCH_START_STATIC ON
+  LINK_SEARCH_END_STATIC ON
 )
 
 # Set up dependencies, resources, link Geode

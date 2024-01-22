@@ -121,7 +121,7 @@ inline std::unordered_map<void*, Macrobot::CheckpointData> checkpoints;
 inline std::string macroName;
 inline std::string macroDescription;
 
-void* checkpointObjectInitHook(void* self, void*);
+void* checkpointObjectCreateHook(void* self);
 
 Action* recordAction(PlayerButton key, double frame, bool press, bool player1);
 

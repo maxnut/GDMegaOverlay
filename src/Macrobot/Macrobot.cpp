@@ -187,23 +187,23 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool pr
 	return &macro.inputs[macro.inputs.size() - 1];
 }
 
-void* Macrobot::checkpointObjectInitHook(void* self, void*)
+void* Macrobot::checkpointObjectCreateHook(void* self)
 {
-	if (gameTime > 0 && playerObject1 && *((double*)GameManager::get()->getPlayLayer() + 1412) > 0)
+	if (gameTime > 0 && playerObject1 && MBO(double, GameManager::get()->getPlayLayer(), 0x584) > 0)
 	{
 		CheckpointData data;
-		data.time = *((double*)GameManager::get()->getPlayLayer() + 1412);
+		data.time = MBO(double, GameManager::get()->getPlayLayer(), 0x584);
 		data.p1.fromPlayer(playerObject1, true);
 		data.p2.fromPlayer(playerObject2, true);
 
 		checkpoints[self] = data;
 	}
-	return reinterpret_cast<void*(__thiscall*)()>(util::gd_base + 0x2DB9F0)();
+	return reinterpret_cast<void*(__thiscall*)()>(util::gd_base + 0x2EB9A0)();
 }
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void*>(util::gd_base + 0x2DB9F0), &checkpointObjectInitHook, "CheckpointObject::init", tulip::hook::TulipConvention::Thiscall);
+	Mod::get()->hook(reinterpret_cast<void*>(util::gd_base + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
 }
 
 void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject* player, bool fullCapture)

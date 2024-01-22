@@ -1,6 +1,5 @@
 #pragma once
 
-#include <portaudio.h>
 #include <sndfile.h>
 #include <fmod.hpp>
 

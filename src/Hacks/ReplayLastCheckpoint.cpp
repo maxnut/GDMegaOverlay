@@ -19,7 +19,7 @@ class $modify(PlayLayer)
 		if (replay && levelCompleted)
 		{
 			reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base + 0x2EA130)(GameManager::get()->getPlayLayer());
-			*reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(GameManager::get()->getPlayLayer()) + 10876) = true;
+			MBO(bool, GameManager::get()->getPlayLayer(), 0x2A7C) = true;
 			levelCompleted = false;
 			return;
 		}
