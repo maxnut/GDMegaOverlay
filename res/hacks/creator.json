@@ -1,0 +1,16 @@
+{
+    "mods": [
+        {
+            "description": "Lets you copy any level, without a password.",
+            "name": "Copy Hack",
+            "opcodes": [
+                {
+                    "address": "0x252985",
+                    "off": "0F 8F DF 00 00 00",
+                    "on": "0F 8E DF 00 00 00"
+                }
+            ],
+            "toggle": true
+        }
+    ]
+}

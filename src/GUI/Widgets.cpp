@@ -47,6 +47,9 @@ bool GUI::checkbox(std::string name, bool* value)
 
 bool GUI::hotkey(std::string name, int* keyPointer, const ImVec2& size_arg)
 {
+	if(!shouldRender())
+		return false;
+	
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
 	if (window->SkipItems)
 		return false;
@@ -101,7 +104,7 @@ bool GUI::hotkey(std::string name, int* keyPointer, const ImVec2& size_arg)
 	{
 		if (!value_changed)
 		{
-			for (auto i = 0x08; i <= 0xA5; i++)
+			for (int i = (int)ImGuiKey_Tab; i <= (int)ImGuiKey_KeypadEqual; i++)
 			{
 				if (ImGui::IsKeyDown(static_cast<ImGuiKey>(i)))
 				{
@@ -126,8 +129,12 @@ bool GUI::hotkey(std::string name, int* keyPointer, const ImVec2& size_arg)
 	ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(style.Colors[ImGuiCol_FrameBg]), true,
 					   style.FrameRounding);
 
+	int displayKeyIndex = *keyPointer - 511;
+	if(displayKeyIndex < 0)
+		displayKeyIndex = 0;
+
 	if (*keyPointer != 0 && g.ActiveId != id)
-		strcpy_s(buf_display, KeyNames[*keyPointer]);
+		strcpy_s(buf_display, KeyNames[displayKeyIndex]);
 	else if (g.ActiveId == id)
 		strcpy_s(buf_display, "<Press a key>");
 
@@ -183,7 +190,7 @@ bool GUI::alertPopup(std::string name, std::string content, const ButtonFunc& ye
 
 		if (noButton)
 		{
-			ImGui::SameLine();
+			GUI::sameLine();
 
 			if (ImGui::Button(noButton.name.c_str()))
 			{
@@ -204,7 +211,7 @@ void GUI::arrowButton(std::string popupName)
 
 	float ww = ImGui::GetWindowSize().x;
 
-	ImGui::SameLine(ww - 39);
+	GUI::sameLine(ww - 39);
 	if (ImGui::ArrowButton((popupName + "arrow").c_str(), 1))
 		ImGui::OpenPopup(popupName.c_str());
 }
@@ -458,4 +465,12 @@ bool GUI::customCheckbox(const char* label, bool* v)
 		RenderText(ImVec2(check_bb.Min.x + cc_sz + cc_pad, text_pos.y), label);
 
 	return pressed;
+}
+
+void GUI::sameLine(float offset_from_start_x, float spacing_w)
+{
+	if(!GUI::shouldRender())
+		return;
+
+	ImGui::SameLine(offset_from_start_x, spacing_w);
 }

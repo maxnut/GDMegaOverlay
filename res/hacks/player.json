@@ -1,0 +1,16 @@
+{
+    "mods": [
+        {
+            "description": "Prevents dying when encountering an object that kills you.",
+            "name": "NoClip",
+            "opcodes": [
+                {
+                    "address": "0x2E67D3",
+                    "off": "6A 14 8B CB FF",
+                    "on": "E9 42 07 00 00"
+                }
+            ],
+            "toggle": false
+        }
+    ]
+}

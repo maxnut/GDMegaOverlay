@@ -17,41 +17,33 @@ using namespace Record;
 
 bool levelDone = false;
 
-class $modify(PlayLayer)
+class $modify(PlayLayer){void onQuit(){if (recorder.m_recording) recorder.stop();
+PlayLayer::onQuit();
+}
+
+void levelComplete()
 {
-	void onQuit()
-	{
-		if (recorder.m_recording)
-			recorder.stop();
-		PlayLayer::onQuit();
-	}
+	PlayLayer::levelComplete();
+	levelDone = true;
+}
 
-	void levelComplete()
-	{
-		PlayLayer::levelComplete();
-		levelDone = true;
-	}
-
-	void resetLevel()
-	{
-		levelDone = false;
-		PlayLayer::resetLevel();
-	}
-};
-
-class $modify(GJBaseGameLayer)
+void resetLevel()
 {
-	void update(float dt)
-	{
-		if (recorder.m_recording)
-			recorder.handle_recording(this, dt);
+	levelDone = false;
+	PlayLayer::resetLevel();
+}
+}
+;
 
-		if (recorder.m_recording_audio)
-			recorder.handle_recording_audio(this, dt);
+class $modify(GJBaseGameLayer){void update(float dt){if (recorder.m_recording) recorder.handle_recording(this, dt);
 
-		GJBaseGameLayer::update(dt);
-	}
-};
+if (recorder.m_recording_audio)
+	recorder.handle_recording_audio(this, dt);
+
+GJBaseGameLayer::update(dt);
+}
+}
+;
 
 std::string narrow(const wchar_t* str)
 {
@@ -136,7 +128,8 @@ void Recorder::start()
 	void* idk = MBO(void*, GameManager::get()->getPlayLayer(), 2176);
 	m_song_start_offset = MBO(float, idk, 284);
 
-	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base + 0x2EA130)(GameManager::get()->getPlayLayer());
+	reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base +
+														   0x2EA130)(GameManager::get()->getPlayLayer());
 	void* level = MBO(void*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
 
 	std::string level_id = std::to_string(MBO(int, level, 268) - MBO(int, level, 272));
@@ -145,30 +138,20 @@ void Recorder::start()
 
 	auto song_offset = m_song_start_offset;
 
-	if (!std::filesystem::is_directory("GDMO/renders/" + level_id) ||
-		!std::filesystem::exists("GDMO/renders/" + level_id))
+	if (!std::filesystem::is_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id) ||
+		!std::filesystem::exists(Mod::get()->getSaveDir().string() + "/renders/" + level_id))
 	{
-		std::filesystem::create_directory("GDMO/renders/" + level_id);
+		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id);
 	}
 
 	if (m_recording_audio)
 		return;
 
 	std::thread([&, bg_volume, sfx_volume, song_offset, level_id]() {
-		char pBuf[256];
-		size_t len = sizeof(pBuf);
-		int bytes = GetModuleFileName(NULL, pBuf, len);
-		std::filesystem::path p = pBuf;
-		p = p.parent_path();
-
-		auto gdpath = p.string();
-		auto finalpath = (gdpath + "/GDMO/renders/" + level_id + "/final.mp4");
-		auto notfinalpath = (gdpath + "/GDMO/renders/" + level_id + "/rendered_video.mp4");
-		auto notfinalpath2 = (gdpath + "/GDMO/renders/" + level_id + "/rendered_video_noise.mp4");
-		auto clickpath = (gdpath + "/GDMO/renders/" + level_id + "/rendered_clicks.wav");
-
-		// auto noisepath = gdpath + "/GDMO/clickpacks/" + ExternData::clickpacks[hacks.currentClickpack] +
-		// "/noise.wav";
+		auto finalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4");
+		auto notfinalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4");
+		auto notfinalpath2 = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video_noise.mp4");
+		auto clickpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_clicks.wav");
 
 		{
 			std::stringstream stream;
@@ -334,18 +317,21 @@ void Recorder::stop_audio()
 {
 	AudioRecord::stop();
 
-	GJGameLevel* level = GameManager::get()->getPlayLayer()->m_level;//MBO(gd::GJGameLevel*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
+	GJGameLevel* level =
+		GameManager::get()
+			->getPlayLayer()
+			->m_level; // MBO(gd::GJGameLevel*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
 
 	std::string level_id = std::to_string(level->m_levelID.value());
 
-	std::string video_path = "GDMO/renders/" + level_id + "/final.mp4";
+	std::string video_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4";
 
 	bool clicks = std::filesystem::exists(video_path);
 
 	if (!clicks)
-		video_path = "GDMO/renders/" + level_id + "/rendered_video.mp4";
+		video_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4";
 
-	std::string temp_path = "GDMO/renders/" + level_id + "/music.mp4";
+	std::string temp_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/music.mp4";
 
 	std::stringstream ss;
 
@@ -484,8 +470,6 @@ bool Recorder::generate_clicks(std::string outputPath)
 	if (clickPath == "")
 		return false;
 
-	Pa_Initialize();
-
 	if (!areAudioFilesValid(Clickpacks::currentClickpack.clicks))
 		return false;
 
@@ -552,14 +536,13 @@ bool Recorder::generate_clicks(std::string outputPath)
 			}
 
 			soundPath =
-				ac.down
-					? (timestamp - previousTimestamp <= softclickAt
-						   ? Clickpacks::currentClickpack
-								 .softclicks[util::randomInt(0, Clickpacks::currentClickpack.softclicks.size() - 1)]
-						   : Clickpacks::currentClickpack
-								 .clicks[util::randomInt(0, Clickpacks::currentClickpack.clicks.size() - 1)])
-					: Clickpacks::currentClickpack
-						  .releases[util::randomInt(0, Clickpacks::currentClickpack.releases.size() - 1)];
+				ac.down ? (timestamp - previousTimestamp <= softclickAt
+							   ? Clickpacks::currentClickpack
+									 .softclicks[util::randomInt(0, Clickpacks::currentClickpack.softclicks.size() - 1)]
+							   : Clickpacks::currentClickpack
+									 .clicks[util::randomInt(0, Clickpacks::currentClickpack.clicks.size() - 1)])
+						: Clickpacks::currentClickpack
+							  .releases[util::randomInt(0, Clickpacks::currentClickpack.releases.size() - 1)];
 		}
 		else
 		{
@@ -580,9 +563,9 @@ bool Recorder::generate_clicks(std::string outputPath)
 
 			soundPath =
 				ac.down ? Clickpacks::currentClickpack
-							   .platClicks[util::randomInt(0, Clickpacks::currentClickpack.platClicks.size() - 1)]
-						 : Clickpacks::currentClickpack
-							   .platReleases[util::randomInt(0, Clickpacks::currentClickpack.platReleases.size() - 1)];
+							  .platClicks[util::randomInt(0, Clickpacks::currentClickpack.platClicks.size() - 1)]
+						: Clickpacks::currentClickpack
+							  .platReleases[util::randomInt(0, Clickpacks::currentClickpack.platReleases.size() - 1)];
 		}
 
 		SF_INFO inputSfInfo;
@@ -624,7 +607,6 @@ bool Recorder::generate_clicks(std::string outputPath)
 	sf_writef_short(sndFile, mixedBuffer.data(), mixedBuffer.size() / numChannels);
 
 	sf_close(sndFile);
-	Pa_Terminate();
 
 	return true;
 }
@@ -636,19 +618,12 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Recording") && GameManager::get()->getPlayLayer())
 	{
-		if (!std::filesystem::exists("GDMO\\ffmpeg.exe"))
+		if (!std::filesystem::exists("ffmpeg.exe"))
 		{
-			auto process = subprocess::Popen("GDMO/Updater/GDMOUpdater ffmpeg");
-			try
-			{
-				process.close();
-			}
-			catch (const std::exception& e)
-			{
-				std::cout << e.what() << '\n';
-			}
+			log::error("ffmpeg not installed");
 		}
-		Record::recorder.start();
+		else
+			Record::recorder.start();
 	}
 
 	if (GUI::button("Stop Recording") && Record::recorder.m_recording && GameManager::get()->getPlayLayer())
@@ -662,21 +637,16 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Audio") && GameManager::get()->getPlayLayer())
 	{
-		if (!std::filesystem::exists("GDMO\\ffmpeg.exe"))
+		if (!std::filesystem::exists("ffmpeg.exe"))
 		{
-			auto process = subprocess::Popen("GDMO/Updater/GDMOUpdater ffmpeg");
-			try
-			{
-				process.close();
-			}
-			catch (const std::exception& e)
-			{
-				std::cout << e.what() << '\n';
-			}
+			log::error("ffmpeg not installed");
 		}
-		recorder.m_recording_audio = true;
-		Record::recorder.start();
-		recorder.m_recording = false;
+		else
+		{
+			recorder.m_recording_audio = true;
+			Record::recorder.start();
+			recorder.m_recording = false;
+		}
 	}
 
 	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio && GameManager::get()->getPlayLayer())
@@ -736,7 +706,7 @@ void Record::renderWindow()
 		Settings::set<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
 	}
 
-	ImGui::SameLine();
+	GUI::sameLine();
 
 	if (GUI::button("AMD"))
 	{

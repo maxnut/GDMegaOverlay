@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include "../subprocess.hpp"
 #include <string>
-#include "portaudio.h"
 #include <Geode/modify/GJBaseGameLayer.hpp>
 
 using namespace cocos2d;
@@ -46,7 +45,7 @@ public:
 	float m_song_start_offset;
 	bool m_finished_level;
 	bool m_include_audio = true;
-	std::string m_ffmpeg_path = "GDMO/ffmpeg";
+	std::string m_ffmpeg_path = "ffmpeg";
 
 	bool m_recording_audio = false;
 
@@ -54,7 +53,7 @@ public:
 
 	int sampleRate = 0;
 	int numChannels = 0;
-	PaSampleFormat sampleFormat = 0;
+	int sampleFormat = 0;
 
 	void start();
 	void stop();

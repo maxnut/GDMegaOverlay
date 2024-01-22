@@ -10,16 +10,61 @@
 #include <fstream>
 #include <sstream>
 
+#include <imgui-cocos.hpp>
+#include "ConstData.h"
+
+using namespace geode::prelude;
+
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr) {
 		int menuKey = Settings::get<int>("menu/togglekey", VK_TAB);
 
         if (down && (key == menuKey)) {
             GUI::toggle();
-            return true;
+			return true;
         }
+
+		bool activatedShortcut = false;
+
+		if(down)
+		{
+			for (GUI::Shortcut& s : GUI::shortcuts)
+			{
+				if (ConvertKeyEnum(key) == s.key)
+				{
+					GUI::currentShortcut = s.name;
+					GUI::shortcutLoop = true;
+					GUI::draw();
+					GUI::shortcutLoop = false;
+					Settings::save();
+					JsonHacks::save();
+
+					activatedShortcut = true;
+				}
+			}
+		}
+
+		if(activatedShortcut)
+			return true;
+
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
     }
+};
+
+//mat is dumdum and didnt add proper keyboard support
+class $modify(CCKeyboardDispatcher) {
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool idk) {
+		if (!ImGuiCocos::get().isInitialized())
+			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, idk);
+
+		const auto imKey = ConvertKeyEnum(key);
+		if (imKey != ImGuiKey_None) 
+		{
+			ImGui::GetIO().AddKeyEvent(imKey, down);
+		}
+
+		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, idk);
+	}
 };
 
 class $modify(MenuLayer) {
@@ -28,7 +73,7 @@ class $modify(MenuLayer) {
 		if (!init)
 		{
 			GUI::lateInit();
-			GUI::loadStyle("GDMO\\Style.style");
+			GUI::loadStyle(Mod::get()->getResourcesDir().string() + "\\Style.style");
 			GUI::canToggle = true;
 		}
 		init = true;
@@ -72,7 +117,7 @@ void GUI::setJsonSize(std::string name, ImVec2 size)
 
 void GUI::init()
 {
-	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF("GDMO\\arial.ttf", 14);
+	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF((Mod::get()->getResourcesDir().string() + "\\arial.ttf").c_str(), 14);
 	ImGui::GetIO().FontDefault = fnt;
 	windowPositions = json::object();
 	load();
@@ -208,11 +253,11 @@ void GUI::save()
 	windowPositions["res"]["x"] = ImGui::GetIO().DisplaySize.x;
 	windowPositions["res"]["y"] = ImGui::GetIO().DisplaySize.y;
 
-	std::ofstream f("GDMO\\windows.json");
+	std::ofstream f(Mod::get()->getSaveDir().string() + "\\windows.json");
 	f << windowPositions.dump(4);
 	f.close();
 
-	f.open("GDMO\\shortcuts.json");
+	f.open(Mod::get()->getSaveDir().string() + "\\shortcuts.json");
 	json shortcutArray = json::array();
 
 	for (Shortcut& s : shortcuts)
@@ -226,7 +271,7 @@ void GUI::save()
 	f << shortcutArray.dump(4);
 	f.close();
 
-	saveStyle("GDMO\\Style.style");
+	saveStyle(Mod::get()->getResourcesDir().string() + "\\Style.style");
 
 	Settings::save();
 	JsonHacks::save();
@@ -234,7 +279,7 @@ void GUI::save()
 
 void GUI::load()
 {
-	std::ifstream f("GDMO\\windows.json");
+	std::ifstream f(Mod::get()->getSaveDir().string() + "\\windows.json");
 	if (f)
 	{
 		std::stringstream buffer;
@@ -250,7 +295,7 @@ void GUI::load()
 		windowPositions["res"]["y"] = ImGui::GetIO().DisplaySize.x;
 	}
 
-	f.open("GDMO\\shortcuts.json");
+	f.open(Mod::get()->getSaveDir().string() + "\\shortcuts.json");
 	if (f)
 	{
 		std::stringstream buffer;
