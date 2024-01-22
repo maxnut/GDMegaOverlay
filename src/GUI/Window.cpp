@@ -26,7 +26,7 @@ void Window::addFlag(ImGuiWindowFlags flag)
 bool Window::visibleInScreen()
 {
 	ImVec2 screenSize = ImGui::GetIO().DisplaySize;
-	ImVec2 windowSize = ImGui::GetWindowSize();
+	ImVec2 windowSize = size;
 
 	return renderPosition.x + windowSize.x >= 0 && renderPosition.y + windowSize.y >= 0 &&
 		   renderPosition.x <= screenSize.x && renderPosition.y <= screenSize.y;
@@ -34,7 +34,7 @@ bool Window::visibleInScreen()
 
 void Window::draw()
 {
-	if (GUI::isVisible && visibleInScreen())
+	if (GUI::isVisible)
 	{
 		if (maxSize.x != 0 && maxSize.y != 0)
 			ImGui::SetNextWindowSizeConstraints(minSize, maxSize);

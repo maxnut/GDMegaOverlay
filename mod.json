@@ -9,6 +9,7 @@
 	"name": "GD Mega Overlay",
 	"developer": "maxnu",
 	"description": "Free, feature-rich, gui-integrated geometry dash mod menu",
+	"repository": "https://github.com/maxnut/GDMegaOverlay",
 	"resources": {
 		"files": [
 			"res/bin/*.dll",

@@ -342,7 +342,7 @@ void Macrobot::drawWindow()
 
 		if (GUI::button("Save##macro"))
 			save(macroName);
-		ImGui::SameLine();
+		GUI::sameLine();
 		if (GUI::button("Load##macro"))
 			load(macroName);
 

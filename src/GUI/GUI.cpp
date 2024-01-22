@@ -10,6 +10,9 @@
 #include <fstream>
 #include <sstream>
 
+#include <imgui-cocos.hpp>
+#include "ConstData.h"
+
 using namespace geode::prelude;
 
 class $modify(CCKeyboardDispatcher) {
@@ -21,21 +24,47 @@ class $modify(CCKeyboardDispatcher) {
 			return true;
         }
 
-		for (GUI::Shortcut& s : GUI::shortcuts)
+		bool activatedShortcut = false;
+
+		if(down)
 		{
-			if (key == s.key)
+			for (GUI::Shortcut& s : GUI::shortcuts)
 			{
-				GUI::currentShortcut = s.name;
-				GUI::shortcutLoop = true;
-				GUI::draw();
-				GUI::shortcutLoop = false;
-				Settings::save();
-				JsonHacks::save();
+				if (ConvertKeyEnum(key) == s.key)
+				{
+					GUI::currentShortcut = s.name;
+					GUI::shortcutLoop = true;
+					GUI::draw();
+					GUI::shortcutLoop = false;
+					Settings::save();
+					JsonHacks::save();
+
+					activatedShortcut = true;
+				}
 			}
 		}
 
+		if(activatedShortcut)
+			return true;
+
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
     }
+};
+
+//mat is dumdum and didnt add proper keyboard support
+class $modify(CCKeyboardDispatcher) {
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool idk) {
+		if (!ImGuiCocos::get().isInitialized())
+			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, idk);
+
+		const auto imKey = ConvertKeyEnum(key);
+		if (imKey != ImGuiKey_None) 
+		{
+			ImGui::GetIO().AddKeyEvent(imKey, down);
+		}
+
+		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, idk);
+	}
 };
 
 class $modify(MenuLayer) {

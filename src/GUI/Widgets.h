@@ -41,6 +41,7 @@ namespace GUI
 	bool alertPopup(std::string, std::string, const ButtonFunc&, const ButtonFunc& = nullptr, int = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove);
 	void marker(std::string, std::string);
 	void textURL(std::string, std::string);
+	void sameLine(float offset_from_start_x = 0, float spacing_w = -1);
 
 
 	bool customCheckbox(const char* label, bool* v);

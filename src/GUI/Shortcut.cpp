@@ -9,14 +9,14 @@ int shortcutIndexKey = 0;
 
 bool GUI::Shortcut::handleShortcut(std::string& name)
 {
-	if (GUI::isVisible)
+	if (GUI::shouldRender())
 	{
 		bool openPopup = false;
 
-		if(ImGui::IsKeyDown(ImGuiKey_LeftShift) && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_ModShift) &&
+			ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			ImGui::OpenPopup(name.c_str());
-			std::cout << "dioporco" << std::endl;
 		}
 
 		if (ImGui::BeginPopupContextItem(name.c_str()))
@@ -43,7 +43,7 @@ bool GUI::Shortcut::handleShortcut(std::string& name)
 				GUI::shortcuts.push_back(s);
 				ImGui::CloseCurrentPopup();
 			}
-			ImGui::SameLine();
+			GUI::sameLine();
 			if (ImGui::Button("Cancel"))
 				ImGui::CloseCurrentPopup();
 			ImGui::EndPopup();
@@ -74,10 +74,13 @@ void GUI::Shortcut::renderWindow()
 		for (GUI::Shortcut& s : GUI::shortcuts)
 		{
 			ImGui::AlignTextToFramePadding();
-			ImGui::Text(KeyNames[s.key]);
-			ImGui::SameLine();
+			int displayKeyIndex = s.key - 511;
+			if (displayKeyIndex < 0)
+				displayKeyIndex = 0;
+			ImGui::Text(KeyNames[displayKeyIndex]);
+			GUI::sameLine();
 			ImGui::Text(s.name.c_str());
-			ImGui::SameLine(ImGui::GetWindowSize().x - 30);
+			GUI::sameLine(ImGui::GetWindowSize().x - 30);
 			if (GUI::button(std::format("x##{}", std::to_string(uid))))
 			{
 				GUI::shortcuts.erase(GUI::shortcuts.begin() + uid);
@@ -94,5 +97,6 @@ void GUI::Shortcut::renderWindow()
 			GameManager::get()->getPlayLayer(), !MBO(bool, GameManager::get()->getPlayLayer(), 10876));
 
 	if (GUI::button("Reset Level") && GameManager::get()->getPlayLayer())
-		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base + 0x2EA130)(GameManager::get()->getPlayLayer());
+		reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(util::gd_base +
+															   0x2EA130)(GameManager::get()->getPlayLayer());
 }

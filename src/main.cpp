@@ -1,3 +1,5 @@
+#define isnan isnan
+
 #include "imgui_internal.h"
 
 #include <Geode/Geode.hpp>
@@ -71,7 +73,7 @@ void init()
 			if (ImGui::IsItemDeactivatedAfterEdit())
 				Common::calculateFramerate();
 
-			ImGui::SameLine();
+			GUI::sameLine();
 		}
 
 		if (GUI::checkbox("FPS", Settings::get<bool*>("general/fps/enabled")))
@@ -86,7 +88,7 @@ void init()
 			if (ImGui::IsItemDeactivatedAfterEdit())
 				Common::calculateFramerate();
 
-			ImGui::SameLine();
+			GUI::sameLine();
 		}
 
 		if (GUI::checkbox("Speedhack", Settings::get<bool*>("general/speedhack/enabled")))
@@ -101,7 +103,7 @@ void init()
 			if (ImGui::IsItemDeactivatedAfterEdit())
 				Common::onAudioPitchChange();
 
-			ImGui::SameLine();
+			GUI::sameLine();
 		}
 		if (GUI::checkbox("Pitch Shift", Settings::get<bool*>("general/music/pitch/enabled")))
 			Common::onAudioPitchChange();
@@ -115,7 +117,7 @@ void init()
 			if (ImGui::IsItemDeactivatedAfterEdit())
 				Common::onAudioSpeedChange();
 
-			ImGui::SameLine();
+			GUI::sameLine();
 		}
 
 		if (Settings::get<bool>("general/tie_to_game_speed/music/enabled"))
@@ -223,11 +225,9 @@ void init()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		float windowColor[3]{
-			Settings::get<float>("menu/window/color/r", 1.f),
-			Settings::get<float>("menu/window/color/g", .0f),
-			Settings::get<float>("menu/window/color/b", .0f)
-		};
+		float windowColor[3]{Settings::get<float>("menu/window/color/r", 1.f),
+							 Settings::get<float>("menu/window/color/g", .0f),
+							 Settings::get<float>("menu/window/color/b", .0f)};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{

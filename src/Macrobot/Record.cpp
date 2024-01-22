@@ -706,7 +706,7 @@ void Record::renderWindow()
 		Settings::set<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
 	}
 
-	ImGui::SameLine();
+	GUI::sameLine();
 
 	if (GUI::button("AMD"))
 	{
