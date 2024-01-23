@@ -176,6 +176,9 @@ void init()
 
 		GUI::checkbox("End Level Layer Info", "level/endlevellayerinfo/enabled", true);
 
+		GUI::checkbox("Hide Pause Button", "general/hide_pause/button");
+		GUI::checkbox("Hide Pause Menu", "general/hide_pause/menu");
+
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
 	levelWindow.position = {550, 50};

@@ -1,7 +1,6 @@
 #include "SafeMode.h"
 
 #include <Geode/modify/EndLevelLayer.hpp>
-#include <Geode/modify/PlayerObject.hpp>
 
 #include <Geode/Utils.hpp>
 #include <Geode/platform/windows.hpp>
