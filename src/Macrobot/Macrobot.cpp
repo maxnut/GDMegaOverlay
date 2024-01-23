@@ -15,12 +15,27 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/GJBaseGameLayer.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/modify/CCKeyboardDispatcher.hpp>
 
 #include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/binding/GameManager.hpp>
 
 using namespace geode::prelude;
 using namespace Macrobot;
+
+class $modify(CCKeyboardDispatcher) 
+{
+    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr) 
+	{
+		if(key == enumKeyCodes::KEY_D || key == enumKeyCodes::KEY_ArrowRight)
+			direction = down ? 1 : 0;
+
+		if(key == enumKeyCodes::KEY_A || key == enumKeyCodes::KEY_ArrowLeft)
+			direction = down ? -1 : 0;
+
+		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
+	}
+};
 
 class $modify(PlayLayer)
 {
@@ -109,13 +124,13 @@ class $modify(PlayerObject)
 	void releaseButton(PlayerButton btn)
 	{
 		bool res = reinterpret_cast<bool(__thiscall*)(PlayerObject*)>(base::get() + 0x2D1F70)(this);
-		
+
 		if (res && playerObject1 && playerMode == 1 && gameTime != 9999999999)
 		{
-			if (btn == PlayerButton::Right && (ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)))
+			if (btn == PlayerButton::Right && direction == 1)
 				return;
 
-			if (btn == PlayerButton::Left && (ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
+			if (btn == PlayerButton::Left && direction == -1)
 				return;
 
 			Action* ac = recordAction(btn, gameTime, false, this == playerObject1);
