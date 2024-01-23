@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-project(GDMegaOverlay VERSION 1.0.0)
+project(GDMegaOverlay LANGUAGES CXX VERSION 1.0.0)
 
 file(GLOB SOURCES
   src/*.cpp
@@ -16,8 +16,6 @@ file(GLOB SOURCES
   src/JsonHacks/*.cpp
   src/Macrobot/*.cpp
   src/DiscordRPCManager/*.cpp
-
-  libs/discord_game_sdk/cpp/*.cpp
 )
 
 # Set up the mod binary
@@ -29,12 +27,7 @@ else()
   message(STATUS "Found Geode: $ENV{GEODE_SDK}")
 endif()
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-  libs/discord_game_sdk/cpp
-  libs/libsndfile/include
-  libs/gdr
-  src/
-)
+target_include_directories(${PROJECT_NAME} PRIVATE src/)
 
 add_subdirectory($ENV{GEODE_SDK} ${CMAKE_CURRENT_BINARY_DIR}/geode)
 
@@ -43,16 +36,28 @@ CPMAddPackage("gh:matcool/gd-imgui-cocos#4eb5777")
 
 target_link_libraries(${PROJECT_NAME} imgui-cocos)
 
-target_link_libraries(${PROJECT_NAME}
-  ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
-  ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
-)
-
-# doesn't work lol!
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  LINK_SEARCH_START_STATIC ON
-  LINK_SEARCH_END_STATIC ON
-)
-
 # Set up dependencies, resources, link Geode
 setup_geode_mod(${PROJECT_NAME})
+
+
+# Get needed modules
+include(cmake/git.cmake)
+
+message("Getting modules\n")
+include(cmake/nhjson.cmake)
+include(cmake/discord-rpc.cmake)
+include(cmake/gdr.cmake)
+set(BUILD_PROGRAMS OFF)
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_TESTING OFF)
+set(BUILD_EXAMPLES OFF)
+include(cmake/libsndfile.cmake)
+
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${nhjson_SOURCE_DIR}/single_include
+  ${discord-rpc_SOURCE_DIR}/include
+  ${gdr_SOURCE_DIR}/include
+  ${libsndfile_SOURCE_DIR}/include
+)
+
+target_link_libraries(${PROJECT_NAME} discord-rpc sndfile)

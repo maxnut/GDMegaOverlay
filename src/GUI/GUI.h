@@ -4,7 +4,7 @@
 #include "Widgets.h"
 #include "Shortcut.h"
 
-#include "../json.hpp"
+#include <nlohmann/json.hpp>
 #include <vector>
 
 

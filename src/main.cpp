@@ -9,7 +9,7 @@ using namespace geode::prelude;
 #include "ConstData.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui-cocos.hpp>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 #include <filesystem>
 #include <fstream>
 
@@ -286,9 +286,6 @@ void render()
 {
 	GUI::draw();
 	GUI::setStyle();
-
-	if (DiscordRPCManager::core)
-		DiscordRPCManager::core->RunCallbacks();
 }
 
 $on_mod(Loaded)

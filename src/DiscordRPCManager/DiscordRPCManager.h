@@ -1,6 +1,7 @@
 #pragma once
-#include <discord.h>
 #include <Geode/binding/GJGameLevel.hpp>
+#include <discord_register.h>
+#include <discord_rpc.h>
 
 namespace DiscordRPCManager
 {
@@ -11,8 +12,7 @@ namespace DiscordRPCManager
 		DEFAULT
 	};
 
-	inline discord::Core* core{};
-	const discord::ClientId clientID = 1055528380956672081;
+	inline const char* clientID = "1055528380956672081";
 
 	inline std::string playerName = "";
 	inline long long rpcStartTime = 0;
@@ -20,7 +20,11 @@ namespace DiscordRPCManager
 
 	void init();
 	void updateRPC(State, GJGameLevel* = nullptr);
-	std::string getLevelDifficultyAssetName(GJGameLevel*);
+	const char* getLevelDifficultyAssetName(GJGameLevel*);
+
+	void handleDiscordReady(const DiscordUser*);
+	void handleDiscordError(int, const char*);
+	void handleDiscordDisconnected(int, const char*);
 
 	void editorPauseLayerOnExitEditorHook(void*, void*);
 };
