@@ -25,8 +25,6 @@ class $modify(CCKeyboardDispatcher) {
 			return true;
         }
 
-		bool activatedShortcut = false;
-
 		if (down)
 		{
 			for (GUI::Shortcut& s : GUI::shortcuts)
@@ -38,14 +36,9 @@ class $modify(CCKeyboardDispatcher) {
 					GUI::draw();
 					GUI::shortcutLoop = false;
 					JsonHacks::save();
-
-					activatedShortcut = true;
 				}
 			}
 		}
-
-		if (activatedShortcut)
-			return true;
 
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
     }
