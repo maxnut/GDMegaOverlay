@@ -1,6 +1,8 @@
 #include "Shortcut.h"
 #include "GUI.h"
 
+#include <Geode/platform/windows.hpp>
+
 #include "../Common.h"
 #include "../ConstData.h"
 #include "Widgets.h"
@@ -13,11 +15,12 @@ bool GUI::Shortcut::handleShortcut(std::string& name)
 	{
 		bool openPopup = false;
 
-		if (ImGui::IsItemHovered() && ImGui::IsKeyDown(ImGuiKey_ModShift) &&
-			ImGui::IsMouseClicked(ImGuiMouseButton_Left))
-		{
+		if (
+			ImGui::IsItemHovered() &&
+			ImGui::IsKeyDown(ImGuiKey_ModShift) &&
+			ImGui::IsMouseClicked(ImGuiMouseButton_Left)
+			)
 			ImGui::OpenPopup(name.c_str());
-		}
 
 		if (ImGui::BeginPopupContextItem(name.c_str()))
 		{

@@ -8,6 +8,8 @@
 
 using namespace geode::prelude;
 
+// TODO: add JsonHacks::find
+
 void JsonHacks::load()
 {
 	auto read_or_default = [](std::string modsName, nlohmann::json& mods) {
@@ -66,9 +68,9 @@ void JsonHacks::toggleHack(nlohmann::json& mods, std::size_t index, bool toggle)
 		bool vp = mod["opcodes"][i].contains("vp") ? mod["opcodes"][i]["vp"].get<bool>() : false;
 
 		if (mod["opcodes"][i].contains("lib") && mod["opcodes"][i]["lib"].get<std::string>() == "libcocos2d.dll")
-			util::writeBytes(util::cc_base + address, util::hexToBytes(opcode), vp);
+			util::writeBytes(base::getCocos() + address, util::hexToBytes(opcode), vp);
 		else
-			util::writeBytes(util::gd_base + address, util::hexToBytes(opcode), vp);
+			util::writeBytes(base::get() + address, util::hexToBytes(opcode), vp);
 	}
 }
 

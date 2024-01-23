@@ -16,11 +16,9 @@ using namespace geode::prelude;
 #include "Common.h"
 #include "DiscordRPCManager/DiscordRPCManager.h"
 #include "GUI/GUI.h"
-#include "Hacks/AudioChannelControl.h"
 #include "Hacks/Labels.h"
-#include "Hacks/ReplayLastCheckpoint.h"
-#include "Hacks/Speedhack.h"
 #include "Hacks/StartposSwitcher.h"
+#include "Hacks/SafeMode.h"
 #include "JsonHacks/JsonHacks.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
@@ -28,19 +26,9 @@ using namespace geode::prelude;
 
 void init()
 {
-
-	if (AllocConsole())
-	{
-		freopen_s(reinterpret_cast<FILE**>(stdout), "CONOUT$", "w", stdout);
-		SetConsoleTitleW(L"GDMegaOverlay");
-		SetConsoleCP(CP_UTF8);
-		SetConsoleOutputCP(CP_UTF8);
-	}
-
-
 	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\mod"))
 		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\mod");
-		if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\macros"))
+	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\macros"))
 		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\macros");
 	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\renders"))
 		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\renders");
@@ -58,11 +46,11 @@ void init()
 		Common::onAudioPitchChange();
 		Common::loadIcons();
 		Clickpacks::init();
+		SafeMode::updateState();
 	});
 
 	GUI::Window generalWindow("General", [] {
 		float framerate = Mod::get()->getSavedValue<float>("general/fps/value", 60.f);
-
 		if (GUI::inputFloat("##FPSValue", &framerate))
 			Mod::get()->setSavedValue<float>("general/fps/value", framerate);
 
@@ -136,7 +124,6 @@ void init()
 			Common::onAudioSpeedChange();
 
 		int priority = Mod::get()->getSavedValue<int>("general/priority", 2);
-
 		if (GUI::combo("Thread Priority", &priority, priorities, 5))
 		{
 			Mod::get()->setSavedValue<int>("general/priority", priority);
@@ -183,6 +170,12 @@ void init()
 
 		GUI::checkbox("Replay Last Checkpoint", "level/replay_checkpoint");
 
+		if (GUI::checkbox("Safe Mode", "level/safe_mode/enabled"))
+			SafeMode::updateState();
+		GUI::checkbox("Safe Mode End Screen Label", "level/safe_mode/endscreen_enabled", true);
+
+		GUI::checkbox("End Level Layer Info", "level/endlevellayerinfo/enabled", true);
+
 		JsonHacks::drawFromJson(JsonHacks::level);
 	});
 	levelWindow.position = {550, 50};
@@ -223,9 +216,11 @@ void init()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		float windowColor[3]{Mod::get()->getSavedValue<float>("menu/window/color/r", 1.f),
-							 Mod::get()->getSavedValue<float>("menu/window/color/g", .0f),
-							 Mod::get()->getSavedValue<float>("menu/window/color/b", .0f)};
+		float windowColor[3]{
+			Mod::get()->getSavedValue<float>("menu/window/color/r", 1.f),
+			Mod::get()->getSavedValue<float>("menu/window/color/g", .0f),
+			Mod::get()->getSavedValue<float>("menu/window/color/b", .0f)
+		};
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{
@@ -234,13 +229,13 @@ void init()
 			Mod::get()->setSavedValue<float>("menu/window/color/b", windowColor[2]);
 		}
 
-		int togglekey = Mod::get()->getSavedValue<int>("menu/togglekey");
+		int togglekey = Mod::get()->getSavedValue<int>("menu/togglekey", VK_TAB);
 		if (GUI::hotkey("Toggle Menu", &togglekey))
 			Mod::get()->setSavedValue<int>("menu/togglekey", togglekey);
 
-		if(GUI::button("Open Resources Folder"))
+		if (GUI::button("Open Resources Folder"))
 			ShellExecute(0, NULL, Mod::get()->getResourcesDir().string().c_str(), NULL, NULL, SW_SHOW);
-		if(GUI::button("Open Save Folder"))
+		if (GUI::button("Open Save Folder"))
 			ShellExecute(0, NULL, Mod::get()->getSaveDir().string().c_str(), NULL, NULL, SW_SHOW);
 	});
 	menuSettings.position = {1050, 250};

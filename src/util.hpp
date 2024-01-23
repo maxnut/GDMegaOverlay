@@ -7,8 +7,6 @@ namespace util
 #define MEMBERBYOFFSET(type, class, offset) *reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(class) + offset)
 #define MBO MEMBERBYOFFSET
 
-	inline uintptr_t gd_base = reinterpret_cast<uintptr_t>(GetModuleHandle(0));
-	inline uintptr_t cc_base = reinterpret_cast<uintptr_t>(GetModuleHandle("libcocos2d.dll"));
 	inline uintptr_t fmod_base = reinterpret_cast<uintptr_t>(GetModuleHandle("fmod.dll"));
 
 	inline std::vector<uint8_t> hexToBytes(const std::string& hex)

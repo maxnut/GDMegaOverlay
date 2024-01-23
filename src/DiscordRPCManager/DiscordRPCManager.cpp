@@ -151,10 +151,10 @@ void DiscordRPCManager::editorPauseLayerOnExitEditorHook(void* self, void* sende
 {
 	updateRPC(DiscordRPCManager::State::DEFAULT);
 
-	reinterpret_cast<void(__thiscall*)(void*, void*)>(util::gd_base + 0xA2EF0)(self, sender);
+	reinterpret_cast<void(__thiscall*)(void*, void*)>(base::get() + 0xA2EF0)(self, sender);
 }
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void*>(util::gd_base + 0xA2EF0), &editorPauseLayerOnExitEditorHook, "EditorPauseLayer::onExitEditor", tulip::hook::TulipConvention::Thiscall);
+	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0xA2EF0), &editorPauseLayerOnExitEditorHook, "EditorPauseLayer::onExitEditor", tulip::hook::TulipConvention::Thiscall);
 }

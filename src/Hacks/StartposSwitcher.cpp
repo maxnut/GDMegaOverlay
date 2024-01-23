@@ -45,7 +45,7 @@ void StartposSwitcher::change(bool right)
 	if (!startPosObject && index != -1)
 		return;
 
-	reinterpret_cast<void(__thiscall*)(PlayLayer*, StartPosObject*)>(util::gd_base + 0x199E90)(GameManager::get()->getPlayLayer(), startPosObject);
+	reinterpret_cast<void(__thiscall*)(PlayLayer*, StartPosObject*)>(base::get() + 0x199E90)(GameManager::get()->getPlayLayer(), startPosObject);
 
 	GameManager::get()->getPlayLayer()->resetLevel();
 
@@ -56,7 +56,7 @@ void StartposSwitcher::change(bool right)
 
 StartPosObject* StartposSwitcher::createHook()
 {
-	StartPosObject* sp = reinterpret_cast<StartPosObject*(__thiscall*)()>(util::gd_base + 0x3A7850)();
+	StartPosObject* sp = reinterpret_cast<StartPosObject*(__thiscall*)()>(base::get() + 0x3A7850)();
 
 	if (sp && Mod::get()->getSavedValue<bool>("level/startpos_switcher"))
 	{
@@ -70,5 +70,5 @@ StartPosObject* StartposSwitcher::createHook()
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void*>(util::gd_base + 0x3A7850), &createHook, "StartPosObject::create", tulip::hook::TulipConvention::Thiscall);
+	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x3A7850), &createHook, "StartPosObject::create", tulip::hook::TulipConvention::Thiscall);
 }

@@ -6,6 +6,7 @@
 
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include <Geode/platform/windows.hpp>
 
 #include <Geode/Geode.hpp>
 using namespace geode::prelude;
@@ -48,11 +49,11 @@ bool GUI::checkbox(std::string name, bool* value)
 	return result;
 }
 
-bool GUI::checkbox(std::string name, std::string settingName)
+bool GUI::checkbox(std::string name, std::string settingName, bool default_value)
 {
 	bool result = false;
 
-	bool value = Mod::get()->getSavedValue(settingName, false);
+	bool value = Mod::get()->getSavedValue(settingName, default_value);
 
 	if (GUI::shouldRender())
 		result = customCheckbox(name.c_str(), &value);

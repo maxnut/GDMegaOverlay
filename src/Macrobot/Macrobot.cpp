@@ -114,7 +114,8 @@ class $modify(GJBaseGameLayer)
 					if (ac.down)
 						GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
 					else
-						GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
+						reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(util::gd_base + 0x1B69F0)(
+							GameManager::get()->getPlayLayer(), false, ac.button, !ac.player2);
 
 					if (correctionType > 0 && ac.correction.has_value())
 					{
@@ -202,7 +203,7 @@ void* Macrobot::checkpointObjectCreateHook()
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void*>(util::gd_base + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
+	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
 }
 
 void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject* player, bool fullCapture)
