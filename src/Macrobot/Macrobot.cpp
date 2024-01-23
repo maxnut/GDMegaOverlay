@@ -85,51 +85,6 @@ class $modify(PlayLayer)
 	}
 };
 
-class $modify(GJBaseGameLayer)
-{
-	void update(float dt)
-	{
-		GJBaseGameLayer::update(dt);
-		if (playerMode != -1 && playerObject1)
-		{
-			double currentTime = *((double*)GameManager::get()->getPlayLayer() + 1412);
-			gameTime = currentTime;
-
-			if (AudioRecord::recording && !JsonHacks::player["mods"][0]["toggle"].get<bool>())
-			{
-				JsonHacks::player["mods"][0]["toggle"] = true;
-				JsonHacks::toggleHack(JsonHacks::player, 0, false);
-			}
-
-			int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
-			if (AudioRecord::recording)
-				correctionType = 1;
-
-			if (playerMode == 0 && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
-				gameTime >= macro.inputs[actionIndex].time)
-			{
-				do
-				{
-					Action& ac = macro.inputs[actionIndex];
-					if (ac.down)
-						GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
-					else
-						reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*, bool, int, bool)>(base::get() + 0x1B69F0)(
-							GameManager::get()->getPlayLayer(), false, ac.button, !ac.player2);
-
-					if (correctionType > 0 && ac.correction.has_value())
-					{
-						Correction& co = ac.correction.value();
-						co.checkpoint.apply(co.player2 ? playerObject2 : playerObject1, false);
-					}
-
-					actionIndex++;
-				} while (actionIndex < macro.inputs.size() && gameTime >= macro.inputs[actionIndex].time);
-			}
-		}
-	}
-};
-
 class $modify(PlayerObject)
 {
 	void pushButton(PlayerButton btn)
@@ -143,11 +98,14 @@ class $modify(PlayerObject)
 		{
 			Action* ac = recordAction(btn, gameTime, true, this == playerObject1);
 
-			Correction c;
-			c.time = gameTime;
-			c.player2 = this == playerObject2;
-			c.checkpoint.fromPlayer(this, false);
-			ac->correction = c;
+			if(Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+			{
+				Correction c;
+				c.time = gameTime;
+				c.player2 = this == playerObject2;
+				c.checkpoint.fromPlayer(this, false);
+				ac->correction = c;
+			}
 		}
 	}
 
@@ -168,11 +126,14 @@ class $modify(PlayerObject)
 
 			Action* ac = recordAction(btn, gameTime, false, this == playerObject1);
 
-			Correction c;
-			c.time = gameTime;
-			c.player2 = this == playerObject2;
-			c.checkpoint.fromPlayer(this, false);
-			ac->correction = c;
+			if(Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+			{
+				Correction c;
+				c.time = gameTime;
+				c.player2 = this == playerObject2;
+				c.checkpoint.fromPlayer(this, false);
+				ac->correction = c;
+			}
 		}
 	}
 };
@@ -201,9 +162,41 @@ void* Macrobot::checkpointObjectCreateHook()
 	return self;
 }
 
+void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
+{
+	if (playerMode != -1 && playerObject1)
+	{
+		double currentTime = *((double*)GameManager::get()->getPlayLayer() + 1412);
+		gameTime = currentTime;
+
+		int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
+		
+		if (playerMode == 0 && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
+			gameTime >= macro.inputs[actionIndex].time)
+		{
+			do
+			{
+				Action& ac = macro.inputs[actionIndex];
+				if (ac.down)
+					GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
+				else
+					GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
+				if (correctionType > 0 && ac.correction.has_value())
+				{
+					Correction& co = ac.correction.value();
+					co.checkpoint.apply(co.player2 ? playerObject2 : playerObject1, false);
+				}
+				actionIndex++;
+			} while (actionIndex < macro.inputs.size() && gameTime >= macro.inputs[actionIndex].time);
+		}
+	}
+	reinterpret_cast<void(__thiscall*)(GJBaseGameLayer*)>(base::get() + 0x1BD240)(self);
+}
+
 $execute
 {
 	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
+	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
 }
 
 void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject* player, bool fullCapture)

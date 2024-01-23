@@ -313,6 +313,7 @@ void Recorder::capture_frame()
 void Recorder::stop_audio()
 {
 	AudioRecord::stop();
+	m_recording_audio = false;
 
 	GJGameLevel* level =
 		GameManager::get()

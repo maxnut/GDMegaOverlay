@@ -2,7 +2,7 @@
 #include "../Common.h"
 #include "../Macrobot/Macrobot.h"
 
-#include "../Macrobot/AudioRecord.h"
+#include "../Macrobot/Record.h"
 
 #include <Geode/modify/CCScheduler.hpp>
 #include <Geode/binding/GameManager.hpp>
@@ -18,7 +18,7 @@ class $modify(CCScheduler)
 
 		dt *= speedhack;
 
-		if (Macrobot::playerMode != -1 && !AudioRecord::recording)
+		if (Record::recorder.m_recording)
 		{
 			float framerate;
 
