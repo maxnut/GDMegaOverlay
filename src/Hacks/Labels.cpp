@@ -179,11 +179,6 @@ class $modify(PlayerObject)
 
 	void releaseButton(PlayerButton btn)
 	{
-		if(!GameManager::get()->getPlayLayer())
-		{
-			PlayerObject::releaseButton(btn);
-			return;
-		}
 		click = false;
 		PlayerObject::releaseButton(btn);
 	}

@@ -33,12 +33,12 @@ void Common::calculateFramerate()
 	if (framerate < 60.f)
 		framerate = 60.f;
 
-	if (Mod::get()->getSavedValue<bool>("general/speedhack/enabled") && Macrobot::playerMode != -1)
+	/* if (Mod::get()->getSavedValue<bool>("general/speedhack/enabled") && Macrobot::playerMode != -1)
 		interval = framerate * speedhack;
 	else
-		interval = framerate;
+		interval = framerate; */
 
-	cocos2d::CCDirector::sharedDirector()->setAnimationInterval(1.f / interval);
+	cocos2d::CCDirector::sharedDirector()->setAnimationInterval(1.f / framerate);
 	onAudioSpeedChange();
 }
 

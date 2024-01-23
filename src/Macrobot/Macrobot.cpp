@@ -89,12 +89,9 @@ class $modify(PlayerObject)
 {
 	void pushButton(PlayerButton btn)
 	{
-		PlayerObject::pushButton(btn);
+		bool res = reinterpret_cast<bool(__thiscall*)(PlayerObject*)>(base::get() + 0x2D1D30)(this);
 
-		if(!GameManager::get()->getPlayLayer())
-			return;
-
-		if (playerObject1 && playerMode == 1 && gameTime != 9999999999)
+		if (res && playerObject1 && playerMode == 1 && gameTime != 9999999999)
 		{
 			Action* ac = recordAction(btn, gameTime, true, this == playerObject1);
 
@@ -111,12 +108,9 @@ class $modify(PlayerObject)
 
 	void releaseButton(PlayerButton btn)
 	{
-		PlayerObject::releaseButton(btn);
-
-		if(!GameManager::get()->getPlayLayer())
-			return;
-
-		if (playerObject1 && playerMode == 1 && gameTime != 9999999999)
+		bool res = reinterpret_cast<bool(__thiscall*)(PlayerObject*)>(base::get() + 0x2D1F70)(this);
+		
+		if (res && playerObject1 && playerMode == 1 && gameTime != 9999999999)
 		{
 			if (btn == PlayerButton::Right && (ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)))
 				return;

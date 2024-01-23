@@ -17,46 +17,41 @@ using namespace geode::prelude;
 
 class $modify(CCKeyboardDispatcher) {
     bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr) {
-		int menuKey = Mod::get()->getSavedValue<int>("menu/togglekey", VK_TAB);
-
-        if (down && (key == menuKey))
+		
+		if(!arr)
 		{
-            GUI::toggle();
-			return true;
-        }
+			int menuKey = Mod::get()->getSavedValue<int>("menu/togglekey", VK_TAB);
 
-		if (down)
-		{
-			for (GUI::Shortcut& s : GUI::shortcuts)
+			if (down && (key == menuKey))
 			{
-				if (ConvertKeyEnum(key) == s.key)
+				GUI::toggle();
+				return true;
+			}
+
+			if (down)
+			{
+				for (GUI::Shortcut& s : GUI::shortcuts)
 				{
-					GUI::currentShortcut = s.name;
-					GUI::shortcutLoop = true;
-					GUI::draw();
-					GUI::shortcutLoop = false;
-					JsonHacks::save();
+					if (ConvertKeyEnum(key) == s.key)
+					{
+						GUI::currentShortcut = s.name;
+						GUI::shortcutLoop = true;
+						GUI::draw();
+						GUI::shortcutLoop = false;
+						JsonHacks::save();
+					}
 				}
 			}
+
+			if (!ImGuiCocos::get().isInitialized())
+				return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
+
+			if (const auto imKey = ConvertKeyEnum(key); imKey != ImGuiKey_None)
+				ImGui::GetIO().AddKeyEvent(imKey, down);
 		}
 
         return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
     }
-};
-
-// mat is dumdum and didnt add proper keyboard support
-class $modify(CCKeyboardDispatcher)
-{
-	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool unk)
-	{
-		if (!ImGuiCocos::get().isInitialized())
-			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, unk);
-
-		if (const auto imKey = ConvertKeyEnum(key); imKey != ImGuiKey_None)
-			ImGui::GetIO().AddKeyEvent(imKey, down);
-
-		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, unk);
-	}
 };
 
 class $modify(MenuLayer)
