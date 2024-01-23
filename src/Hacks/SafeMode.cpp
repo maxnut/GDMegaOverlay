@@ -76,7 +76,7 @@ $execute
 {
 	for (std::size_t i = 0; i < PATCHES_SIZE; i++)
 	{
-		patches[i] = Mod::get()->patch(reinterpret_cast<void*>(base::get() + opcodes[i].address), opcodes[i].on).unwrap();
+		patches[i] = Mod::get()->patch(reinterpret_cast<void*>(base::get() + std::get<0>(opcodes[i])), std::get<1>(opcodes[i])).unwrap();
 		patches[i]->disable();
 	}
 
