@@ -286,9 +286,6 @@ void render()
 {
 	GUI::draw();
 	GUI::setStyle();
-
-	if (DiscordRPCManager::core)
-		DiscordRPCManager::core->RunCallbacks();
 }
 
 $on_mod(Loaded)

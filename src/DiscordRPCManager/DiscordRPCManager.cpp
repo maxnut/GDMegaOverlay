@@ -1,9 +1,11 @@
 #include "DiscordRPCManager.h"
 
 #include "../Common.h"
-#include <Geode/utils/SeedValue.hpp>
 #include <Geode/binding/GJGameLevel.hpp>
 #include "../util.hpp"
+
+#include <discord_register.h>
+#include <discord_rpc.h>
 
 #include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/modify/PlayLayer.hpp>
@@ -49,15 +51,18 @@ class $modify(MenuLayer)
 
 void DiscordRPCManager::init()
 {
-	if (!core) discord::Core::Create(clientID, DiscordCreateFlags_NoRequireDiscord, &core);
-	if (!core) return;
+	DiscordEventHandlers handler;
+
+	handler.ready = handleDiscordReady;
+	handler.errored = handleDiscordError;
+	handler.disconnected = handleDiscordDisconnected;
+	Discord_Initialize(clientID, &handler, 1, "322170");
+	Discord_RunCallbacks();
 
 	rpcStartTime = std::chrono::duration_cast<std::chrono::seconds>(
 		std::chrono::system_clock::now().time_since_epoch()
 	).count();
 	playerName = GJAccountManager::sharedState()->m_username; //MBO(std::string, Common::gjAccountManager, 0x10C);
-
-	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled")) return;
 
 	updateRPC(State::DEFAULT);
 }
@@ -66,53 +71,50 @@ void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 {
 	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled")) return;
 
-	if (core)
+	DiscordRichPresence presence{};
+	playerName = GJAccountManager::sharedState()->m_username;//MBO(std::string, Common::gjAccountManager, 0x10C);
+
+	if (!level)
+		state = State::DEFAULT;
+
+	switch (state)
 	{
-		discord::Activity activity{};
-		playerName = GJAccountManager::sharedState()->m_username;//MBO(std::string, Common::gjAccountManager, 0x10C);
+	case State::PLAYING_LEVEL:
+		presence.state = "Playing a level";
+		levelStartTime = std::chrono::duration_cast<std::chrono::seconds>(
+			std::chrono::system_clock::now().time_since_epoch()
+		).count();
 
-		if (!level)
-			state = State::DEFAULT;
+		if (level->m_creatorName.empty()) // usually only happens on main levels
+			presence.details = std::format("{}", level->m_levelName.c_str()).c_str();
+		else
+			presence.details = std::format("{} by {}", level->m_levelName.c_str(), level->m_creatorName.c_str()).c_str();
 
-		switch (state)
-		{
-		case State::PLAYING_LEVEL:
-			activity.SetState("Playing a level");
-			levelStartTime = std::chrono::duration_cast<std::chrono::seconds>(
-				std::chrono::system_clock::now().time_since_epoch()
-			).count();
+		presence.smallImageKey = getLevelDifficultyAssetName(level);
 
-			if (level->m_creatorName.empty()) // usually only happens on main levels
-				activity.SetDetails(std::format("{}", level->m_levelName.c_str()).c_str());
-			else
-				activity.SetDetails(std::format("{} by {}", level->m_levelName.c_str(), level->m_creatorName.c_str()).c_str());
+		break;
+	case State::EDITING_LEVEL:
+		presence.state = "Editing a level";
+		presence.details = level->m_levelName.c_str();
 
-			activity.GetAssets().SetSmallImage(getLevelDifficultyAssetName(level).c_str());
+		presence.smallImageKey = "editor";
 
-			break;
-		case State::EDITING_LEVEL:
-			activity.SetState("Editing a level");
-			activity.SetDetails(level->m_levelName.c_str());
+		break;
 
-			activity.GetAssets().SetSmallImage("editor");
-
-			break;
-
-		case State::DEFAULT:
-			activity.SetState("");
-			activity.SetDetails("Browsing Menus");
-			break;
-		}
-
-		activity.GetTimestamps().SetStart(state == State::PLAYING_LEVEL ? levelStartTime : rpcStartTime);
-		activity.GetAssets().SetLargeText(playerName.c_str());
-		activity.GetAssets().SetLargeImage("cool");
-		activity.SetType(discord::ActivityType::Playing);
-		core->ActivityManager().UpdateActivity(activity, nullptr);
+	case State::DEFAULT:
+		presence.state = "";
+		presence.details = "Browsing Menus";
+		break;
 	}
+
+	presence.startTimestamp = state == State::PLAYING_LEVEL ? levelStartTime : rpcStartTime;
+	presence.largeImageText = playerName.c_str();
+	presence.largeImageKey = "cool";
+	presence.instance = 0;
+	Discord_UpdatePresence(&presence);
 }
 
-std::string DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
+const char* DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
 {
 	if (level->m_autoLevel)
 		return "auto";
@@ -144,6 +146,27 @@ std::string DiscordRPCManager::getLevelDifficultyAssetName(GJGameLevel* level)
 	}
 
 	return "na";
+}
+
+void DiscordRPCManager::handleDiscordReady(const DiscordUser* user)
+{
+	log::info("Connected to Discord RPC");
+	log::info("Username: {}", user->username);
+	log::info("UserID: {}", user->userId);
+}
+
+void DiscordRPCManager::handleDiscordError(int errorCode, const char* message)
+{
+	log::info("Discord RPC error");
+	log::info("Error Code: {}", errorCode);
+	log::info("Message: {}", message);
+}
+
+void DiscordRPCManager::handleDiscordDisconnected(int errorCode, const char* message)
+{
+	log::info("Discord RPC disconnected");
+	log::info("Error Code: {}", errorCode);
+	log::info("Message: {}", message);
 }
 
 // geode bindings pls accept my pr

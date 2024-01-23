@@ -17,7 +17,7 @@ file(GLOB SOURCES
   src/Macrobot/*.cpp
   src/DiscordRPCManager/*.cpp
 
-  libs/discord_game_sdk/cpp/*.cpp
+  libs/discord-rpc/src/*.cpp
 )
 
 # Set up the mod binary
@@ -30,7 +30,7 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
-  libs/discord_game_sdk/cpp
+  libs/discord-rpc/include
   libs/libsndfile/include
   libs/gdr
   src/
@@ -44,7 +44,6 @@ CPMAddPackage("gh:matcool/gd-imgui-cocos#4eb5777")
 target_link_libraries(${PROJECT_NAME} imgui-cocos)
 
 target_link_libraries(${PROJECT_NAME}
-  ${CMAKE_SOURCE_DIR}/libs/discord_game_sdk/lib/x86/discord_game_sdk.dll.lib
   ${CMAKE_SOURCE_DIR}/libs/libsndfile/lib/sndfile.lib
 )
 
