@@ -167,10 +167,10 @@ class $modify(PlayLayer)
 		PlayLayer::postUpdate(dt);
 	}
 
-	void onExit()
+	void onQuit()
 	{
 		labels.clear();
-		PlayLayer::onExit();
+		PlayLayer::onQuit();
 	}
 };
 

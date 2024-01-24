@@ -7,6 +7,8 @@
 
 #include <Geode/modify/PlayerObject.hpp>
 
+using namespace geode::prelude;
+
 namespace Macrobot
 {
 
@@ -22,7 +24,7 @@ class PlayerCheckpoint
 	float rotation;
 	float rotationRate;
 
-	float randomProperties[2268];
+	std::vector<float> randomProperties;
 
 	void apply(PlayerObject* player, bool fullRestore);
 	void fromPlayer(PlayerObject* player, bool fullCapture);

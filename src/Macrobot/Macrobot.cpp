@@ -23,31 +23,30 @@
 using namespace geode::prelude;
 using namespace Macrobot;
 
-class $modify(CCKeyboardDispatcher) 
-{
-    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr) 
+class $modify(CCKeyboardDispatcher){
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
 	{
-		if(key == enumKeyCodes::KEY_D || key == enumKeyCodes::KEY_ArrowRight)
+		if (key == enumKeyCodes::KEY_D || key == enumKeyCodes::KEY_ArrowRight)
 			direction = down ? 1 : 0;
 
-		if(key == enumKeyCodes::KEY_A || key == enumKeyCodes::KEY_ArrowLeft)
+		if (key == enumKeyCodes::KEY_A || key == enumKeyCodes::KEY_ArrowLeft)
 			direction = down ? -1 : 0;
 
 		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
 	}
 };
 
-class $modify(PlayLayer)
-{
-	void loadFromCheckpoint(CheckpointObject* checkpoint)
+class $modify(PlayLayer){
+	void loadFromCheckpoint(CheckpointObject * checkpoint)
 	{
 		if (playerMode != -1 && playerObject1)
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
-			const auto check = [&](const Action& action) -> bool { return action.time >= checkpointData.time; };
+			const auto check = [&](const Action &action) -> bool { return action.time >= checkpointData.time; };
 			macro.inputs.erase(std::remove_if(macro.inputs.begin(), macro.inputs.end(), check), macro.inputs.end());
 			PlayLayer::loadFromCheckpoint(checkpoint);
-			*((double*)GameManager::get()->getPlayLayer() + 1412) = checkpointData.time;
+
+			*((double *)GameManager::get()->getPlayLayer() + 1412) = checkpointData.time;
 			gameTime = checkpointData.time;
 			checkpointData.p1.apply(playerObject1, true);
 			checkpointData.p2.apply(playerObject2, true);
@@ -57,97 +56,95 @@ class $modify(PlayLayer)
 				playerObject2->releaseButton(PlayerButton::Jump);
 			}
 		}
-		else
-			PlayLayer::loadFromCheckpoint(checkpoint);
-	}
+		else PlayLayer::loadFromCheckpoint(checkpoint);
+}
 
-	void resetLevel()
-	{
-		if (playerMode != -1)
-		{
-			framerate = GameManager::get()->m_customFPSTarget;
-			playerObject1 = this->m_player1;
-			playerObject2 = this->m_player2;
-			actionIndex = 0;
-			correctionIndex = 0;
-			gameTime = 9999999999;
-
-			PlayLayer::resetLevel();
-
-			if (gameTime == 9999999999)
-			{
-				*((double*)GameManager::get()->getPlayLayer() + 1412) = 0.0;
-				gameTime = 0;
-				if (playerMode == 1)
-				{
-					checkpoints.clear();
-					macro.inputs.clear();
-				}
-			}
-
-			if (playerObject1->m_isPlatformer)
-			{
-				if ((ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)) &&
-					!(ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
-					playerObject1->pushButton(PlayerButton::Right);
-				else if (!(ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)) &&
-						(ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
-					playerObject1->pushButton(PlayerButton::Left);
-			}
-		}
-		else
-			PlayLayer::resetLevel();
-	}
-};
-
-class $modify(PlayerObject)
+void resetLevel()
 {
-	void pushButton(PlayerButton btn)
+	if (playerMode != -1)
 	{
-		bool res = reinterpret_cast<bool(__thiscall*)(PlayerObject*)>(base::get() + 0x2D1D30)(this);
+		framerate = GameManager::get()->m_customFPSTarget;
+		playerObject1 = this->m_player1;
+		playerObject2 = this->m_player2;
+		actionIndex = 0;
+		correctionIndex = 0;
+		gameTime = 9999999999;
 
-		if (res && playerObject1 && playerMode == 1 && gameTime != 9999999999)
+		PlayLayer::resetLevel();
+
+		if (gameTime == 9999999999)
 		{
-			Action* ac = recordAction(btn, gameTime, true, this == playerObject1);
-
-			if(Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+			*((double *)GameManager::get()->getPlayLayer() + 1412) = 0.0;
+			gameTime = 0;
+			if (playerMode == 1)
 			{
-				Correction c;
-				c.time = gameTime;
-				c.player2 = this == playerObject2;
-				c.checkpoint.fromPlayer(this, false);
-				ac->correction = c;
+				checkpoints.clear();
+				macro.inputs.clear();
 			}
 		}
-	}
 
-	void releaseButton(PlayerButton btn)
-	{
-		bool res = reinterpret_cast<bool(__thiscall*)(PlayerObject*)>(base::get() + 0x2D1F70)(this);
-
-		if (res && playerObject1 && playerMode == 1 && gameTime != 9999999999)
+		if (playerObject1->m_isPlatformer)
 		{
-			if (btn == PlayerButton::Right && direction == 1)
-				return;
-
-			if (btn == PlayerButton::Left && direction == -1)
-				return;
-
-			Action* ac = recordAction(btn, gameTime, false, this == playerObject1);
-
-			if(Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
-			{
-				Correction c;
-				c.time = gameTime;
-				c.player2 = this == playerObject2;
-				c.checkpoint.fromPlayer(this, false);
-				ac->correction = c;
-			}
+			if ((ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)) &&
+				!(ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
+				playerObject1->pushButton(PlayerButton::Right);
+			else if (!(ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)) &&
+					 (ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
+				playerObject1->pushButton(PlayerButton::Left);
 		}
 	}
+	else
+		PlayLayer::resetLevel();
+}
 };
 
-Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool press, bool player1)
+class $modify(PlayerObject){
+	void pushButton(PlayerButton btn){
+		PlayerObject::pushButton(btn);
+
+if (playerObject1 && playerMode == 1 && gameTime != 9999999999)
+{
+	Action *ac = recordAction(btn, gameTime, true, this == playerObject1);
+
+	if (Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+	{
+		Correction c;
+		c.time = gameTime;
+		c.player2 = this == playerObject2;
+		c.checkpoint.fromPlayer(this, false);
+		ac->correction = c;
+	}
+}
+}
+
+void releaseButton(PlayerButton btn)
+{
+	PlayerObject::releaseButton(btn);
+
+	if (playerObject1 && playerMode == 1 && gameTime != 9999999999)
+	{
+		if (btn == PlayerButton::Right && direction == 1)
+			return;
+
+		if (btn == PlayerButton::Left && direction == -1)
+			return;
+
+		Action *ac = recordAction(btn, gameTime, false, this == playerObject1);
+
+		if (Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+		{
+			Correction c;
+			c.time = gameTime;
+			c.player2 = this == playerObject2;
+			c.checkpoint.fromPlayer(this, false);
+			ac->correction = c;
+		}
+	}
+}
+}
+;
+
+Macrobot::Action *Macrobot::recordAction(PlayerButton key, double frame, bool press, bool player1)
 {
 	Action ac(frame, (int)key, !player1, press);
 
@@ -156,10 +153,10 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool pr
 	return &macro.inputs[macro.inputs.size() - 1];
 }
 
-void* Macrobot::checkpointObjectCreateHook()
+void *Macrobot::checkpointObjectCreateHook()
 {
-	void* self = reinterpret_cast<void*(__thiscall*)()>(base::get() + 0x2EB9A0)();
-	if (gameTime > 0 && playerObject1)
+	void *self = reinterpret_cast<void *(__thiscall *)()>(base::get() + 0x2EB9A0)();
+	if (playerMode != -1 && gameTime > 0 && playerObject1)
 	{
 		CheckpointData data;
 		data.time = gameTime;
@@ -171,44 +168,44 @@ void* Macrobot::checkpointObjectCreateHook()
 	return self;
 }
 
-void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
+void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 {
 	if (playerMode != -1 && playerObject1)
 	{
-		double currentTime = *((double*)GameManager::get()->getPlayLayer() + 1412);
+		double currentTime = *((double *)GameManager::get()->getPlayLayer() + 1412);
 		gameTime = currentTime;
 
 		int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
-		
+
 		if (playerMode == 0 && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
 			gameTime >= macro.inputs[actionIndex].time)
 		{
 			do
 			{
-				Action& ac = macro.inputs[actionIndex];
+				Action &ac = macro.inputs[actionIndex];
 				if (ac.down)
 					GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
 				else
 					GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
 				if (correctionType > 0 && ac.correction.has_value())
 				{
-					Correction& co = ac.correction.value();
+					Correction &co = ac.correction.value();
 					co.checkpoint.apply(co.player2 ? playerObject2 : playerObject1, false);
 				}
 				actionIndex++;
 			} while (actionIndex < macro.inputs.size() && gameTime >= macro.inputs[actionIndex].time);
 		}
 	}
-	reinterpret_cast<void(__thiscall*)(GJBaseGameLayer*)>(base::get() + 0x1BD240)(self);
+	reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *)>(base::get() + 0x1BD240)(self);
 }
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
-	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
+	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
+	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
 }
 
-void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject* player, bool fullCapture)
+void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCapture)
 {
 	// playerObject + 2280 isplatformer
 	// playerObject + 2160 xVelPlatformer
@@ -224,13 +221,23 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject* player, bool fullCaptu
 
 	if (fullCapture)
 	{
+		this->randomProperties.reserve(2268);
 		// dont ask
 		for (int i = 0; i < 2265; i++)
-			this->randomProperties[i] = MBO(float, player, 160 + i);
+			this->randomProperties.push_back(MBO(float, player, 160 + i));
 	}
 }
 
-void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
+/* Macrobot::PlayerCheckpoint::~PlayerCheckpoint()
+{
+	if (randomProperties != nullptr)
+	{
+		delete[] randomProperties;
+		randomProperties = nullptr;
+	}
+} */
+
+void Macrobot::PlayerCheckpoint::apply(PlayerObject *player, bool fullRestore)
 {
 	if (gameTime <= 0)
 		return;
@@ -257,7 +264,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
-				*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+				*reinterpret_cast<float *>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
 			}
 		}
 
@@ -265,7 +272,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
-				*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+				*reinterpret_cast<float *>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
 			}
 		}
 
@@ -273,7 +280,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
-				*reinterpret_cast<float*>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
+				*reinterpret_cast<float *>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
 			}
 		}
 	}
@@ -286,7 +293,7 @@ void Macrobot::save(std::string file)
 	std::ofstream f(Mod::get()->getSaveDir().string() + "\\macros\\" + file + ".gdr", std::ios::binary);
 
 	std::string playerName = GJAccountManager::sharedState()->m_username;
-	GJGameLevel* level = GameManager::get()->getPlayLayer()->m_level;
+	GJGameLevel *level = GameManager::get()->getPlayLayer()->m_level;
 
 	macro.author = playerName;
 	macro.description = macroDescription;
@@ -298,7 +305,7 @@ void Macrobot::save(std::string file)
 	macro.levelInfo.name = level->m_levelName;
 
 	auto data = macro.exportData(false);
-	f.write(reinterpret_cast<const char*>(data.data()), data.size());
+	f.write(reinterpret_cast<const char *>(data.data()), data.size());
 
 	f.close();
 }
@@ -313,7 +320,7 @@ void Macrobot::load(std::string file)
 
 	std::vector<std::uint8_t> macroData(fileSize);
 
-	f.read(reinterpret_cast<char*>(macroData.data()), fileSize);
+	f.read(reinterpret_cast<char *>(macroData.data()), fileSize);
 
 	f.close();
 
