@@ -9,8 +9,7 @@
                     "off": "6A 14 8B CB FF",
                     "on": "E9 42 07 00 00"
                 }
-            ],
-            "toggle": false
+            ]
         }
     ]
 }

@@ -4,7 +4,7 @@
 		"win": "2.204",
 		"android": "2.200"
     },
-	"version": "v2.1.0",
+	"version": "v2.1.0-alpha.1",
 	"id": "maxnu.gd_mega_overlay",
 	"name": "GD Mega Overlay",
 	"developer": "maxnu & SpaghettDev",

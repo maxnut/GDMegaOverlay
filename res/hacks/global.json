@@ -19,8 +19,7 @@
                     "off": "C7 04 24 CD CC 4C 3E",
                     "on": "C7 04 24 00 00 00 00"
                 }
-            ],
-            "toggle": true
+            ]
         },
         {
             "description": "Disable the player's level ending animation.",
@@ -31,8 +30,7 @@
                     "off": "75 52",
                     "on": "74 52"
                 }
-            ],
-            "toggle": true
+            ]
         },
         {
             "description": "Disables Mana Orb check",
@@ -43,8 +41,7 @@
                     "off": "2B C6",
                     "on": "03 C6"
                 }
-            ],
-            "toggle": true
+            ]
         }
     ]
 }

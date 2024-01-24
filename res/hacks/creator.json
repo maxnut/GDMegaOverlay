@@ -9,8 +9,7 @@
                     "off": "0F 8F DF 00 00 00",
                     "on": "0F 8E DF 00 00 00"
                 }
-            ],
-            "toggle": true
+            ]
         },
         {
             "description": "Enables the mod button.",
@@ -26,8 +25,7 @@
                     "off": "75 72",
                     "on": "90 90"
                 }
-            ],
-            "toggle": true
+            ]
         },
         {
             "description": "Lets you edit any level, access the editor through the pause menu.",
@@ -58,8 +56,7 @@
                     "off": "0F 85 A2 00 00 00",
                     "on": "90 90 90 90 90 90"
                 }
-            ],
-            "toggle": true
+            ]
         }
     ]
 }
