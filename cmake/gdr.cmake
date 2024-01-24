@@ -2,8 +2,8 @@ include(FetchContent)
 
 FetchContent_Declare(
     gdr
-    GIT_REPOSITORY https://github.com/SpaghettDev/gdr.git
-    GIT_TAG        c1c0ea3e5dc8c0584eff34b54fe4b6e632a3d050
+    GIT_REPOSITORY https://github.com/maxnut/GDReplayFormat.git
+    GIT_TAG        a95ffd2cde04f79056e95fb070ecf5e5bdeca80a
     GIT_PROGRESS TRUE
 )
 message("Fetching gdr")
