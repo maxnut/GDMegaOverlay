@@ -2,6 +2,8 @@
 #include <Geode/binding/GJGameLevel.hpp>
 #include <discord_register.h>
 #include <discord_rpc.h>
+#include <discord_register.h>
+#include <discord_rpc.h>
 
 namespace DiscordRPCManager
 {
