@@ -7,8 +7,8 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 #include <Geode/platform/windows.hpp>
-
 #include <Geode/Geode.hpp>
+#include <Geode/utils/web.hpp>
 using namespace geode::prelude;
 
 inline ImVec2 operator+(const ImVec2& a, const ImVec2& b)
@@ -414,7 +414,7 @@ void GUI::textURL(std::string text, std::string link)
 		if (ImGui::IsMouseClicked(0))
 		{
 			ImGui::FocusWindow(nullptr);
-			Common::openLink(link.c_str());
+			web::openLinkInBrowser(link.c_str());
 		}
 		AddUnderLine(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
 		ImGui::SetTooltip("Open in browser\n%s", link.c_str());

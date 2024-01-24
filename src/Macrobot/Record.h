@@ -62,7 +62,7 @@ public:
 	void handle_recording(GJBaseGameLayer*, float dt);
 	void handle_recording_audio(GJBaseGameLayer*, float dt);
 
-	bool areAudioFilesValid(const std::vector<std::string>& files);
+	bool areAudioFilesValid(const std::vector<std::string>& files, std::string dirName);
 	bool generate_clicks(std::string outputPath);
 };
 

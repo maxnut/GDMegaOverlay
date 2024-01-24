@@ -2,7 +2,6 @@
 #include "../Common.h"
 #include "../GUI/GUI.h"
 
-
 #include "AudioRecord.h"
 #include "Clickpacks.h"
 #include "Macrobot.h"
@@ -11,6 +10,7 @@
 
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
 using namespace Record;
@@ -45,7 +45,7 @@ GJBaseGameLayer::update(dt);
 }
 ;
 
-std::string narrow(const wchar_t* str)
+std::string narrow(const wchar_t *str)
 {
 	int size = WideCharToMultiByte(CP_UTF8, 0, str, -1, nullptr, 0, nullptr, nullptr);
 	if (size <= 0)
@@ -57,12 +57,12 @@ std::string narrow(const wchar_t* str)
 	delete[] buffer;
 	return result;
 }
-inline auto narrow(const std::wstring& str)
+inline auto narrow(const std::wstring &str)
 {
 	return narrow(str.c_str());
 }
 
-std::wstring widen(const char* str)
+std::wstring widen(const char *str)
 {
 	int size = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
 	if (size <= 0)
@@ -74,7 +74,7 @@ std::wstring widen(const char* str)
 	delete[] buffer;
 	return result;
 }
-inline auto widen(const std::string& str)
+inline auto widen(const std::string &str)
 {
 	return widen(str.c_str());
 }
@@ -124,7 +124,7 @@ void Recorder::start()
 	m_renderer.m_height = m_height;
 	m_renderer.begin();
 	tfx = 0;
-	
+
 	m_song_start_offset = GameManager::get()->getPlayLayer()->m_levelSettings->m_songOffset;
 
 	GameManager::get()->getPlayLayer()->resetLevel();
@@ -144,7 +144,8 @@ void Recorder::start()
 	if (m_recording_audio)
 		return;
 
-	std::thread([&, bg_volume, sfx_volume, song_offset, level_id]() {
+	std::thread([&, bg_volume, sfx_volume, song_offset, level_id]()
+				{
 		auto finalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4");
 		auto notfinalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4");
 		auto notfinalpath2 = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video_noise.mp4");
@@ -238,8 +239,8 @@ void Recorder::start()
 			{
 				std::cout << e.what() << '\n';
 			}
-		}
-	}).detach();
+		} })
+		.detach();
 }
 
 void Recorder::stop()
@@ -276,7 +277,7 @@ void MyRenderTexture::begin()
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_old_fbo);
 }
 
-void MyRenderTexture::capture(std::mutex& lock, std::vector<u8>& data, volatile bool& lul)
+void MyRenderTexture::capture(std::mutex &lock, std::vector<u8> &data, volatile bool &lul)
 {
 	glViewport(0, 0, m_width, m_height);
 
@@ -315,7 +316,7 @@ void Recorder::stop_audio()
 	AudioRecord::stop();
 	m_recording_audio = false;
 
-	GJGameLevel* level =
+	GJGameLevel *level =
 		GameManager::get()
 			->getPlayLayer()
 			->m_level; // MBO(gd::GJGameLevel*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
@@ -352,7 +353,7 @@ void Recorder::stop_audio()
 	{
 		process.close();
 	}
-	catch (const std::exception& e)
+	catch (const std::exception &e)
 	{
 		std::cout << e.what() << '\n';
 	}
@@ -363,7 +364,7 @@ void Recorder::stop_audio()
 	std::filesystem::rename(temp_path, widen(video_path));
 }
 
-void Recorder::handle_recording_audio(GJBaseGameLayer* play_layer, float dt)
+void Recorder::handle_recording_audio(GJBaseGameLayer *play_layer, float dt)
 {
 	if (!levelDone || m_after_end_extra_time < m_after_end_duration)
 	{
@@ -383,7 +384,7 @@ void Recorder::handle_recording_audio(GJBaseGameLayer* play_layer, float dt)
 	}
 }
 
-void Recorder::handle_recording(GJBaseGameLayer* play_layer, float dt)
+void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 {
 	if (!levelDone || m_after_end_extra_time < m_after_end_duration)
 	{
@@ -414,39 +415,39 @@ void Recorder::handle_recording(GJBaseGameLayer* play_layer, float dt)
 	}
 }
 
-bool Recorder::areAudioFilesValid(const std::vector<std::string>& files)
+bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, std::string dirName)
 {
+	if(files.size() <= 0)
+	{
+		FLAlertLayer::create("Info", "Make sure your clickpacks contains " + dirName + "!", "Ok")->show();
+		return false;
+	}
+
 	for (auto filename : Clickpacks::currentClickpack.clicks)
 	{
 		SF_INFO inputSfInfoDummy;
-		SNDFILE* inputSndFileDummy = sf_open(filename.c_str(), SFM_READ, &inputSfInfoDummy);
+		SNDFILE *inputSndFileDummy = sf_open(filename.c_str(), SFM_READ, &inputSfInfoDummy);
 
 		if (sampleRate != 0 && inputSfInfoDummy.samplerate != sampleRate)
 		{
-			/* gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-									 "Make sure all of your files have the same sample rate! clicks/" +
-										 std::to_string(i) + ".wav")
-				->show(); */
+			FLAlertLayer::create("Info", "Make sure all of your files have the same sample rate! " + dirName + "/" +
+										 filename + ".wav", "Ok")->show();
 			sf_close(inputSndFileDummy);
 			return false;
 		}
 
 		if (numChannels != 0 && inputSfInfoDummy.channels != numChannels)
 		{
-			/* gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-									 "Make sure all of your files have the same channel number! clicks/" +
-										 std::to_string(i) + ".wav")
-				->show(); */
+			FLAlertLayer::create("Info", "Make sure all of your files have the same channel number! " + dirName + "/" +
+										 filename + ".wav", "Ok")->show();
 			sf_close(inputSndFileDummy);
 			return false;
 		}
 
 		if (sampleFormat != 0 && inputSfInfoDummy.format != sampleFormat)
 		{
-			/* gd::FLAlertLayer::create(nullptr, "Info", "Ok", nullptr,
-									 "Make sure all of your files have the same sample format! clicks/" +
-										 std::to_string(i) + ".wav")
-				->show(); */
+			FLAlertLayer::create("Info", "Make sure all of your files have the same sample format! " + dirName + "/" +
+										 filename + ".wav", "Ok")->show();
 			sf_close(inputSndFileDummy);
 			return false;
 		}
@@ -468,22 +469,22 @@ bool Recorder::generate_clicks(std::string outputPath)
 	if (clickPath == "")
 		return false;
 
-	if (!areAudioFilesValid(Clickpacks::currentClickpack.clicks))
+	if (!areAudioFilesValid(Clickpacks::currentClickpack.clicks, "clicks"))
 		return false;
 
-	if (!areAudioFilesValid(Clickpacks::currentClickpack.softclicks))
+	if (!areAudioFilesValid(Clickpacks::currentClickpack.softclicks, "softclicks"))
 		return false;
 
-	if (!areAudioFilesValid(Clickpacks::currentClickpack.releases))
+	if (!areAudioFilesValid(Clickpacks::currentClickpack.releases, "releases"))
 		return false;
 
-	if (!areAudioFilesValid(Clickpacks::currentClickpack.platClicks))
+	if (!areAudioFilesValid(Clickpacks::currentClickpack.platClicks, "platClicks"))
 		return false;
 
-	if (!areAudioFilesValid(Clickpacks::currentClickpack.platReleases))
+	if (!areAudioFilesValid(Clickpacks::currentClickpack.platReleases, "platReleases"))
 		return false;
 
-	const char* outputFile = outputPath.c_str();
+	const char *outputFile = outputPath.c_str();
 
 	std::filesystem::create_directories(std::filesystem::path(outputFile).parent_path());
 
@@ -491,7 +492,7 @@ bool Recorder::generate_clicks(std::string outputPath)
 	sfInfo.samplerate = sampleRate;
 	sfInfo.channels = numChannels;
 	sfInfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
-	SNDFILE* sndFile = sf_open(outputFile, SFM_WRITE, &sfInfo);
+	SNDFILE *sndFile = sf_open(outputFile, SFM_WRITE, &sfInfo);
 
 	if (!sndFile)
 		return false;
@@ -508,9 +509,9 @@ bool Recorder::generate_clicks(std::string outputPath)
 	bool wasLastPlatActionPressP1 = false;
 	bool wasLastPlatActionPressP2 = false;
 
-	for (const Macrobot::Action& ac : Macrobot::macro.inputs)
+	for (const Macrobot::Action &ac : Macrobot::macro.inputs)
 	{
-		double timestamp = ac.frame;
+		double timestamp = ac.time;
 
 		if (timestamp == previousTimestamp)
 			continue;
@@ -567,7 +568,7 @@ bool Recorder::generate_clicks(std::string outputPath)
 		}
 
 		SF_INFO inputSfInfo;
-		SNDFILE* inputSndFile = sf_open(soundPath.c_str(), SFM_READ, &inputSfInfo);
+		SNDFILE *inputSndFile = sf_open(soundPath.c_str(), SFM_READ, &inputSfInfo);
 		if (!inputSndFile)
 		{
 			std::cout << "Failed to open input file: " << soundPath << std::endl;
@@ -585,7 +586,7 @@ bool Recorder::generate_clicks(std::string outputPath)
 
 		inputSfInfo.samplerate = sampleRate;
 
-		int16_t* outputBuffer = new int16_t[inputSfInfo.frames * inputSfInfo.channels];
+		int16_t *outputBuffer = new int16_t[inputSfInfo.frames * inputSfInfo.channels];
 
 		sf_readf_short(inputSndFile, outputBuffer, inputSfInfo.frames);
 
@@ -618,10 +619,17 @@ void Record::renderWindow()
 	{
 		if (!std::filesystem::exists("ffmpeg.exe"))
 		{
-			log::error("ffmpeg not installed");
+			auto process = subprocess::Popen(Mod::get()->getResourcesDir().string() + "\\get_ffmpeg.exe");
+			try
+			{
+				process.close();
+			}
+			catch (const std::exception &e)
+			{
+				std::cout << e.what() << '\n';
+			}
 		}
-		else
-			Record::recorder.start();
+		Record::recorder.start();
 	}
 
 	if (GUI::button("Stop Recording") && Record::recorder.m_recording && GameManager::get()->getPlayLayer())
@@ -637,14 +645,19 @@ void Record::renderWindow()
 	{
 		if (!std::filesystem::exists("ffmpeg.exe"))
 		{
-			log::error("ffmpeg not installed");
+			auto process = subprocess::Popen(Mod::get()->getResourcesDir().string() + "\\get_ffmpeg.exe");
+			try
+			{
+				process.close();
+			}
+			catch (const std::exception &e)
+			{
+				std::cout << e.what() << '\n';
+			}
 		}
-		else
-		{
-			recorder.m_recording_audio = true;
-			Record::recorder.start();
-			recorder.m_recording = false;
-		}
+		recorder.m_recording_audio = true;
+		Record::recorder.start();
+		recorder.m_recording = false;
 	}
 
 	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio && GameManager::get()->getPlayLayer())

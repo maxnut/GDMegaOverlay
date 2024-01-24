@@ -14,7 +14,11 @@
 		"files": [
 			"res/hacks/*.json",
 			"res/Style.style",
-			"res/arial.ttf"
+			"res/arial.ttf",
+			"res/get_ffmpeg/cpr.dll",
+			"res/get_ffmpeg/libcurl.dll",
+			"res/get_ffmpeg/zlib1.dll",
+			"res/get_ffmpeg/get_ffmpeg.exe"
 		]
 	}
 }

@@ -134,60 +134,6 @@ void Common::onAudioPitchChange()
 	AudioChannelControl::setPitch(enabled ? pitch : 1.f);
 }
 
-void Common::openLink(const char* path)
-{
-#ifdef _WIN32
-	::ShellExecuteA(NULL, "open", path, NULL, NULL, SW_SHOWDEFAULT);
-#else
-#if __APPLE__
-	const char* open_executable = "open";
-#else
-	const char* open_executable = "xdg-open";
-#endif
-	char command[256];
-	snprintf(command, 256, "%s \"%s\"", open_executable, path);
-	system(command);
-#endif
-}
-
-size_t CurlWrite_CallbackFunc_StdString(void* contents, size_t size, size_t nmemb, std::string* s)
-{
-	size_t newLength = size * nmemb;
-	try
-	{
-		s->append((char*)contents, newLength);
-	}
-	catch (std::bad_alloc& e)
-	{
-		// handle memory problem
-		return 0;
-	}
-	return newLength;
-}
-
-int Common::getRequest(std::string url, std::string* buffer, std::string userAgent)
-{
-	curl_global_init(CURL_GLOBAL_ALL);
-	CURL* curl = curl_easy_init();
-	CURLcode res = CURLE_FAILED_INIT;
-
-	if (!curl)
-		return res;
-
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent.c_str());
-	curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWrite_CallbackFunc_StdString);
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
-	curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-	res = curl_easy_perform(curl);
-	curl_easy_cleanup(curl);
-
-	return res;
-}
-
 class $modify(MenuLayer) {
 	bool init()
 	{

@@ -166,6 +166,12 @@ class $modify(PlayLayer)
 
 		PlayLayer::postUpdate(dt);
 	}
+
+	void onExit()
+	{
+		labels.clear();
+		PlayLayer::onExit();
+	}
 };
 
 class $modify(PlayerObject)
