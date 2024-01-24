@@ -58,7 +58,7 @@ void EndLevelLayerInfo::endLevelLayerCustomSetupHook(CCLayer* self)
 	{
 		auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
 
-		if (labelsCount < labelsCountLimit && util::getClassName(node) == "cocos2d::CCLabelBMFont")
+		if (labelsCount < labelsCountLimit && typeinfo_cast<CCLabelBMFont*>(node))
 		{
 			if (playLayer->m_player1->m_isPlatformer)
 			{
@@ -84,7 +84,6 @@ void EndLevelLayerInfo::endLevelLayerCustomSetupHook(CCLayer* self)
 	}
 
 
-	// TODO: centering when level is platformer
 	auto noclipAccuracyLabelELL = CCLabelBMFont::create(
 		CCString::createWithFormat(
 			"Accuracy: %.2f%%",
@@ -147,18 +146,16 @@ void EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(CCLayer* self, bool unk)
 	int coinsBgCount = 0;
 	for (unsigned int i = 0; i < layer->getChildrenCount(); i++)
 	{
-		auto node = reinterpret_cast<cocos2d::CCNode*>(layer->getChildren()->objectAtIndex(i));
+		auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
 
-		if (util::getClassName(node) == "cocos2d::CCNode")
+		if (node && node->getChildrenCount() == 2)
 		{
 			nodes.at(nodesCount) = node;
 			nodesCount++;
 		}
 
-		if (util::getClassName(node) == "cocos2d::CCSprite")
+		if (auto sprite = typeinfo_cast<CCSprite*>(node); sprite)
 		{
-			auto sprite = reinterpret_cast<CCSprite*>(node);
-
 			if (
 				std::strcmp(getFrameName(sprite), "secretCoin_2_b_01_001.png") == 0 ||
 				std::strcmp(getFrameName(sprite), "secretCoin_b_01_001.png") == 0
@@ -175,9 +172,8 @@ void EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(CCLayer* self, bool unk)
 			}
 		}
 
-		if (util::getClassName(node) == "cocos2d::CCLabelBMFont")
+		if (auto label = typeinfo_cast<CCLabelBMFont*>(node); label)
 		{
-			auto label = reinterpret_cast<CCLabelBMFont*>(node);
 			std::string labelText = label->getString();
 
 			// wtf

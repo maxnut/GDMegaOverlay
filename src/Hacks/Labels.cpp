@@ -70,9 +70,7 @@ class $modify(PlayLayer)
 					pointer->setColor({(GLubyte)clickColor[0], (GLubyte)clickColor[1], (GLubyte)clickColor[2]});
 				}
 				else
-				{
-					pointer->setColor({255, 255, 255});
-				}
+					pointer->setColor({ 255, 255, 255 });
 			},
 			this
 		);

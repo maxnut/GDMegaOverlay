@@ -21,7 +21,7 @@ class $modify(CCScheduler)
 		{
 			auto uiLayer = reinterpret_cast<cocos2d::CCLayer*>(playLayer->getChildren()->objectAtIndex(8));
 
-			if (util::getClassName(uiLayer) == "EndLevelLayer")
+			if (typeinfo_cast<EndLevelLayer*>(uiLayer))
 				uiLayer = reinterpret_cast<cocos2d::CCLayer*>(playLayer->getChildren()->objectAtIndex(9));
 
 			if (uiLayer && uiLayer->getChildrenCount() > 0)

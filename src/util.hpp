@@ -93,12 +93,6 @@ namespace util
 		return distribution(generator);
 	}
 
-	// typeid(...).name() returns "class ClassName", the "+ 6" removes "class "
-	inline std::string_view getClassName(cocos2d::CCObject* obj)
-	{
-		return (typeid(*obj).name() + 6);
-	}
-
 	template<typename T, std::size_t S>
 	inline std::size_t getElementCount(std::array<T, S> const& array, T elem)
 	{
