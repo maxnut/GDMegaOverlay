@@ -35,17 +35,18 @@ Labels::Label Labels::setupLabel(std::string labelSettingName,
 
 class $modify(PlayLayer)
 {
-
 	bool init(GJGameLevel* p0, bool p1, bool p2)
 	{
 		labels.clear();
 		bool res = PlayLayer::init(p0, p1, p2);
+
 		setupLabel(
-		"Framerate",
-		[&](cocos2d::CCLabelBMFont* pointer) {
+			"Framerate",
+			[&](cocos2d::CCLabelBMFont* pointer) {
 			pointer->setString(std::to_string((int)ImGui::GetIO().Framerate).c_str());
-		},
-		this);
+			},
+			this
+		);
 
 		setupLabel(
 			"CPS",
@@ -73,7 +74,8 @@ class $modify(PlayLayer)
 					pointer->setColor({255, 255, 255});
 				}
 			},
-			this);
+			this
+		);
 
 		setupLabel(
 			"Time",
@@ -91,7 +93,8 @@ class $modify(PlayLayer)
 
 				pointer->setString(s.str().c_str());
 			},
-			this);
+			this
+		);
 
 		setupLabel(
 			"Noclip Accuracy",
@@ -110,12 +113,15 @@ class $modify(PlayLayer)
 
 						dead = true;
 					}
-					pointer->setString(frames == 0
-										? "Accuracy: 100%"
-										: cocos2d::CCString::createWithFormat("Accuracy: %.2f%%", acc)->getCString());
+					pointer->setString(
+						frames == 0
+							? "Accuracy: 100%"
+							: cocos2d::CCString::createWithFormat("Accuracy: %.2f%%", acc)->getCString()
+					);
 				}
 			},
-			this);
+			this
+		);
 
 		calculatePositions();
 
@@ -155,12 +161,11 @@ class $modify(PlayLayer)
 
 		frames++;
 
-		if (*((double*)GameManager::get()->getPlayLayer() + 1411) > 0)
+		if (MBO(double, GameManager::get()->getPlayLayer(), 0x583) > 0)
 			totalDelta += dt;
 
 		PlayLayer::postUpdate(dt);
 	}
-
 };
 
 class $modify(PlayerObject)
@@ -186,6 +191,8 @@ class $modify(PlayerObject)
 
 void Labels::calculatePositions()
 {
+	if (!GameManager::sharedState()->getPlayLayer()) return;
+
 	auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 
 	tl.clear();
@@ -200,19 +207,19 @@ void Labels::calculatePositions()
 		switch (position)
 		{
 		case 0:
-			l.pointer->setAnchorPoint({0.f, 0.5f});
+			l.pointer->setAnchorPoint({ 0.f, 0.5f });
 			tl.push_back(l);
 			break;
 		case 1:
-			l.pointer->setAnchorPoint({1.f, 0.5f});
+			l.pointer->setAnchorPoint({ 1.f, 0.5f });
 			tr.push_back(l);
 			break;
 		case 2:
-			l.pointer->setAnchorPoint({0.f, 0.5f});
+			l.pointer->setAnchorPoint({ 0.f, 0.5f });
 			bl.push_back(l);
 			break;
 		case 3:
-			l.pointer->setAnchorPoint({1.f, 0.5f});
+			l.pointer->setAnchorPoint({ 1.f, 0.5f });
 			br.push_back(l);
 			break;
 		}
