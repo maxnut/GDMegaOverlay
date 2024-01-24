@@ -93,7 +93,8 @@ void JsonHacks::drawFromJson(nlohmann::json& mods)
 
 void JsonHacks::save()
 {
-	auto write_mods = [](std::string modsName, nlohmann::json& mods) {
+	auto write_mods = [](std::string modsName, nlohmann::json& mods)
+	{
 		std::string path = Mod::get()->getResourcesDir().string() + "/" + modsName;
 		std::ofstream file_write(path);
 		file_write << mods.dump(4);

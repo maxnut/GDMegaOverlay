@@ -148,7 +148,8 @@ void EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(CCLayer* self, bool unk)
 	{
 		auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
 
-		if (node && node->getChildrenCount() == 2)
+		// typeinfo_cast prevents from considering the restart, edit and menu buttons as a CCNode
+		if (node && node->getChildrenCount() == 2 && typeinfo_cast<CCSprite*>(node->getChildren()->objectAtIndex(0)))
 		{
 			nodes.at(nodesCount) = node;
 			nodesCount++;

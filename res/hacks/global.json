@@ -22,24 +22,379 @@
             ]
         },
         {
+            "description": "Makes the level complete animation at the end of the level instant.",
+            "name": "Fast Show Complete",
+            "opcodes": [
+                {
+                    "address": "0x2DE901",
+                    "off": "C7 04 24 00 00 C0 3F",
+                    "on": "C7 04 24 00 00 00 00"
+                }
+            ]
+        },
+        {
             "description": "Disable the player's level ending animation.",
             "name": "No Player Ending Animation",
             "opcodes": [
                 {
                     "address": "0x2DECEC",
                     "off": "75 52",
-                    "on": "74 52"
+                    "on": "EB 52"
                 }
             ]
         },
         {
-            "description": "Disables Mana Orb check",
-            "name": "No Mana Orb Amount Check",
+            "description": "Enables the mod button.",
+            "name": "Become Moderator",
             "opcodes": [
                 {
-                    "address": "0x175953",
-                    "off": "2B C6",
-                    "on": "03 C6"
+                    "address": "0x252890",
+                    "off": "74 05",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x252895",
+                    "off": "75 72",
+                    "on": "90 90"
+                }
+            ]
+        },
+        {
+            "description": "Removed snapping to 0.00 setting volume to 0.03",
+            "name": "Enable Low Volume",
+            "opcodes": [
+                {
+                    "address": "0x2B0E00",
+                    "off": "76 08",
+                    "on": "EB 08"
+                },
+                {
+                    "address": "0x2B0EF1",
+                    "off": "76 08",
+                    "on": "EB 08"
+                }
+            ]
+        },
+        {
+            "description": "Makes the controller buttons visible.",
+            "name": "Show Controller Buttons",
+            "opcodes": [
+                {
+                    "address": "0x31854",
+                    "off": "0F 84 10 01 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0x2B92D6",
+                    "off": "0F 84 C6 01 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0x9D9B2",
+                    "off": "0F 84 82 00 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0x27BD8F",
+                    "off": "0F 84 98 04 00 00",
+                    "on": "0F 85 98 04 00 00"
+                },
+                {
+                    "address": "0x253473",
+                    "off": "0F 84 8C 00 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0xE8868",
+                    "off": "0F 84 36 01 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0x233269",
+                    "off": "0F 44 C1",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x2332F8",
+                    "off": "0F 44 C1",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x23330B",
+                    "off": "75 0A",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x1D6ABC",
+                    "off": "74 15",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x1EF729",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x22E148",
+                    "off": "74 0D",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x25B9C8",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x269A05",
+                    "off": "74 70",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x2F5B3A",
+                    "off": "0F 84 32 01 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0x302004",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x30B83E",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x3BF17C",
+                    "off": "0F 84 C7 00 00 00",
+                    "on": "90 90 90 90 90 90"
+                },
+                {
+                    "address": "0x5AD17",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x234350",
+                    "off": "74 11",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x70278",
+                    "off": "74 0D",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x184D15",
+                    "off": "74 0A",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x1873FE",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x21A60A",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x22F7B1",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x231327",
+                    "off": "74 09",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x262511",
+                    "off": "74 0A",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x268722",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x26853B",
+                    "off": "0F 44 C1",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x26849D",
+                    "off": "0F 44 C2",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x2FBAEF",
+                    "off": "74 0B",
+                    "on": "90 90" 
+                },
+                {
+                    "address": "0x305DB0",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x30EC93",
+                    "off": "74 0B",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x31916",
+                    "off": "74 52",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x5AB9F",
+                    "off": "0F 44 C1",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x5ABAF",
+                    "off": "74 0A",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x5AB0C",
+                    "off": "0F 44 C8",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x18718E",
+                    "off": "0F 44 C2",
+                    "on": "90 90 90"
+                },
+                {
+                    "address": "0x1871AD",
+                    "off": "75 0A",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x18724B",
+                    "off": "0F 44 C1",
+                    "on": "90 90 90"
+                }
+            ]
+        },
+        {
+            "description": "Removes the gray backgrounds in the level search menu.",
+            "name": "Transparent Search Menu",
+            "opcodes": [
+                {
+                    "address": "0x26141D",
+                    "off": "68 FF",
+                    "on": "68 00"
+                },
+                {
+                    "address": "0x26196D",
+                    "off": "68 FF",
+                    "on": "68 00"
+                },
+                {
+                    "address": "0x261F2B",
+                    "off": "68 FF",
+                    "on": "68 00"
+                },
+                {
+                    "address": "0x2621F9",
+                    "off": "68 FF",
+                    "on": "68 00"
+                },
+                {
+                    "address": "0x9CCDA",
+                    "off": "68 FF",
+                    "on": "68 00"
+                },
+                {
+                    "address": "0x9CFA9",
+                    "off": "68 FF",
+                    "on": "68 00"
+                }
+            ]
+        },
+        {
+            "description": "Removes the background in all menus.",
+            "name": "Black Background",
+            "opcodes": [
+                {
+                    "address": "0x6F674",
+                    "off": "C7 04 24 00 00 A0 C0",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x9CA7B",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x186DA1",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x1EF31F",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x22DD3C",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x232FB2",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x25185E",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x25A55D",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x260FD9",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x267DEA",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x2FB80D",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x301BE3",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x30598A",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x30A42F",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
+                },
+                {
+                    "address": "0x30E864",
+                    "off": "C7 04 24 00 00 00 00",
+                    "on": "C7 04 24 00 00 FF FF"
                 }
             ]
         }
