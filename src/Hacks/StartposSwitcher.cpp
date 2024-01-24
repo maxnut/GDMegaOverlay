@@ -19,6 +19,26 @@ class $modify(PlayLayer)
 		startposObjects.clear();
 		PlayLayer::onQuit();
 	}
+
+	bool init(GJGameLevel* level, bool unk1, bool unk2)
+	{
+		startposObjects.clear();
+		bool res = PlayLayer::init(level, unk1, unk2);
+		cocos2d::CCObject* obj;
+		CCARRAY_FOREACH(this->m_objects, obj)
+		{
+			auto g = reinterpret_cast<GameObject*>(obj);
+
+			int id = MBO(int, g, 900);
+
+			if (id == 31)
+				startposObjects.push_back(reinterpret_cast<StartPosObject*>(obj));
+		}
+
+		index = startposObjects.size() - 1;
+
+		return res;
+	}
 };
 
 void StartposSwitcher::change(bool right)
@@ -52,23 +72,4 @@ void StartposSwitcher::change(bool right)
 	// apparently you have to start music manually since gd only does it if you dont have a startpos???? (see
 	// playlayer_resetlevel line 272 in ida)
 	GameManager::get()->getPlayLayer()->startMusic();
-}
-
-StartPosObject* StartposSwitcher::createHook()
-{
-	StartPosObject* sp = reinterpret_cast<StartPosObject*(__thiscall*)()>(base::get() + 0x3A7850)();
-
-	if (sp && Mod::get()->getSavedValue<bool>("level/startpos_switcher"))
-	{
-		startposObjects.push_back(sp);
-
-		index = startposObjects.size() - 1;
-	}
-
-	return sp;
-}
-
-$execute
-{
-	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0x3A7850), &createHook, "StartPosObject::create", tulip::hook::TulipConvention::Thiscall);
 }
