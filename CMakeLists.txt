@@ -16,8 +16,6 @@ file(GLOB SOURCES
   src/JsonHacks/*.cpp
   src/Macrobot/*.cpp
   src/DiscordRPCManager/*.cpp
-
-  libs/discord-rpc/src/*.cpp
 )
 
 # Set up the mod binary
