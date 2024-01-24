@@ -13,48 +13,47 @@ using namespace geode::prelude;
 
 FMOD_RESULT AudioChannelControl::setVolumeHook(FMOD::Channel* channel, float volume)
 {
-	audioChannel = channel;
-
-	if (speed != 1.f)
-		setFrequency(channel, speed);
+	channel->setFrequency(44100 * speed);
 
 	return channel->setVolume(volume);
 }
 
 void AudioChannelControl::set(float frequency)
 {
-	if (audioChannel == nullptr)
-		return;
-
 	speed = frequency;
-	setFrequency(audioChannel, frequency);
+
+	FMOD::Channel* audioChannel;
+
+	for(int i = 0; i < 2; i++)
+	{
+		FMODAudioEngine::sharedEngine()->m_system->getChannel(126 + i, &audioChannel);
+		if(audioChannel)
+			audioChannel->setFrequency(44100 * frequency);
+	}
 }
 
 void AudioChannelControl::setPitch(float pitch)
 {
 	auto system = FMODAudioEngine::sharedEngine()->m_system;
+	FMOD::ChannelGroup* group;
+	system->getMasterChannelGroup(&group);
 
-	if (!audioChannel || !system)
-		return;
-
-	static FMOD::DSP* pitchShifter;
+	static FMOD::DSP* pitchShifter = nullptr;
 
 	if (pitchShifter)
 	{
-		audioChannel->removeDSP(pitchShifter);
+		group->removeDSP(pitchShifter);
 		pitchShifter->release();
 		pitchShifter = nullptr;
 	}
-
+	
 	if (pitch == 1.f)
 		return;
-
+	
 	system->createDSPByType(FMOD_DSP_TYPE_PITCHSHIFT, &pitchShifter);
-
 	pitchShifter->setParameterFloat(FMOD_DSP_PITCHSHIFT_FFTSIZE, 4096);
 	pitchShifter->setParameterFloat(FMOD_DSP_PITCHSHIFT_PITCH, pitch);
-
-	audioChannel->addDSP(0, pitchShifter);
+	group->addDSP(0, pitchShifter);
 }
 
 class $modify(PlayLayer)
@@ -68,8 +67,6 @@ class $modify(PlayLayer)
 
 $execute
 {
-	AudioChannelControl::setFrequency = reinterpret_cast<decltype(AudioChannelControl::setFrequency)>(GetProcAddress(
-		reinterpret_cast<HMODULE>(util::fmod_base), "?setPitch@ChannelControl@FMOD@@QAG?AW4FMOD_RESULT@@M@Z"));
 	void* setVolumeAddress = reinterpret_cast<void*>(GetProcAddress(
 		reinterpret_cast<HMODULE>(util::fmod_base), "?setVolume@ChannelControl@FMOD@@QAG?AW4FMOD_RESULT@@M@Z"));
 

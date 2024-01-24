@@ -43,7 +43,6 @@ void init()
 		Common::calculateFramerate();
 		Common::setPriority();
 		Common::onAudioSpeedChange();
-		Common::onAudioPitchChange();
 		Common::loadIcons();
 		Clickpacks::init();
 		SafeMode::updateState();

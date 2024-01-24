@@ -5,11 +5,9 @@
 
 namespace AudioChannelControl
 {
-	static FMOD::Channel* audioChannel;
-	static float speed = 1.f;
+	inline float speed = 1.f;
 
 	FMOD_RESULT setVolumeHook(FMOD::Channel*, float);
-	inline void* (__stdcall* setFrequency)(FMOD::Channel*, float);
 
 	void set(float);
 	void setPitch(float);

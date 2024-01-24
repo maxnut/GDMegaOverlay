@@ -39,7 +39,7 @@ class $modify(CCKeyboardDispatcher){
 class $modify(PlayLayer){
 	void loadFromCheckpoint(CheckpointObject * checkpoint)
 	{
-		if (playerMode != -1 && playerObject1)
+		if (checkpoints.contains(checkpoint) && playerMode != -1 && playerObject1)
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
 			const auto check = [&](const Action &action) -> bool { return action.time >= checkpointData.time; };
@@ -175,8 +175,6 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 		double currentTime = *((double *)GameManager::get()->getPlayLayer() + 1412);
 		gameTime = currentTime;
 
-		int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
-
 		if (playerMode == 0 && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
 			gameTime >= macro.inputs[actionIndex].time)
 		{
@@ -187,6 +185,9 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 					GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
 				else
 					GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
+
+				int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
+
 				if (correctionType > 0 && ac.correction.has_value())
 				{
 					Correction &co = ac.correction.value();
