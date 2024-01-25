@@ -1,5 +1,3 @@
-#define isnan isnan
-
 #include "imgui_internal.h"
 
 #include <Geode/Geode.hpp>
@@ -144,7 +142,18 @@ void init()
 	GUI::addWindow(creatorWindow);
 
 	GUI::Window globalWindow("Global", [] {
-		GUI::checkbox("Discord Rich Presence", "general/discordrpc/enabled");
+		if (GUI::checkbox("Discord Rich Presence", "general/discordrpc/enabled"))
+			DiscordRPCManager::updateState();
+
+		GUI::arrowButton("Discord Rich Presence Settings");
+		GUI::modalPopup(
+			"Discord Rich Presence Settings",
+			[] {
+				GUI::checkbox("Incognito Mode", "general/discordrpc/incognito");
+			},
+			ImGuiWindowFlags_AlwaysAutoResize
+		);
+
 
 		JsonPatches::drawFromPatches(JsonPatches::global);
 	});
@@ -171,9 +180,9 @@ void init()
 
 		if (GUI::checkbox("Safe Mode", "level/safe_mode/enabled"))
 			SafeMode::updateState();
-		GUI::checkbox("Safe Mode End Screen Label", "level/safe_mode/endscreen_enabled", true);
+		GUI::checkbox("Safe Mode Endscreen Label", "level/safe_mode/endscreen_enabled", true);
 
-		GUI::checkbox("End Level Layer Info", "level/endlevellayerinfo/enabled", true);
+		GUI::checkbox("Endscreen Layer Info", "level/endlevellayerinfo/enabled", true);
 
 		GUI::checkbox("Hide Pause Button", "general/hide_pause/button");
 		GUI::checkbox("Hide Pause Menu", "general/hide_pause/menu");

@@ -17,8 +17,10 @@ namespace DiscordRPCManager
 	inline std::string playerName = "";
 	inline long long rpcStartTime = 0;
 	inline long long levelStartTime = 0;
+	inline bool hasInit = false;
 
 	void init();
+	void updateState();
 	void updateRPC(State, GJGameLevel* = nullptr);
 	const char* getLevelDifficultyAssetName(GJGameLevel*);
 

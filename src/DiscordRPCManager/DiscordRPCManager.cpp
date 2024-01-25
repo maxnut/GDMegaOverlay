@@ -65,6 +65,22 @@ void DiscordRPCManager::init()
 	playerName = GJAccountManager::sharedState()->m_username; //MBO(std::string, Common::gjAccountManager, 0x10C);
 
 	updateRPC(State::DEFAULT);
+	hasInit = true;
+}
+
+void DiscordRPCManager::updateState()
+{
+	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled") && hasInit)
+	{
+		Discord_ClearPresence();
+		Discord_Shutdown();
+		hasInit = false;
+	}
+	else if (Mod::get()->getSavedValue<bool>("general/discordrpc/enabled") && !hasInit)
+	{
+		init();
+		hasInit = true;
+	}
 }
 
 void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
@@ -72,6 +88,18 @@ void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled")) return;
 
 	DiscordRichPresence presence{};
+
+	if (Mod::get()->getSavedValue<bool>("general/discordrpc/incognito"))
+	{
+		presence.state = "Playing the game";
+		presence.startTimestamp = rpcStartTime;
+		presence.largeImageKey = "cool";
+		presence.instance = 0;
+
+		Discord_UpdatePresence(&presence);
+		return;
+	}
+
 	playerName = GJAccountManager::sharedState()->m_username;//MBO(std::string, Common::gjAccountManager, 0x10C);
 
 	if (!level)
