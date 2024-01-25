@@ -1,10 +1,9 @@
 {
 	"geode": "2.0.0",
 	"gd": {
-		"win": "2.204",
-		"android": "2.200"
+		"win": "2.204"
     },
-	"version": "v2.1.1-alpha",
+	"version": "v2.1.2-alpha",
 	"id": "maxnu.gd_mega_overlay",
 	"name": "GD Mega Overlay",
 	"developer": "maxnu & SpaghettDev",
