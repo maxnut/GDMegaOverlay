@@ -31,6 +31,7 @@ inline std::vector<float> clicks;
 inline size_t totalClicks = 0;
 inline size_t frames = 0;
 inline size_t deaths = 0;
+inline size_t realDeaths = 0;
 
 inline float totalDelta = 0;
 
@@ -39,6 +40,8 @@ inline bool labelsCreated = false;
 inline bool click = false;
 
 inline bool dead = false;
+inline bool noclipDead = false;
+inline bool lastFrameDead = false;
 
 Label setupLabel(std::string labelSettingName, const std::function<void(cocos2d::CCLabelBMFont*)> &function, cocos2d::CCLayer* playLayer);
 

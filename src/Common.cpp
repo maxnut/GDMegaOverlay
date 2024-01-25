@@ -63,6 +63,7 @@ void Common::saveIcons()
 
 void Common::loadIcons()
 {
+	iconsLoaded = true;
 	GameManager::get()->m_playerFrame = Mod::get()->getSavedValue<int>("icons/cube", -1);
 	GameManager::get()->m_playerShip = Mod::get()->getSavedValue<int>("icons/ship", -1);
 	GameManager::get()->m_playerBall = Mod::get()->getSavedValue<int>("icons/ball", -1);
@@ -137,7 +138,8 @@ void Common::onAudioPitchChange()
 class $modify(MenuLayer) {
 	bool init()
 	{
-		Common::saveIcons();
+		if(Common::iconsLoaded)
+			Common::saveIcons();
 
 		return MenuLayer::init();
 	}

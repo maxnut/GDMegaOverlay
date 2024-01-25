@@ -101,7 +101,7 @@ class $modify(PlayLayer)
 				float acc = p * 100.f;
 				float limit = Mod::get()->getSavedValue<float>("labels/Noclip Accuracy/limit", 0.f);
 
-				if (!dead)
+				if (!noclipDead)
 				{
 					if (acc <= limit)
 					{
@@ -109,7 +109,7 @@ class $modify(PlayLayer)
 						this->destroyPlayer(nullptr, nullptr);
 						JsonPatches::togglePatch(JsonPatches::player, "patch/NoClip", true);
 
-						dead = true;
+						noclipDead = true;
 					}
 					pointer->setString(
 						frames == 0
@@ -117,6 +117,14 @@ class $modify(PlayLayer)
 							: cocos2d::CCString::createWithFormat("Accuracy: %.2f%%", acc)->getCString()
 					);
 				}
+			},
+			this
+		);
+
+		setupLabel(
+			"Noclip Deaths",
+			[&](cocos2d::CCLabelBMFont* pointer) {
+				pointer->setString(cocos2d::CCString::createWithFormat("Deaths: %i", realDeaths)->getCString());
 			},
 			this
 		);
@@ -131,18 +139,20 @@ class $modify(PlayLayer)
 	void destroyPlayer(PlayerObject* player, GameObject* object)
 	{
 		if (totalDelta > 0.1f)
-			deaths++;
+			dead = true;
 
 		PlayLayer::destroyPlayer(player, object);
 	}
 
 	void resetLevel()
 	{
+		noclipDead = false;
 		dead = false;
 		totalClicks = 0;
 		frames = 0;
 		deaths = 0;
 		totalDelta = 0;
+		realDeaths = 0;
 		clicks.clear();
 		PlayLayer::resetLevel();
 	}
@@ -161,6 +171,17 @@ class $modify(PlayLayer)
 
 		if (MBO(double, GameManager::get()->getPlayLayer(), 0x583) > 0)
 			totalDelta += dt;
+
+		if(dead)
+		{
+			deaths++;
+
+			if(!lastFrameDead)
+				realDeaths++;
+		}
+
+		lastFrameDead = dead;
+		dead = false;
 
 		PlayLayer::postUpdate(dt);
 	}
@@ -329,4 +350,5 @@ void Labels::renderWindow()
 		if (GUI::inputFloat("Limit", &limit, 0, 100))
 			Mod::get()->setSavedValue<float>("labels/Noclip Accuracy/limit", limit);
 	});
+	settingsForLabel("Noclip Deaths", [] { });
 }
