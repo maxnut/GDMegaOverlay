@@ -148,7 +148,6 @@ void Recorder::start()
 				{
 		auto finalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4");
 		auto notfinalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4");
-		auto notfinalpath2 = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video_noise.mp4");
 		auto clickpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_clicks.wav");
 
 		{
@@ -194,29 +193,6 @@ void Recorder::start()
 			{
 				std::cout << e.what() << '\n';
 			}
-		}
-
-		float noiseVolume = Mod::get()->getSavedValue<float>("clickpacks/noise/volume", 1.f);
-
-		if (Mod::get()->getSavedValue<bool>("clickpacks/noise/enabled", false) && Clickpacks::currentClickpack.noise != "")
-		{
-			std::cout << Clickpacks::currentClickpack.noise << std::endl;
-			std::stringstream f;
-			f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -stream_loop -1 -i " << '"'
-			  << Clickpacks::currentClickpack.noise << '"' << " -filter_complex "
-			  << "\"[0:a]volume=1.0[a0];[1:a]volume=" << noiseVolume << "[a1];[a0][a1]amix=inputs=2:duration=shortest\""
-			  << " -map 0:v -c:v copy -b:a 192k " << '"' << notfinalpath2 << '"';
-			auto process = subprocess::Popen(f.str());
-			try
-			{
-				process.close();
-			}
-			catch (const std::exception& e)
-			{
-				std::cout << e.what() << '\n';
-			}
-			std::filesystem::remove(widen(notfinalpath));
-			std::filesystem::rename(notfinalpath2, widen(notfinalpath));
 		}
 
 		if (!Mod::get()->getSavedValue<bool>("recorder/clicks/enabled", false))

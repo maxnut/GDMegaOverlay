@@ -40,9 +40,6 @@ Clickpack Clickpack::fromPath(std::string pathString)
 	addFromPath(pack.platClicks, platClickPath);
 	addFromPath(pack.platReleases, platReleasePath);
 
-	if (fs::exists(pathString + "\\noise.wav"))
-		pack.noise = pathString + "\\noise.wav";
-
 	return pack;
 }
 
@@ -73,20 +70,11 @@ void Clickpacks::drawGUI()
 			}
 		}
 
-		GUI::checkbox("Use Noise", "clickpacks/noise/enabled");
-
 		float clickVolume = Mod::get()->getSavedValue<float>("clickpacks/click/volume", 2.f);
 		GUI::inputFloat("Click Volume", &clickVolume);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())
 			Mod::get()->setSavedValue<float>("clickpacks/click/volume", clickVolume);
-
-
-		float noiseVolume = Mod::get()->getSavedValue<float>("clickpacks/noise/volume", 1.f);
-		GUI::inputFloat("Noise Volume", &noiseVolume);
-
-		if (ImGui::IsItemDeactivatedAfterEdit())
-			Mod::get()->setSavedValue<float>("clickpacks/noise/volume", noiseVolume);
 		
 
 		float softclickAt = Mod::get()->getSavedValue<float>("clickpacks/softclicks_at", 0.1f);

@@ -8,7 +8,6 @@ class Clickpack
 public:
 	std::string name = "None";
 	std::vector<std::string> clicks, softclicks, releases, platClicks, platReleases;
-	std::string noise = "";
 
 	static Clickpack fromPath(std::string path);
 };
