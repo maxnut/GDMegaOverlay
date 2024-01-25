@@ -11,7 +11,7 @@
 using namespace geode::prelude;
 using namespace Labels;
 
-Labels::Label Labels::setupLabel(std::string labelSettingName,
+Labels::Label Labels::setupLabel(const std::string& labelSettingName,
 								 const std::function<void(cocos2d::CCLabelBMFont*)>& function,
 								 cocos2d::CCLayer* playLayer)
 {
@@ -303,7 +303,7 @@ void Labels::calculatePositions()
 	}
 }
 
-void Labels::settingsForLabel(std::string labelSettingName, std::function<void()> extraSettings)
+void Labels::settingsForLabel(const std::string& labelSettingName, std::function<void()> extraSettings)
 {
 	if (GUI::checkbox(labelSettingName.c_str(), "labels/" + labelSettingName + "/enabled"))
 		calculatePositions();

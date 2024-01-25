@@ -37,7 +37,7 @@ void JsonPatches::init()
 		}
 	};
 
-	auto read_or_default = [](std::string modsName, nlohmann::json& mods)
+	auto read_or_default = [](const std::string& modsName, nlohmann::json& mods)
 	{
 		std::string path = Mod::get()->getResourcesDir().string() + "/" + modsName;
 
@@ -80,7 +80,7 @@ void JsonPatches::init()
 	// append_patches(JsonPatches::variables, patchesJson["mods"]);
 }
 
-void JsonPatches::togglePatch(JsonPatches::patch_group_type& patchGroup, std::string name)
+void JsonPatches::togglePatch(JsonPatches::patch_group_type& patchGroup, const std::string& name)
 {
 	auto patches = patchGroup.at(name).patches;
 
@@ -98,7 +98,7 @@ void JsonPatches::togglePatch(JsonPatches::patch_group_type& patchGroup, std::st
 	}
 }
 
-void JsonPatches::togglePatch(JsonPatches::patch_group_type& patchGroup, std::string name, bool value)
+void JsonPatches::togglePatch(JsonPatches::patch_group_type& patchGroup, const std::string& name, bool value)
 {
 	Mod::get()->setSavedValue<bool>("patch/" + name, value);
 

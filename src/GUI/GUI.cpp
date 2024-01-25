@@ -68,7 +68,7 @@ class $modify(MenuLayer)
     }
 };
 
-ImVec2 GUI::getJsonPosition(std::string name)
+ImVec2 GUI::getJsonPosition(const std::string& name)
 {
 	if (!windowPositions.contains(name))
 	{
@@ -79,13 +79,13 @@ ImVec2 GUI::getJsonPosition(std::string name)
 	return {windowPositions[name]["x"].get<float>(), windowPositions[name]["y"].get<float>()};
 }
 
-void GUI::setJsonPosition(std::string name, ImVec2 pos)
+void GUI::setJsonPosition(const std::string& name, ImVec2 pos)
 {
 	windowPositions[name]["x"] = pos.x;
 	windowPositions[name]["y"] = pos.y;
 }
 
-ImVec2 GUI::getJsonSize(std::string name, ImVec2 defaultSize)
+ImVec2 GUI::getJsonSize(const std::string& name, ImVec2 defaultSize)
 {
 	if (!windowPositions.contains(name) || !windowPositions[name].contains("w"))
 	{
@@ -96,7 +96,7 @@ ImVec2 GUI::getJsonSize(std::string name, ImVec2 defaultSize)
 	return {windowPositions[name]["w"].get<float>(), windowPositions[name]["h"].get<float>()};
 }
 
-void GUI::setJsonSize(std::string name, ImVec2 size)
+void GUI::setJsonSize(const std::string& name, ImVec2 size)
 {
 	windowPositions[name]["w"] = size.x;
 	windowPositions[name]["h"] = size.y;
@@ -297,14 +297,14 @@ void GUI::load()
 	f.close();
 }
 
-void GUI::saveStyle(std::string name)
+void GUI::saveStyle(const std::string& name)
 {
 	ImGuiStyle style = ImGui::GetStyle();
 	std::ofstream styleFile(name, std::ios::binary);
 	styleFile.write((const char*)&style, sizeof(ImGuiStyle));
 	styleFile.close();
 }
-void GUI::loadStyle(std::string name)
+void GUI::loadStyle(const std::string& name)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	std::ifstream styleFile(name, std::ios::binary);

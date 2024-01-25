@@ -288,7 +288,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject *player, bool fullRestore)
 	// 1350 - 1410
 }
 
-void Macrobot::save(std::string file)
+void Macrobot::save(const std::string& file)
 {
 	std::ofstream f(Mod::get()->getSaveDir().string() + "\\macros\\" + file + ".gdr", std::ios::binary);
 
@@ -310,7 +310,7 @@ void Macrobot::save(std::string file)
 	f.close();
 }
 
-void Macrobot::load(std::string file)
+void Macrobot::load(const std::string& file)
 {
 	std::ifstream f(Mod::get()->getSaveDir().string() + "\\macros\\" + file + ".gdr", std::ios::binary);
 

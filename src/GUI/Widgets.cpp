@@ -20,7 +20,7 @@ inline ImVec2 operator-(const ImVec2& a, const ImVec2& b)
 	return {a.x - b.x, a.y - b.y};
 }
 
-bool GUI::button(std::string name)
+bool GUI::button(const std::string& name)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -32,7 +32,7 @@ bool GUI::button(std::string name)
 	return result;
 }
 
-bool GUI::checkbox(std::string name, bool* value)
+bool GUI::checkbox(const std::string& name, bool* value)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -49,7 +49,7 @@ bool GUI::checkbox(std::string name, bool* value)
 	return result;
 }
 
-bool GUI::checkbox(std::string name, std::string settingName, bool default_value)
+bool GUI::checkbox(const std::string& name, const std::string& settingName, bool default_value)
 {
 	bool result = false;
 
@@ -72,7 +72,7 @@ bool GUI::checkbox(std::string name, std::string settingName, bool default_value
 	return result;
 }
 
-bool GUI::hotkey(std::string name, int* keyPointer, const ImVec2& size_arg)
+bool GUI::hotkey(const std::string& name, int* keyPointer, const ImVec2& size_arg)
 {
 	if(!shouldRender())
 		return false;
@@ -176,7 +176,7 @@ bool GUI::hotkey(std::string name, int* keyPointer, const ImVec2& size_arg)
 	return value_changed;
 }
 
-bool GUI::modalPopup(std::string name, const std::function<void()>& popupFunction, int flags)
+bool GUI::modalPopup(const std::string& name, const std::function<void()>& popupFunction, int flags)
 {
 	if (!GUI::isVisible || ImGui::BeginPopupModal(name.c_str(), NULL, flags) || GUI::shortcutLoop)
 	{
@@ -194,7 +194,7 @@ bool GUI::modalPopup(std::string name, const std::function<void()>& popupFunctio
 	return true;
 }
 
-bool GUI::alertPopup(std::string name, std::string content, const ButtonFunc& yesButton, const ButtonFunc& noButton,
+bool GUI::alertPopup(const std::string& name, const std::string& content, const ButtonFunc& yesButton, const ButtonFunc& noButton,
 					 int flags)
 {
 	if (!ImGui::IsPopupOpen(name.c_str()))
@@ -231,7 +231,7 @@ bool GUI::alertPopup(std::string name, std::string content, const ButtonFunc& ye
 	return true;
 }
 
-void GUI::arrowButton(std::string popupName)
+void GUI::arrowButton(const std::string& popupName)
 {
 	if (!GUI::shouldRender())
 		return;
@@ -243,7 +243,7 @@ void GUI::arrowButton(std::string popupName)
 		ImGui::OpenPopup(popupName.c_str());
 }
 
-bool GUI::combo(std::string name, int* value, const char* const items[], int itemsCount)
+bool GUI::combo(const std::string& name, int* value, const char* const items[], int itemsCount)
 {
 	if (!GUI::shouldRender())
 		return false;
@@ -254,7 +254,7 @@ bool GUI::combo(std::string name, int* value, const char* const items[], int ite
 	return result;
 }
 
-bool GUI::inputInt(std::string name, int* value, int min, int max)
+bool GUI::inputInt(const std::string& name, int* value, int min, int max)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -272,7 +272,7 @@ bool GUI::inputInt(std::string name, int* value, int min, int max)
 	return result;
 }
 
-bool GUI::inputText(std::string name, std::string* value)
+bool GUI::inputText(const std::string& name, std::string* value)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -285,7 +285,7 @@ bool GUI::inputText(std::string name, std::string* value)
 	return result;
 }
 
-bool GUI::inputInt2(std::string name, int* value, int min1, int max1, int min2, int max2)
+bool GUI::inputInt2(const std::string& name, int* value, int min1, int max1, int min2, int max2)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -308,7 +308,7 @@ bool GUI::inputInt2(std::string name, int* value, int min1, int max1, int min2, 
 	return result;
 }
 
-bool GUI::inputFloat(std::string name, float* value, float min, float max)
+bool GUI::inputFloat(const std::string& name, float* value, float min, float max)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -326,7 +326,7 @@ bool GUI::inputFloat(std::string name, float* value, float min, float max)
 	return result;
 }
 
-bool GUI::dragInt(std::string name, int* value, int min, int max)
+bool GUI::dragInt(const std::string& name, int* value, int min, int max)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -344,7 +344,7 @@ bool GUI::dragInt(std::string name, int* value, int min, int max)
 	return result;
 }
 
-bool GUI::dragFloat(std::string name, float* value, float min, float max)
+bool GUI::dragFloat(const std::string& name, float* value, float min, float max)
 {
 	bool result = false;
 	if (GUI::shouldRender())
@@ -362,7 +362,7 @@ bool GUI::dragFloat(std::string name, float* value, float min, float max)
 	return result;
 }
 
-bool GUI::colorEdit(std::string name, float* color, bool inputs, bool alpha)
+bool GUI::colorEdit(const std::string& name, float* color, bool inputs, bool alpha)
 {
 	if (!GUI::shouldRender())
 		return false;
@@ -377,7 +377,7 @@ bool GUI::colorEdit(std::string name, float* color, bool inputs, bool alpha)
 	return result;
 }
 
-void GUI::marker(std::string title, std::string description)
+void GUI::marker(const std::string& title, const std::string& description)
 {
 	if (!GUI::shouldRender())
 		return;
@@ -401,7 +401,7 @@ inline void AddUnderLine(ImColor col_)
 	ImGui::GetWindowDrawList()->AddLine(min, max, col_, 1.0f);
 }
 
-void GUI::textURL(std::string text, std::string link)
+void GUI::textURL(const std::string& text, const std::string& link)
 {
 	if (!GUI::shouldRender())
 		return;

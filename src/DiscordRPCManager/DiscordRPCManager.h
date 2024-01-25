@@ -27,6 +27,4 @@ namespace DiscordRPCManager
 	void handleDiscordReady(const DiscordUser*);
 	void handleDiscordError(int, const char*);
 	void handleDiscordDisconnected(int, const char*);
-
-	void editorPauseLayerOnExitEditorHook(void*, void*);
 };

@@ -9,7 +9,7 @@
 
 int shortcutIndexKey = 0;
 
-bool GUI::Shortcut::handleShortcut(std::string& name)
+bool GUI::Shortcut::handleShortcut(const std::string& name)
 {
 	if (GUI::shouldRender())
 	{

@@ -391,7 +391,7 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 	}
 }
 
-bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, std::string dirName)
+bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, const std::string& dirName)
 {
 	if(files.size() <= 0)
 	{
@@ -438,7 +438,7 @@ bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, std::st
 	return true;
 }
 
-bool Recorder::generate_clicks(std::string outputPath)
+bool Recorder::generate_clicks(const std::string& outputPath)
 {
 	std::string clickPath = Mod::get()->getSavedValue<std::string>("clickpacks/path", "");
 

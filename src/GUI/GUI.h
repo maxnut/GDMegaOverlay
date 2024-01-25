@@ -32,11 +32,11 @@ namespace GUI
     inline bool(__thiscall* menuLayerInit)(int* self);
     bool __fastcall menuLayerInitHook(int* self, void*);
 
-    ImVec2 getJsonPosition(std::string);
-    void setJsonPosition(std::string, ImVec2);
+    ImVec2 getJsonPosition(const std::string&);
+    void setJsonPosition(const std::string&, ImVec2);
 
-    ImVec2 getJsonSize(std::string, ImVec2 defaultSize);
-    void setJsonSize(std::string, ImVec2);
+    ImVec2 getJsonSize(const std::string&, ImVec2 defaultSize);
+    void setJsonSize(const std::string&, ImVec2);
 
     void init();
     void setLateInit(const std::function<void()>&func);
@@ -50,8 +50,8 @@ namespace GUI
     void save();
     void load();
 
-    void saveStyle(std::string name);
-    void loadStyle(std::string name);
+    void saveStyle(const std::string& name);
+    void loadStyle(const std::string& name);
     void setStyle();
 
     bool shouldRender();

@@ -130,8 +130,8 @@ void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self);
 
 Action* recordAction(PlayerButton key, double frame, bool press, bool player1);
 
-void save(std::string file);
-void load(std::string file);
+void save(const std::string& file);
+void load(const std::string& file);
 
 void drawWindow();
 }; // namespace Macrobot

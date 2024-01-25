@@ -13,7 +13,7 @@ float roundSnap(float n, int snap)
 	return static_cast<float>((n - a > b - n) ? b : a);
 }
 
-Window::Window(std::string name, const std::function<void()>& windowFunction)
+Window::Window(const std::string& name, const std::function<void()>& windowFunction)
 {
 	this->name = name;
 	this->windowFunction = windowFunction;

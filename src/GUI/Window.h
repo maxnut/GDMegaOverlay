@@ -24,7 +24,7 @@ namespace GUI
 		ImVec2 maxSize = ImVec2(200, 2000);
 
 	public:
-		Window(std::string name, const std::function<void()>& windowFunction);
+		Window(const std::string& name, const std::function<void()>& windowFunction);
 
 		void addFlag(ImGuiWindowFlags flag);
 

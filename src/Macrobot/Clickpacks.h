@@ -9,7 +9,7 @@ public:
 	std::string name = "None";
 	std::vector<std::string> clicks, softclicks, releases, platClicks, platReleases;
 
-	static Clickpack fromPath(std::string path);
+	static Clickpack fromPath(const std::string& path);
 };
 
 namespace Clickpacks

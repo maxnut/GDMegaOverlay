@@ -12,7 +12,7 @@ namespace JsonPatches
 		std::string description;
 		std::vector<geode::Patch*> patches;
 
-		JPatch(std::string description, std::vector<geode::Patch*> patches)
+		JPatch(const std::string& description, std::vector<geode::Patch*> patches)
 			: description(description), patches(patches)
 		{}
 
@@ -29,7 +29,7 @@ namespace JsonPatches
 	inline patch_group_type variables;
 
 	void init();
-	void togglePatch(patch_group_type&, std::string);
-	void togglePatch(patch_group_type&, std::string, bool);
+	void togglePatch(patch_group_type&, const std::string&);
+	void togglePatch(patch_group_type&, const std::string&, bool);
 	void drawFromPatches(patch_group_type&);
 }

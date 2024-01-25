@@ -43,10 +43,10 @@ inline bool dead = false;
 inline bool noclipDead = false;
 inline bool lastFrameDead = false;
 
-Label setupLabel(std::string labelSettingName, const std::function<void(cocos2d::CCLabelBMFont*)> &function, cocos2d::CCLayer* playLayer);
+Label setupLabel(const std::string& labelSettingName, const std::function<void(cocos2d::CCLabelBMFont*)> &function, cocos2d::CCLayer* playLayer);
 
 void calculatePositions();
 
-void settingsForLabel(std::string labelSettingName, std::function<void()>extraSettings);
+void settingsForLabel(const std::string& labelSettingName, std::function<void()>extraSettings);
 void renderWindow();
 } // namespace Labels

@@ -39,6 +39,146 @@ namespace
 	}
 }
 
+class $modify(EndLevelLayer)
+{
+	void playEndEffect()
+	{
+		EndLevelLayer::playEndEffect();
+
+		if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
+
+		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
+
+
+		float coinsPositions3[3]{ 150.f, 207.f, 265.f };
+		float coinsPositions2[2]{ 170.f, 227.f };
+		float coinsPositions1[1]{ 194.f };
+		std::array<cocos2d::CCSprite*, 3> coins{
+			nullptr, nullptr, nullptr
+		};
+		std::array<cocos2d::CCSprite*, 3> coinsBg{
+			nullptr, nullptr, nullptr
+		};
+		std::array<cocos2d::CCNode*, 4> nodes{
+			// stars
+			nullptr,
+			// orbs
+			nullptr,
+			// diamonds
+			nullptr,
+			// keys
+			nullptr
+		};
+		cocos2d::CCLabelBMFont* completionLabel = nullptr;
+		auto setCoinXPos = [&](std::size_t index, float position)
+		{
+			if (coins.at(index))
+				coins.at(index)->setPositionX(position);
+			if (coinsBg.at(index))
+				coinsBg.at(index)->setPositionX(position);
+		};
+
+		int nodesCount = 0;
+		int coinsCount = 0;
+		int coinsBgCount = 0;
+		for (unsigned int i = 0; i < layer->getChildrenCount(); i++)
+		{
+			auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
+
+			// typeinfo_cast prevents from considering the restart, edit and menu buttons as a CCNode
+			if (node && node->getChildrenCount() == 2 && typeinfo_cast<CCSprite*>(node->getChildren()->objectAtIndex(0)))
+			{
+				nodes.at(nodesCount) = node;
+				nodesCount++;
+			}
+
+			if (auto sprite = typeinfo_cast<CCSprite*>(node); sprite)
+			{
+				if (
+					std::strcmp(getFrameName(sprite), "secretCoin_2_b_01_001.png") == 0 ||
+					std::strcmp(getFrameName(sprite), "secretCoin_b_01_001.png") == 0
+				) {
+					coins.at(coinsCount) = sprite;
+					coinsCount++;
+				}
+				else if (
+					std::strcmp(getFrameName(sprite), "secretCoinUI2_001.png") == 0 ||
+					std::strcmp(getFrameName(sprite), "secretCoinUI_001.png") == 0
+				) {
+					coinsBg.at(coinsBgCount) = sprite;
+					coinsBgCount++;
+				}
+			}
+
+			if (auto label = typeinfo_cast<CCLabelBMFont*>(node); label)
+			{
+				std::string labelText = label->getString();
+
+				// wtf
+				if (
+					!labelText.starts_with("Attempts: ") && !labelText.starts_with("Jumps: ") &&
+					!labelText.starts_with("Time: ") && !labelText.starts_with("Accuracy: ") &&
+					!labelText.starts_with("Deaths: ")
+					)
+					completionLabel = label;
+			}
+		}
+
+
+		if (util::getElementCount(nodes, nullptr) <= 2)
+		{
+			switch (util::getElementCount(coins, nullptr))
+			{
+			case 0:
+				for (std::size_t i = 0; i < coins.size(); i++)
+					setCoinXPos(i, coinsPositions3[i]);
+
+				break;
+
+			case 1:
+				for (std::size_t i = 0; i < coins.size(); i++)
+					setCoinXPos(i, coinsPositions2[i]);
+
+				break;
+
+			case 2:
+				for (std::size_t i = 0; i < coins.size(); i++)
+					setCoinXPos(i, coinsPositions1[i]);
+
+				break;
+
+			case 3:
+				if (completionLabel)
+				{
+					completionLabel->setPositionX(200.f);
+					completionLabel->limitLabelWidth(200.f, .9f, .3f);
+				}
+
+				break;
+
+			default: break;
+			}
+		}
+
+		if (nodes.at(0))
+			nodes.at(0)->setPosition({ 335.f, 96.f });
+
+		if (nodes.at(1))
+			nodes.at(1)->setPosition({ 420.f, 96.f });
+
+		// TODO: these aren't getting found?
+		if (nodes.at(2) && nodes.at(3))
+			nodes.at(2)->setPosition({ 335.f, 125.f });
+		else if (nodes.at(2))
+			nodes.at(2)->setPosition({ 475.f, 125.f });
+
+		if (nodes.at(3) && nodes.at(2))
+			nodes.at(3)->setPosition({ 420.f, 125.f });
+		else if (nodes.at(3))
+			nodes.at(3)->setPosition({ 475.f, 125.f });
+	}
+};
+
 void EndLevelLayerInfo::endLevelLayerCustomSetupHook(CCLayer* self)
 {
 	reinterpret_cast<void(__thiscall*)(CCLayer*)>(geode::base::get() + 0xE74F0)(self);
@@ -104,145 +244,7 @@ void EndLevelLayerInfo::endLevelLayerCustomSetupHook(CCLayer* self)
 	layer->addChild(noclipDeathsLabelELL);
 }
 
-void EndLevelLayerInfo::endLevelLayerPlayEndEffectHook(CCLayer* self, bool unk)
-{
-	reinterpret_cast<void(__thiscall*)(CCLayer*, bool)>(geode::base::get() + 0xE8C20)(self, unk);
-
-	if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
-
-	auto layer = reinterpret_cast<CCLayer*>(self->getChildren()->objectAtIndex(0));
-
-
-	float coinsPositions3[3]{ 150.f, 207.f, 265.f };
-	float coinsPositions2[2]{ 170.f, 227.f };
-	float coinsPositions1[1]{ 194.f };
-	std::array<cocos2d::CCSprite*, 3> coins{
-		nullptr, nullptr, nullptr
-	};
-	std::array<cocos2d::CCSprite*, 3> coinsBg{
-		nullptr, nullptr, nullptr
-	};
-	std::array<cocos2d::CCNode*, 4> nodes{
-		// stars
-		nullptr,
-		// orbs
-		nullptr,
-		// diamonds
-		nullptr,
-		// keys
-		nullptr
-	};
-	cocos2d::CCLabelBMFont* completionLabel = nullptr;
-	auto setCoinXPos = [&](std::size_t index, float position)
-	{
-		if (coins.at(index))
-			coins.at(index)->setPositionX(position);
-		if (coinsBg.at(index))
-			coinsBg.at(index)->setPositionX(position);
-	};
-
-	int nodesCount = 0;
-	int coinsCount = 0;
-	int coinsBgCount = 0;
-	for (unsigned int i = 0; i < layer->getChildrenCount(); i++)
-	{
-		auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
-
-		// typeinfo_cast prevents from considering the restart, edit and menu buttons as a CCNode
-		if (node && node->getChildrenCount() == 2 && typeinfo_cast<CCSprite*>(node->getChildren()->objectAtIndex(0)))
-		{
-			nodes.at(nodesCount) = node;
-			nodesCount++;
-		}
-
-		if (auto sprite = typeinfo_cast<CCSprite*>(node); sprite)
-		{
-			if (
-				std::strcmp(getFrameName(sprite), "secretCoin_2_b_01_001.png") == 0 ||
-				std::strcmp(getFrameName(sprite), "secretCoin_b_01_001.png") == 0
-			) {
-				coins.at(coinsCount) = sprite;
-				coinsCount++;
-			}
-			else if (
-				std::strcmp(getFrameName(sprite), "secretCoinUI2_001.png") == 0 ||
-				std::strcmp(getFrameName(sprite), "secretCoinUI_001.png") == 0
-			) {
-				coinsBg.at(coinsBgCount) = sprite;
-				coinsBgCount++;
-			}
-		}
-
-		if (auto label = typeinfo_cast<CCLabelBMFont*>(node); label)
-		{
-			std::string labelText = label->getString();
-
-			// wtf
-			if (
-				!labelText.starts_with("Attempts: ") && !labelText.starts_with("Jumps: ") &&
-				!labelText.starts_with("Time: ") && !labelText.starts_with("Accuracy: ") &&
-				!labelText.starts_with("Deaths: ")
-				)
-				completionLabel = label;
-		}
-	}
-
-
-	if (util::getElementCount(nodes, nullptr) <= 2)
-	{
-		switch (util::getElementCount(coins, nullptr))
-		{
-		case 0:
-			for (std::size_t i = 0; i < coins.size(); i++)
-				setCoinXPos(i, coinsPositions3[i]);
-
-			break;
-
-		case 1:
-			for (std::size_t i = 0; i < coins.size(); i++)
-				setCoinXPos(i, coinsPositions2[i]);
-
-			break;
-
-		case 2:
-			for (std::size_t i = 0; i < coins.size(); i++)
-				setCoinXPos(i, coinsPositions1[i]);
-
-			break;
-
-		case 3:
-			if (completionLabel)
-			{
-				completionLabel->setPositionX(200.f);
-				completionLabel->limitLabelWidth(200.f, .9f, .3f);
-			}
-
-			break;
-
-		default: break;
-		}
-	}
-
-	if (nodes.at(0))
-		nodes.at(0)->setPosition({ 335.f, 96.f });
-
-	if (nodes.at(1))
-		nodes.at(1)->setPosition({ 420.f, 96.f });
-
-	// TODO: these aren't getting found?
-	if (nodes.at(2) && nodes.at(3))
-		nodes.at(2)->setPosition({ 335.f, 125.f });
-	else if (nodes.at(2))
-		nodes.at(2)->setPosition({ 475.f, 125.f });
-
-	if (nodes.at(3) && nodes.at(2))
-		nodes.at(3)->setPosition({ 420.f, 125.f });
-	else if (nodes.at(3))
-		nodes.at(3)->setPosition({ 475.f, 125.f });
-}
-
 $execute
 {
 	Mod::get()->hook(reinterpret_cast<void*>(geode::base::get() + 0xE74F0), &endLevelLayerCustomSetupHook, "EndLevelLayer::customSetup", tulip::hook::TulipConvention::Thiscall);
-	Mod::get()->hook(reinterpret_cast<void*>(geode::base::get() + 0xE8C20), &endLevelLayerPlayEndEffectHook, "EndLevelLayer::PlayEndEffect", tulip::hook::TulipConvention::Thiscall);
 }

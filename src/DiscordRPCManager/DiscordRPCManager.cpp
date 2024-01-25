@@ -11,6 +11,7 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/modify/MenuLayer.hpp>
+#include <Geode/modify/EditorPauseLayer.hpp>
 
 using namespace geode::prelude;
 using namespace DiscordRPCManager;
@@ -21,12 +22,14 @@ class $modify(PlayLayer)
 	{
 		bool res = PlayLayer::init(level, unk1, unk2);
 		updateRPC(DiscordRPCManager::State::PLAYING_LEVEL, level);
+
 		return res;
 	}
 
 	void onQuit()
 	{
 		updateRPC(DiscordRPCManager::State::DEFAULT);
+
 		PlayLayer::onQuit();
 	}
 };
@@ -36,6 +39,7 @@ class $modify(LevelEditorLayer)
 	bool init(GJGameLevel* level, bool unk)
 	{
 		updateRPC(DiscordRPCManager::State::EDITING_LEVEL, level);
+
 		return LevelEditorLayer::init(level, unk);
 	}
 };
@@ -45,7 +49,18 @@ class $modify(MenuLayer)
 	bool init()
 	{
 		updateRPC(DiscordRPCManager::State::DEFAULT);
+
 		return MenuLayer::init();
+	}
+};
+
+class $modify(EditorPauseLayer)
+{
+	void onExitEditor(CCObject* sender)
+	{
+		updateRPC(DiscordRPCManager::State::DEFAULT);
+
+		EditorPauseLayer::onExitEditor(sender);
 	}
 };
 
@@ -195,17 +210,4 @@ void DiscordRPCManager::handleDiscordDisconnected(int errorCode, const char* mes
 	log::info("Discord RPC disconnected");
 	log::info("Error Code: {}", errorCode);
 	log::info("Message: {}", message);
-}
-
-// geode bindings pls accept my pr
-void DiscordRPCManager::editorPauseLayerOnExitEditorHook(void* self, void* sender)
-{
-	updateRPC(DiscordRPCManager::State::DEFAULT);
-
-	reinterpret_cast<void(__thiscall*)(void*, void*)>(base::get() + 0xA2EF0)(self, sender);
-}
-
-$execute
-{
-	Mod::get()->hook(reinterpret_cast<void*>(base::get() + 0xA2EF0), &editorPauseLayerOnExitEditorHook, "EditorPauseLayer::onExitEditor", tulip::hook::TulipConvention::Thiscall);
 }

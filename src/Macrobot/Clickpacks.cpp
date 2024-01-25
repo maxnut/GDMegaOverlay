@@ -12,7 +12,7 @@ using namespace geode::prelude;
 
 namespace fs = std::filesystem;
 
-Clickpack Clickpack::fromPath(std::string pathString)
+Clickpack Clickpack::fromPath(const std::string& pathString)
 {
 	Clickpack pack;
 	fs::path path = pathString;
