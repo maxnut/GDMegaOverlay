@@ -3,8 +3,6 @@
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 #include <Geode/modify/MenuLayer.hpp>
 
-#include "../JsonHacks/JsonHacks.h"
-
 #include "WindowAction.h"
 
 #include <fstream>
@@ -16,8 +14,8 @@
 using namespace geode::prelude;
 
 class $modify(CCKeyboardDispatcher) {
-    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr) {
-		
+    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
+	{
 		if(!arr)
 		{
 			int menuKey = Mod::get()->getSavedValue<int>("menu/togglekey", VK_TAB);
@@ -38,7 +36,6 @@ class $modify(CCKeyboardDispatcher) {
 						GUI::shortcutLoop = true;
 						GUI::draw();
 						GUI::shortcutLoop = false;
-						JsonHacks::save();
 					}
 				}
 			}
@@ -262,8 +259,6 @@ void GUI::save()
 	f.close();
 
 	saveStyle(Mod::get()->getResourcesDir().string() + "\\Style.style");
-
-	JsonHacks::save();
 }
 
 void GUI::load()

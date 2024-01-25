@@ -4,7 +4,7 @@
 		"win": "2.204",
 		"android": "2.200"
     },
-	"version": "v2.1.0-alpha.1",
+	"version": "v2.1.1-alpha",
 	"id": "maxnu.gd_mega_overlay",
 	"name": "GD Mega Overlay",
 	"developer": "maxnu & SpaghettDev",
@@ -15,10 +15,7 @@
 			"res/hacks/*.json",
 			"res/Style.style",
 			"res/arial.ttf",
-			"res/get_ffmpeg/cpr.dll",
-			"res/get_ffmpeg/libcurl.dll",
-			"res/get_ffmpeg/zlib1.dll",
-			"res/get_ffmpeg/get_ffmpeg.exe"
+			"res/get_ffmpeg/*"
 		]
 	}
 }

@@ -13,7 +13,7 @@ file(GLOB SOURCES
   src/GUI/*.cpp
   src/GUI/*.h
   src/Hacks/*.cpp
-  src/JsonHacks/*.cpp
+  src/JsonPatches/*.cpp
   src/Macrobot/*.cpp
   src/DiscordRPCManager/*.cpp
 )

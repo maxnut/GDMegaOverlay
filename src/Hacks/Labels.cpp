@@ -1,7 +1,7 @@
 #include "Labels.h"
 #include "../ConstData.h"
 #include "../GUI/GUI.h"
-#include "../JsonHacks/JsonHacks.h"
+#include "../JsonPatches/JsonPatches.h"
 
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/PlayerObject.hpp>
@@ -105,9 +105,9 @@ class $modify(PlayLayer)
 				{
 					if (acc <= limit)
 					{
-						JsonHacks::toggleHack(JsonHacks::player, 0, true);
+						JsonPatches::togglePatch(JsonPatches::player, "patch/NoClip", false);
 						this->destroyPlayer(nullptr, nullptr);
-						JsonHacks::toggleHack(JsonHacks::player, 0, true);
+						JsonPatches::togglePatch(JsonPatches::player, "patch/NoClip", true);
 
 						dead = true;
 					}

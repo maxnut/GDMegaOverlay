@@ -19,7 +19,7 @@ using namespace geode::prelude;
 #include "Hacks/Labels.h"
 #include "Hacks/StartposSwitcher.h"
 #include "Hacks/SafeMode.h"
-#include "JsonHacks/JsonHacks.h"
+#include "JsonPatches/JsonPatches.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
 #include "Macrobot/Record.h"
@@ -35,7 +35,7 @@ void init()
 	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\clickpacks"))
 		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\clickpacks");
 
-	JsonHacks::load();
+	JsonPatches::init();
 	GUI::init();
 	DiscordRPCManager::init();
 
@@ -133,12 +133,12 @@ void init()
 	generalWindow.size.y = 250;
 	GUI::addWindow(generalWindow);
 
-	GUI::Window bypassWindow("Bypass", [] { JsonHacks::drawFromJson(JsonHacks::bypass); });
+	GUI::Window bypassWindow("Bypass", [] { JsonPatches::drawFromPatches(JsonPatches::bypass); });
 	bypassWindow.position = {1050, 50};
 	bypassWindow.size.y = 180;
 	GUI::addWindow(bypassWindow);
 
-	GUI::Window creatorWindow("Creator", [] { JsonHacks::drawFromJson(JsonHacks::creator); });
+	GUI::Window creatorWindow("Creator", [] { JsonPatches::drawFromPatches(JsonPatches::creator); });
 	creatorWindow.position = {1300, 50};
 	creatorWindow.size.y = 200;
 	GUI::addWindow(creatorWindow);
@@ -146,7 +146,7 @@ void init()
 	GUI::Window globalWindow("Global", [] {
 		GUI::checkbox("Discord Rich Presence", "general/discordrpc/enabled");
 
-		JsonHacks::drawFromJson(JsonHacks::global);
+		JsonPatches::drawFromPatches(JsonPatches::global);
 	});
 	globalWindow.position = {300, 50};
 	globalWindow.size.y = 230;
@@ -178,7 +178,7 @@ void init()
 		GUI::checkbox("Hide Pause Button", "general/hide_pause/button");
 		GUI::checkbox("Hide Pause Menu", "general/hide_pause/menu");
 
-		JsonHacks::drawFromJson(JsonHacks::level);
+		JsonPatches::drawFromPatches(JsonPatches::level);
 	});
 	levelWindow.position = {550, 50};
 	levelWindow.size.y = 180;
@@ -244,12 +244,12 @@ void init()
 	menuSettings.size.y = 300;
 	GUI::addWindow(menuSettings);
 
-	GUI::Window playerWindow("Player", [] { JsonHacks::drawFromJson(JsonHacks::player); });
+	GUI::Window playerWindow("Player", [] { JsonPatches::drawFromPatches(JsonPatches::player); });
 	playerWindow.position = {800, 50};
 	playerWindow.size.y = 180;
 	GUI::addWindow(playerWindow);
 
-	GUI::Window variablesWindow("Variables", [] { JsonHacks::drawFromJson(JsonHacks::variables); });
+	GUI::Window variablesWindow("Variables", [] { JsonPatches::drawFromPatches(JsonPatches::variables); });
 	// GUI::addWindow(variablesWindow);
 
 	GUI::Window macrobot("Macrobot", Macrobot::drawWindow);
