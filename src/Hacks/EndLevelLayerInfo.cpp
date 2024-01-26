@@ -226,7 +226,7 @@ class $modify(EndLevelLayer)
 		auto noclipAccuracyLabelELL = CCLabelBMFont::create(
 			CCString::createWithFormat(
 				"Accuracy: %.2f%%",
-				(static_cast<float>(Labels::frames - Labels::realDeaths) / static_cast<float>(Labels::frames)) * 100.f
+				(static_cast<float>(Labels::frames - Labels::deaths) / static_cast<float>(Labels::frames)) * 100.f
 			)->getCString(),
 			"goldFont.fnt"
 		);
