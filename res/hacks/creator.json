@@ -24,11 +24,7 @@
                 },
                 {
                     "address": "0x2B8D4A",
-                    "on": "83 B8 C0 03 00 00 FF"
-                },
-                {
-                    "address": "0x2B8D51",
-                    "on": "0F 4D CA"
+                    "on": "83 B8 C0 03 00 00 00 0F 4F CA"
                 },
                 {
                     "address": "0x2BA03B",

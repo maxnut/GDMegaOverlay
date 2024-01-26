@@ -41,9 +41,9 @@ namespace
 
 class $modify(EndLevelLayer)
 {
-	void playEndEffect()
+	void showLayer(bool unk)
 	{
-		EndLevelLayer::playEndEffect();
+		EndLevelLayer::showLayer(unk);
 
 		if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
 
@@ -177,74 +177,69 @@ class $modify(EndLevelLayer)
 		else if (nodes.at(3))
 			nodes.at(3)->setPosition({ 475.f, 125.f });
 	}
-};
 
-void EndLevelLayerInfo::endLevelLayerCustomSetupHook(CCLayer* self)
-{
-	reinterpret_cast<void(__thiscall*)(CCLayer*)>(geode::base::get() + 0xE74F0)(self);
-
-	if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
-
-	auto layer = reinterpret_cast<CCLayer*>(self->getChildren()->objectAtIndex(0));
-	auto playLayer = GameManager::get()->getPlayLayer();
-
-
-	CCPoint textPosition{ 0.f, 171.f }; // Y pos is that of Jumps label
-
-	// prevents moving the EndLevelLayer completion string
-	int labelsCount = 0;
-	int labelsCountLimit = 3;
-	for (unsigned int i = 0; i < layer->getChildrenCount(); i++)
+	void customSetup()
 	{
-		auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
+		EndLevelLayer::customSetup();
 
-		if (labelsCount < labelsCountLimit && typeinfo_cast<CCLabelBMFont*>(node))
+		if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
+
+		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
+		auto playLayer = GameManager::get()->getPlayLayer();
+
+
+		CCPoint textPosition{ 0.f, 171.f }; // Y pos is that of Jumps label
+
+		// prevents moving the EndLevelLayer completion string
+		int labelsCount = 0;
+		int labelsCountLimit = 3;
+		for (unsigned int i = 0; i < layer->getChildrenCount(); i++)
 		{
-			if (playLayer->m_player1->m_isPlatformer)
+			auto node = reinterpret_cast<CCNode*>(layer->getChildren()->objectAtIndex(i));
+
+			if (labelsCount < labelsCountLimit && typeinfo_cast<CCLabelBMFont*>(node))
 			{
-				// unk m_unkPoints; [[EndLevelLayer + 0x1E0] + 0x5D8]
-				if (MBO(int, MBO(void*, self, 0x1E0), 0x5D8))
+				if (playLayer->m_player1->m_isPlatformer)
 				{
-					// manual centering of time/points label (this sucks)
-					node->setPositionY(node->getPositionY() + (labelsCount == 0 ? 3.f : -3.f));
+					// unk m_unkPoints; [[EndLevelLayer + 0x1E0] + 0x5D8]
+					if (MBO(int, MBO(void*, this, 0x1E0), 0x5D8))
+					{
+						// manual centering of time/points label (this sucks)
+						node->setPositionY(node->getPositionY() + (labelsCount == 0 ? 3.f : -3.f));
 
-					labelsCountLimit = 2;
+						labelsCountLimit = 2;
+					}
+					else
+					{
+						node->setPositionY(node->getPositionY() - 13.f);
+						labelsCountLimit = 1;
+					}
 				}
-				else
-				{
-					node->setPositionY(node->getPositionY() - 13.f);
-					labelsCountLimit = 1;
-				}
+
+				textPosition.x = node->getPositionX();
+				node->setPositionX(textPosition.x - 90.f);
+				labelsCount++;
 			}
-
-			textPosition.x = node->getPositionX();
-			node->setPositionX(textPosition.x - 90.f);
-			labelsCount++;
 		}
+
+
+		auto noclipAccuracyLabelELL = CCLabelBMFont::create(
+			CCString::createWithFormat(
+				"Accuracy: %.2f%%",
+				(static_cast<float>(Labels::frames - Labels::realDeaths) / static_cast<float>(Labels::frames)) * 100.f
+			)->getCString(),
+			"goldFont.fnt"
+		);
+		noclipAccuracyLabelELL->limitLabelWidth(180.f, .8f, .5f);
+		noclipAccuracyLabelELL->setPosition({ textPosition.x + 80.f, textPosition.y + 15.f });
+		layer->addChild(noclipAccuracyLabelELL);
+
+		auto noclipDeathsLabelELL = CCLabelBMFont::create(
+			CCString::createWithFormat("Deaths: %i", Labels::realDeaths)->getCString(),
+			"goldFont.fnt"
+		);
+		noclipDeathsLabelELL->limitLabelWidth(180.f, .8f, .5f);
+		noclipDeathsLabelELL->setPosition({ textPosition.x + 80.f, textPosition.y - 15.f });
+		layer->addChild(noclipDeathsLabelELL);
 	}
-
-
-	auto noclipAccuracyLabelELL = CCLabelBMFont::create(
-		CCString::createWithFormat(
-			"Accuracy: %.2f%%",
-			(static_cast<float>(Labels::frames - Labels::realDeaths) / static_cast<float>(Labels::frames)) * 100.f
-		)->getCString(),
-		"goldFont.fnt"
-	);
-	noclipAccuracyLabelELL->limitLabelWidth(180.f, .8f, .5f);
-	noclipAccuracyLabelELL->setPosition({ textPosition.x + 80.f, textPosition.y + 15.f });
-	layer->addChild(noclipAccuracyLabelELL);
-
-	auto noclipDeathsLabelELL = CCLabelBMFont::create(
-		CCString::createWithFormat("Deaths: %i", Labels::realDeaths)->getCString(),
-		"goldFont.fnt"
-	);
-	noclipDeathsLabelELL->limitLabelWidth(180.f, .8f, .5f);
-	noclipDeathsLabelELL->setPosition({ textPosition.x + 80.f, textPosition.y - 15.f });
-	layer->addChild(noclipDeathsLabelELL);
-}
-
-$execute
-{
-	Mod::get()->hook(reinterpret_cast<void*>(geode::base::get() + 0xE74F0), &endLevelLayerCustomSetupHook, "EndLevelLayer::customSetup", tulip::hook::TulipConvention::Thiscall);
-}
+};
