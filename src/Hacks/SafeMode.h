@@ -41,6 +41,4 @@ namespace SafeMode
 		{ 0x2EA83D, { 0x90 } }
 	};
 	inline std::array<geode::Patch*, PATCHES_SIZE> patches;
-
-	void endLevelLayerCustomSetupHook(cocos2d::CCLayer*);
 }

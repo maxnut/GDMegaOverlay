@@ -13,6 +13,7 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/GJBaseGameLayer.hpp>
+#include <Geode/modify/CheckpointObject.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
 
@@ -152,20 +153,25 @@ Macrobot::Action *Macrobot::recordAction(PlayerButton key, double frame, bool pr
 	return &macro.inputs[macro.inputs.size() - 1];
 }
 
-void *Macrobot::checkpointObjectCreateHook()
+class $modify(CheckpointObject)
 {
-	void *self = reinterpret_cast<void *(__thiscall *)()>(base::get() + 0x2EB9A0)();
-	if (playerMode != -1 && gameTime > 0 && playerObject1)
+	CheckpointObject* create()
 	{
-		CheckpointData data;
-		data.time = gameTime;
-		data.p1.fromPlayer(playerObject1, true);
-		data.p2.fromPlayer(playerObject2, true);
+		auto self = CheckpointObject::create();
 
-		checkpoints[self] = data;
+		if (playerMode != -1 && gameTime > 0 && playerObject1)
+		{
+			CheckpointData data;
+			data.time = gameTime;
+			data.p1.fromPlayer(playerObject1, true);
+			data.p2.fromPlayer(playerObject2, true);
+
+			checkpoints[self] = data;
+		}
+
+		return self;
 	}
-	return self;
-}
+};
 
 void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 {
@@ -201,7 +207,6 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x2EB9A0), &checkpointObjectCreateHook, "CheckpointObject::create", tulip::hook::TulipConvention::Optcall);
 	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
 }
 

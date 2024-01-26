@@ -125,7 +125,6 @@ inline std::unordered_map<void*, Macrobot::CheckpointData> checkpoints;
 inline std::string macroName;
 inline std::string macroDescription;
 
-void* checkpointObjectCreateHook();
 void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self);
 
 Action* recordAction(PlayerButton key, double frame, bool press, bool player1);
