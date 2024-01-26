@@ -52,12 +52,16 @@ set(BUILD_SHARED_LIBS OFF)
 set(BUILD_TESTING OFF)
 set(BUILD_EXAMPLES OFF)
 include(cmake/libsndfile.cmake)
+include(cmake/portable-file-dialogs.cmake)
+include(cmake/subprocess.cmake)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
   ${nhjson_SOURCE_DIR}/single_include
   ${discord-rpc_SOURCE_DIR}/include
   ${gdr_SOURCE_DIR}/include/gdr
   ${libsndfile_SOURCE_DIR}/include
+  ${portable-file-dialogs_SOURCE_DIR}
+  ${subprocess_SOURCE_DIR}/include
 )
 
 target_link_libraries(${PROJECT_NAME} discord-rpc sndfile)

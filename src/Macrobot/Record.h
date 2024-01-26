@@ -6,7 +6,7 @@
 #include <queue>
 #include <vector>
 #include <unordered_map>
-#include "../subprocess.hpp"
+#include <subprocess.hpp>
 #include <string>
 #include <Geode/modify/GJBaseGameLayer.hpp>
 
