@@ -37,9 +37,18 @@ class $modify(CCKeyboardDispatcher){
 };
 
 class $modify(PlayLayer){
+
+	void onQuit()
+	{
+		PlayLayer::onQuit();
+		playerObject1 = nullptr;
+		playerObject2 = nullptr;
+		checkpoints.clear();
+	}
+
 	void loadFromCheckpoint(CheckpointObject * checkpoint)
 	{
-		if (checkpoints.contains(checkpoint) && playerMode != -1 && playerObject1)
+		if (checkpoints.contains(checkpoint) && playerMode != -1 && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
 			const auto check = [&](const Action &action) -> bool { return action.time >= checkpointData.time; };
@@ -102,7 +111,7 @@ class $modify(PlayerObject){
 	void pushButton(PlayerButton btn){
 		PlayerObject::pushButton(btn);
 
-if (playerObject1 && playerMode == 1 && gameTime != 9999999999)
+if (GameManager::get()->getPlayLayer() && playerMode == 1 && gameTime != 9999999999)
 {
 	Action *ac = recordAction(btn, gameTime, true, this == playerObject1);
 
@@ -121,7 +130,7 @@ void releaseButton(PlayerButton btn)
 {
 	PlayerObject::releaseButton(btn);
 
-	if (playerObject1 && playerMode == 1 && gameTime != 9999999999)
+	if (GameManager::get()->getPlayLayer() && playerMode == 1 && gameTime != 9999999999)
 	{
 		if (btn == PlayerButton::Right && direction == 1)
 			return;
@@ -159,7 +168,7 @@ class $modify(CheckpointObject)
 	{
 		auto self = CheckpointObject::create();
 
-		if (playerMode != -1 && gameTime > 0 && playerObject1)
+		if (playerMode != -1 && gameTime > 0 && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData data;
 			data.time = gameTime;
@@ -175,7 +184,7 @@ class $modify(CheckpointObject)
 
 void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 {
-	if (playerMode != -1 && playerObject1)
+	if (playerMode != -1 && GameManager::get()->getPlayLayer())
 	{
 		double currentTime = *((double *)GameManager::get()->getPlayLayer() + 1412);
 		gameTime = currentTime;
