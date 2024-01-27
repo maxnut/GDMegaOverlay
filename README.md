@@ -22,6 +22,7 @@ Free, feature-rich, gui-integrated geometry dash mod menu
 * Basic hacks
 * Startpos Switcher
 * Macro Bot
+* Internal Recorder
 * and much more!
 
 ## Credits
