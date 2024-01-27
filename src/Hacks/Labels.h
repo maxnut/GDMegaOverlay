@@ -33,8 +33,6 @@ inline size_t frames = 0;
 inline size_t deaths = 0;
 inline size_t realDeaths = 0;
 
-inline float totalDelta = 0;
-
 inline bool clickRegistered = false;
 inline bool labelsCreated = false;
 inline bool click = false;
@@ -46,6 +44,8 @@ inline bool lastFrameDead = false;
 Label setupLabel(const std::string& labelSettingName, const std::function<void(cocos2d::CCLabelBMFont*)> &function, cocos2d::CCLayer* playLayer);
 
 void calculatePositions();
+
+void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self);
 
 void settingsForLabel(const std::string& labelSettingName, std::function<void()>extraSettings);
 void renderWindow();

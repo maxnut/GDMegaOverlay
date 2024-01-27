@@ -138,10 +138,10 @@ class $modify(PlayLayer)
 
 	void destroyPlayer(PlayerObject* player, GameObject* object)
 	{
-		if (totalDelta > 0.1f)
-			dead = true;
-
 		PlayLayer::destroyPlayer(player, object);
+
+		if(frames > 60)
+			dead = true;
 	}
 
 	void resetLevel()
@@ -151,15 +151,21 @@ class $modify(PlayLayer)
 		totalClicks = 0;
 		frames = 0;
 		deaths = 0;
-		totalDelta = 0;
 		realDeaths = 0;
 		clicks.clear();
 		PlayLayer::resetLevel();
 	}
 
-	void postUpdate(float dt)
+	void onQuit()
 	{
-		if (labelsCreated)
+		labels.clear();
+		PlayLayer::onQuit();
+	}
+};
+
+void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
+{
+	if (labelsCreated)
 		{
 			for (Label& l : labels)
 				l.process();
@@ -168,9 +174,6 @@ class $modify(PlayLayer)
 		clickRegistered = false;
 
 		frames++;
-
-		if (MBO(double, GameManager::get()->getPlayLayer(), 0x583) > 0)
-			totalDelta += dt;
 
 		if(dead)
 		{
@@ -182,16 +185,13 @@ class $modify(PlayLayer)
 
 		lastFrameDead = dead;
 		dead = false;
+	reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *)>(base::get() + 0x1BD240)(self);
+}
 
-		PlayLayer::postUpdate(dt);
-	}
-
-	void onQuit()
-	{
-		labels.clear();
-		PlayLayer::onQuit();
-	}
-};
+$execute
+{
+	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
+}
 
 class $modify(PlayerObject)
 {
