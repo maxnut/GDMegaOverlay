@@ -133,6 +133,8 @@ class $modify(PlayLayer)
 
 		labelsCreated = true;
 
+		GJBaseGameLayerProcessCommands(this);
+
 		return res;
 	}
 
