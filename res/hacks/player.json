@@ -57,31 +57,6 @@
             ]
         },
         {
-            "description": "Doesn't force white glow when using black primary color",
-            "name": "No Force Glow",
-            "opcodes": [
-                {
-                    "address": "0x2D6683",
-                    "on": "EB 0E"
-                },
-                {
-                    "address": "0x2D669C",
-                    "on": "EB 0E"
-                }
-            ]
-        },
-        {
-            "description": "Disables color flashing on spider and dash orb.",
-            "name": "No Flash",
-            "probably_broken": true,
-            "opcodes": [
-                {
-                    "address": "0x2D1080",
-                    "on": "C3"
-                }
-            ]
-        },
-        {
             "description": "Disables spider dash trail when teleporting",
             "name": "No Spider Dash",
             "opcodes": [

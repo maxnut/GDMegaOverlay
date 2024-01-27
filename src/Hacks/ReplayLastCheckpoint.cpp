@@ -3,30 +3,17 @@
 
 #include "../util.hpp"
 
+#include <Geode/Geode.hpp>
+#include <cocos2d.h>
+
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/modify/EndLevelLayer.hpp>
 
 using namespace geode::prelude;
 using namespace ReplayLastCheckpoint;
 
 class $modify(PlayLayer)
 {
-	// ok so for whatever reason on windows instead of calling togglepracticemode rob calls resetlevelfromstart. on android
-	// he calls togglepracticemode tho :)
-	void resetLevelFromStart()
-	{
-		bool replay = Mod::get()->getSavedValue<bool>("level/replay_checkpoint");
-	
-		if (replay && levelCompleted)
-		{
-			GameManager::get()->getPlayLayer()->resetLevel();
-			GameManager::get()->getPlayLayer()->m_isPracticeMode = true;
-			levelCompleted = false;
-			return;
-		}
-		levelCompleted = false;
-		PlayLayer::resetLevelFromStart();
-	}
-
 	void levelComplete()
 	{
 		levelCompleted = true;
@@ -37,5 +24,60 @@ class $modify(PlayLayer)
 	{
 		levelCompleted = false;
 		PlayLayer::resetLevel();
+	}
+};
+
+class $modify(ButtonsClass, EndLevelLayer)
+{
+	void onReset(CCObject* sender)
+	{
+		levelCompleted = false;
+
+		// use m_fields to remove this amazing chain
+		this->getParent()->getParent()->removeFromParent();
+
+		GameManager::get()->getPlayLayer()->resetLevel();
+	}
+
+	void customSetup()
+	{
+		EndLevelLayer::customSetup();
+
+		if (!Mod::get()->getSavedValue<bool>("level/replay_checkpoint") || !GameManager::get()->getPlayLayer()->m_isPracticeMode) return;
+
+		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
+		CCMenu* buttonsMenu = nullptr;
+
+
+		CCObject* object;
+		CCARRAY_FOREACH(layer->getChildren(), object)
+		{
+			if (auto menu = typeinfo_cast<CCMenu*>(object); menu && menu->getChildrenCount() > 1)
+				buttonsMenu = menu;
+		}
+
+		auto practiceSprite = cocos2d::CCSprite::createWithSpriteFrameName("GJ_practiceBtn_001.png");
+		practiceSprite->setScale(1.f);
+		auto practiceButton = CCMenuItemSpriteExtra::create(
+			practiceSprite,
+			buttonsMenu,
+			menu_selector(ButtonsClass::onReset)
+		);
+
+		if (buttonsMenu->getChildrenCount() == 2)
+		{
+			getChild<CCMenuItemSpriteExtra>(buttonsMenu, 0)->setPositionX(-100.f);
+			getChild<CCMenuItemSpriteExtra>(buttonsMenu, 1)->setPositionX(100.f);
+		}
+		else
+		{
+			getChild<CCMenuItemSpriteExtra>(buttonsMenu, 0)->setPositionX(-130.f);
+			getChild<CCMenuItemSpriteExtra>(buttonsMenu, 1)->setPositionX(130.f);
+			getChild<CCMenuItemSpriteExtra>(buttonsMenu, 2)->setPositionX(-45.f);
+			practiceButton->setPositionX(45.f);
+		}
+
+		practiceButton->setPositionY(-125.f);
+		buttonsMenu->addChild(practiceButton);
 	}
 };
