@@ -7,7 +7,7 @@
 ## How to use
 
 > **Warning**
-> Do __not__ download the source code
+> Do __not__ download the source code to install it
 
 Download the latest [release](https://github.com/maxnut/GDMegaOverlay/releases/latest) and extract all files inside the GD folder.
 
