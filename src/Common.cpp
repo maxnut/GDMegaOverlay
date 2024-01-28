@@ -64,21 +64,21 @@ void Common::saveIcons()
 void Common::loadIcons()
 {
 	iconsLoaded = true;
-	GameManager::get()->m_playerFrame = Mod::get()->getSavedValue<int>("icons/cube", -1);
-	GameManager::get()->m_playerShip = Mod::get()->getSavedValue<int>("icons/ship", -1);
-	GameManager::get()->m_playerBall = Mod::get()->getSavedValue<int>("icons/ball", -1);
-	GameManager::get()->m_playerBird = Mod::get()->getSavedValue<int>("icons/ufo", -1);
-	GameManager::get()->m_playerDart = Mod::get()->getSavedValue<int>("icons/wave", -1);
-	GameManager::get()->m_playerRobot = Mod::get()->getSavedValue<int>("icons/robot", -1);
-	GameManager::get()->m_playerSpider = Mod::get()->getSavedValue<int>("icons/spider", -1);
-	GameManager::get()->m_playerSwing = Mod::get()->getSavedValue<int>("icons/swing", -1);
-	GameManager::get()->m_playerColor = Mod::get()->getSavedValue<int>("icons/color", -1);
-	GameManager::get()->m_playerColor2 = Mod::get()->getSavedValue<int>("icons/color2", -1);
-	GameManager::get()->m_playerGlowColor = Mod::get()->getSavedValue<int>("icons/colorglow", -1);
-	GameManager::get()->m_playerStreak = Mod::get()->getSavedValue<int>("icons/streak", -1);
-	GameManager::get()->m_playerShipFire = Mod::get()->getSavedValue<int>("icons/shipfire", -1);
-	GameManager::get()->m_playerDeathEffect = Mod::get()->getSavedValue<int>("icons/death", -1);
-	GameManager::get()->m_playerJetpack = Mod::get()->getSavedValue<int>("icons/jetpack", -1);
+	GameManager::get()->m_playerFrame = Mod::get()->getSavedValue<int>("icons/cube", 1);
+	GameManager::get()->m_playerShip = Mod::get()->getSavedValue<int>("icons/ship", 1);
+	GameManager::get()->m_playerBall = Mod::get()->getSavedValue<int>("icons/ball", 1);
+	GameManager::get()->m_playerBird = Mod::get()->getSavedValue<int>("icons/ufo", 1);
+	GameManager::get()->m_playerDart = Mod::get()->getSavedValue<int>("icons/wave", 1);
+	GameManager::get()->m_playerRobot = Mod::get()->getSavedValue<int>("icons/robot", 1);
+	GameManager::get()->m_playerSpider = Mod::get()->getSavedValue<int>("icons/spider", 1);
+	GameManager::get()->m_playerSwing = Mod::get()->getSavedValue<int>("icons/swing", 1);
+	GameManager::get()->m_playerColor = Mod::get()->getSavedValue<int>("icons/color", 1);
+	GameManager::get()->m_playerColor2 = Mod::get()->getSavedValue<int>("icons/color2", 1);
+	GameManager::get()->m_playerGlowColor = Mod::get()->getSavedValue<int>("icons/colorglow", 1);
+	GameManager::get()->m_playerStreak = Mod::get()->getSavedValue<int>("icons/streak", 1);
+	GameManager::get()->m_playerShipFire = Mod::get()->getSavedValue<int>("icons/shipfire", 1);
+	GameManager::get()->m_playerDeathEffect = Mod::get()->getSavedValue<int>("icons/death", 1);
+	GameManager::get()->m_playerJetpack = Mod::get()->getSavedValue<int>("icons/jetpack", 1);
 }
 
 void Common::setPriority()
