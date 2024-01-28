@@ -258,6 +258,8 @@ void GUI::save()
 	f << shortcutArray.dump(4);
 	f.close();
 
+	Mod::get()->saveData();
+
 	saveStyle(Mod::get()->getResourcesDir().string() + "\\Style.style");
 }
 
