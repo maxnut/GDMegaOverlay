@@ -13,7 +13,11 @@ using namespace geode::prelude;
 
 FMOD_RESULT AudioChannelControl::setVolumeHook(FMOD::Channel* channel, float volume)
 {
-	channel->setFrequency(44100 * speed);
+	FMOD::Sound* sound;
+	channel->getCurrentSound(&sound);
+	float freq;
+	sound->getDefaults(&freq, nullptr);
+	channel->setFrequency(freq * speed);
 
 	return channel->setVolume(volume);
 }
@@ -28,7 +32,13 @@ void AudioChannelControl::set(float frequency)
 	{
 		FMODAudioEngine::sharedEngine()->m_system->getChannel(126 + i, &audioChannel);
 		if(audioChannel)
-			audioChannel->setFrequency(44100 * frequency);
+		{
+			FMOD::Sound* sound;
+			audioChannel->getCurrentSound(&sound);
+			float freq;
+			sound->getDefaults(&freq, nullptr);
+			audioChannel->setFrequency(freq * frequency);
+		}
 	}
 }
 
