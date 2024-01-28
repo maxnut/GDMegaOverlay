@@ -25,8 +25,6 @@ using namespace geode::prelude;
 
 void init()
 {
-	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\mod"))
-		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\mod");
 	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\macros"))
 		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\macros");
 	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\renders"))
