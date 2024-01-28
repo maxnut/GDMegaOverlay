@@ -2,6 +2,7 @@
 #include "../Common.h"
 
 #include "../util.hpp"
+#include "../Settings.hpp"
 
 #include <Geode/Geode.hpp>
 #include <cocos2d.h>
@@ -43,7 +44,7 @@ class $modify(ButtonsClass, EndLevelLayer)
 	{
 		EndLevelLayer::customSetup();
 
-		if (!Mod::get()->getSavedValue<bool>("level/replay_checkpoint") || !GameManager::get()->getPlayLayer()->m_isPracticeMode) return;
+		if (!Settings::get<bool>("level/replay_checkpoint") || !GameManager::get()->getPlayLayer()->m_isPracticeMode) return;
 
 		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
 		CCMenu* buttonsMenu = nullptr;

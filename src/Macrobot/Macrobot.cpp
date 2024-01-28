@@ -4,6 +4,7 @@
 
 #include "../util.hpp"
 #include "AudioRecord.h"
+#include "../Settings.hpp"
 
 #include <fstream>
 #include <imgui.h>
@@ -23,7 +24,7 @@
 using namespace geode::prelude;
 using namespace Macrobot;
 
-class $modify(CCKeyboardDispatcher){
+class $modify(CCKeyboardDispatcher) {
 	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
 	{
 		if (key == enumKeyCodes::KEY_D || key == enumKeyCodes::KEY_ArrowRight)
@@ -115,7 +116,7 @@ if (GameManager::get()->getPlayLayer() && playerMode == 1 && gameTime != 9999999
 {
 	Action *ac = recordAction(btn, gameTime, true, this == playerObject1);
 
-	if (Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+	if (Settings::get<int>("macrobot/corrections") > 0)
 	{
 		Correction c;
 		c.time = gameTime;
@@ -140,7 +141,7 @@ void releaseButton(PlayerButton btn)
 
 		Action *ac = recordAction(btn, gameTime, false, this == playerObject1);
 
-		if (Mod::get()->getSavedValue<int>("macrobot/corrections", 0) > 0)
+		if (Settings::get<int>("macrobot/corrections") > 0)
 		{
 			Correction c;
 			c.time = gameTime;
@@ -200,7 +201,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 				else
 					GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
 
-				int correctionType = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
+				int correctionType = Settings::get<int>("macrobot/corrections");
 
 				if (correctionType > 0 && ac.correction.has_value())
 				{
@@ -367,7 +368,7 @@ void Macrobot::drawWindow()
 		if (GUI::button("Load##macro"))
 			load(macroName);
 
-		int corrections = Mod::get()->getSavedValue<int>("macrobot/corrections", 0);
+		int corrections = Settings::get<int>("macrobot/corrections");
 
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
 			Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);

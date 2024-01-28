@@ -3,6 +3,7 @@
 #include "../ConstData.h"
 #include "GUI.h"
 #include "Shortcut.h"
+#include "Settings.hpp"
 
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -53,7 +54,7 @@ bool GUI::checkbox(const std::string& name, const std::string& settingName, bool
 {
 	bool result = false;
 
-	bool value = Mod::get()->getSavedValue(settingName, default_value);
+	bool value = Settings::get<bool>(settingName, default_value);
 
 	if (GUI::shouldRender())
 		result = customCheckbox(name.c_str(), &value);

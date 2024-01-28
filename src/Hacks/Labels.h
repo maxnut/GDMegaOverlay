@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../Common.h"
-
+#include "../Settings.hpp"
 
 #include <functional>
 #include <Geode/Geode.hpp>
@@ -19,7 +19,7 @@ public:
 
 	void process()
 	{
-		if (Mod::get()->getSavedValue<bool>("labels/" + settingName + "/enabled", false))
+		if (Settings::get<bool>("labels/" + settingName + "/enabled", false))
 			function(pointer);
 	}
 };

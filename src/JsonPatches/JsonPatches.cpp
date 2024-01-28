@@ -1,6 +1,7 @@
 #include "JsonPatches.h"
 #include "../GUI/GUI.h"
 #include "../util.hpp"
+#include "../Settings.hpp"
 #include <fstream>
 #include <imgui.h>
 
@@ -84,7 +85,7 @@ void JsonPatches::togglePatch(JsonPatches::patch_group_type& patchGroup, const s
 {
 	auto patches = patchGroup.at(name).patches;
 
-	if (Mod::get()->getSavedValue<bool>("patch/" + name, false))
+	if (Settings::get<bool>("patch/" + name, false))
 	{
 		for (const auto& patch : patches)
 			if (!patch->isEnabled())

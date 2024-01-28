@@ -8,6 +8,7 @@
 #include <Geode/Geode.hpp>
 
 #include "../util.hpp"
+#include "../Settings.hpp"
 
 using namespace geode::prelude;
 using namespace SafeMode;
@@ -19,8 +20,8 @@ class $modify(EndLevelLayer)
 		EndLevelLayer::customSetup();
 
 		if (
-			!Mod::get()->getSavedValue<bool>("level/safe_mode/enabled") ||
-			!Mod::get()->getSavedValue<bool>("level/safe_mode/endscreen_enabled")
+			!Settings::get<bool>("level/safe_mode/enabled") ||
+			!Settings::get<bool>("level/safe_mode/endscreen_enabled")
 			) return;
 
 		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
@@ -61,7 +62,7 @@ void SafeMode::updateState()
 {
 	for (auto& patch : patches)
 	{
-		if (Mod::get()->getSavedValue<bool>("level/safe_mode/enabled"))
+		if (Settings::get<bool>("level/safe_mode/enabled"))
 		{
 			if (!patch->isEnabled())
 				patch->enable();

@@ -21,6 +21,7 @@ using namespace geode::prelude;
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
 #include "Macrobot/Record.h"
+#include "Settings.hpp"
 
 void init()
 {
@@ -47,7 +48,7 @@ void init()
 	});
 
 	GUI::Window generalWindow("General", [] {
-		float framerate = Mod::get()->getSavedValue<float>("general/fps/value", 60.f);
+		float framerate = Settings::get<float>("general/fps/value", 60.f);
 		if (GUI::inputFloat("##FPSValue", &framerate))
 			Mod::get()->setSavedValue<float>("general/fps/value", framerate);
 
@@ -62,7 +63,7 @@ void init()
 		if (GUI::checkbox("FPS", "general/fps/enabled"))
 			Common::calculateFramerate();
 
-		float speedhack = Mod::get()->getSavedValue<float>("general/speedhack/value", 60.f);
+		float speedhack = Settings::get<float>("general/speedhack/value", 60.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
 			Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
 
@@ -77,7 +78,7 @@ void init()
 		if (GUI::checkbox("Speedhack", "general/speedhack/enabled"))
 			Common::calculateFramerate();
 
-		float pitch = Mod::get()->getSavedValue<float>("general/music/pitch/value", 1.f);
+		float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
 		if (GUI::inputFloat("##PitchShiftValue", &pitch, 0.5f, 2.f))
 			Mod::get()->setSavedValue<float>("general/music/pitch/value", pitch);
 
@@ -91,7 +92,7 @@ void init()
 		if (GUI::checkbox("Pitch Shift", "general/music/pitch/enabled"))
 			Common::onAudioPitchChange();
 
-		float music_speed = Mod::get()->getSavedValue<float>("general/music/speed/value", 1.f);
+		float music_speed = Settings::get<float>("general/music/speed/value", 1.f);
 		if (GUI::inputFloat("##MusicSpeedValue", &music_speed))
 			Mod::get()->setSavedValue<float>("general/music/speed/value", music_speed);
 
@@ -103,7 +104,7 @@ void init()
 			GUI::sameLine();
 		}
 
-		if (Mod::get()->getSavedValue<bool>("general/tie_to_game_speed/music/enabled"))
+		if (Settings::get<bool>("general/tie_to_game_speed/music/enabled"))
 		{
 			Mod::get()->setSavedValue<bool>("general/music/speed/enabled", false);
 
@@ -120,7 +121,7 @@ void init()
 		if (GUI::checkbox("Tie Music To Game Speed", "general/tie_to_game_speed/music/enabled"))
 			Common::onAudioSpeedChange();
 
-		int priority = Mod::get()->getSavedValue<int>("general/priority", 2);
+		int priority = Settings::get<int>("general/priority", 2);
 		if (GUI::combo("Thread Priority", &priority, priorities, 5))
 		{
 			Mod::get()->setSavedValue<int>("general/priority", priority);
@@ -182,7 +183,7 @@ void init()
 			SafeMode::updateState();
 		GUI::checkbox("Safe Mode Endscreen Label", "level/safe_mode/endscreen_enabled", true);
 
-		GUI::checkbox("Endscreen Layer Info", "level/endlevellayerinfo/enabled", true);
+		GUI::checkbox("Endscreen Info", "level/endlevellayerinfo/enabled", true);
 
 		GUI::checkbox("Hide Pause Button", "general/hide_pause/button");
 		GUI::checkbox("Hide Pause Menu", "general/hide_pause/menu");
@@ -194,10 +195,10 @@ void init()
 	GUI::addWindow(levelWindow);
 
 	GUI::Window menuSettings("Menu Settings", [] {
-		int snap = Mod::get()->getSavedValue<int>("menu/window/snap", 10);
-		int snapSize = Mod::get()->getSavedValue<int>("menu/window/size_snap", 10);
-		float transitionDuration = Mod::get()->getSavedValue<float>("menu/transition_duration", 0.35f);
-		float windowOpacity = Mod::get()->getSavedValue<float>("menu/window/opacity", 0.98f);
+		int snap = Settings::get<int>("menu/window/snap", 10);
+		int snapSize = Settings::get<int>("menu/window/size_snap", 10);
+		float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
+		float windowOpacity = Settings::get<float>("menu/window/opacity", 0.98f);
 
 		if (GUI::dragInt("Window Snap", &snap, 0))
 			Mod::get()->setSavedValue<int>("menu/window/snap", snap);
@@ -217,20 +218,20 @@ void init()
 		GUI::modalPopup(
 			"Rainbow Menu Settings",
 			[] {
-				float speed = Mod::get()->getSavedValue<float>("menu/window/rainbow/speed", .4f);
+				float speed = Settings::get<float>("menu/window/rainbow/speed", .4f);
 				if (GUI::inputFloat("Rainbow Speed", &speed, .1f, 2.f))
 					Mod::get()->setSavedValue<float>("menu/window/rainbow/speed", speed);
 
-				float brightness = Mod::get()->getSavedValue<float>("menu/window/rainbow/brightness", .8f);
+				float brightness = Settings::get<float>("menu/window/rainbow/brightness", .8f);
 				if (GUI::inputFloat("Rainbow Brightness", &brightness, .1f, 2.f))
 					Mod::get()->setSavedValue<float>("menu/window/rainbow/brightness", brightness);
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
 		float windowColor[3]{
-			Mod::get()->getSavedValue<float>("menu/window/color/r", 1.f),
-			Mod::get()->getSavedValue<float>("menu/window/color/g", .0f),
-			Mod::get()->getSavedValue<float>("menu/window/color/b", .0f)
+			Settings::get<float>("menu/window/color/r", 1.f),
+			Settings::get<float>("menu/window/color/g", .0f),
+			Settings::get<float>("menu/window/color/b", .0f)
 		};
 
 		if (GUI::colorEdit("Window Color", windowColor))
@@ -240,7 +241,7 @@ void init()
 			Mod::get()->setSavedValue<float>("menu/window/color/b", windowColor[2]);
 		}
 
-		int togglekey = Mod::get()->getSavedValue<int>("menu/togglekey", VK_TAB);
+		int togglekey = Settings::get<int>("menu/togglekey", VK_TAB);
 		if (GUI::hotkey("Toggle Menu", &togglekey))
 			Mod::get()->setSavedValue<int>("menu/togglekey", togglekey);
 

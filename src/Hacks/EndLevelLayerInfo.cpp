@@ -10,9 +10,15 @@
 #include <Geode/Geode.hpp>
 
 #include "../util.hpp"
+#include "../Settings.hpp"
 
 using namespace geode::prelude;
 using namespace EndLevelLayerInfo;
+
+template<typename T, typename U> constexpr size_t offsetOf(U T::*member)
+{
+	return (char*)&((T*)nullptr->*member) - (char*)nullptr;
+}
 
 // move to utils.hpp if other files need it in the future
 namespace
@@ -45,7 +51,7 @@ class $modify(EndLevelLayer)
 	{
 		EndLevelLayer::showLayer(unk);
 
-		if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
+		if (!Settings::get<bool>("level/endlevellayerinfo/enabled")) return;
 
 		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
 
@@ -182,7 +188,7 @@ class $modify(EndLevelLayer)
 	{
 		EndLevelLayer::customSetup();
 
-		if (!Mod::get()->getSavedValue<bool>("level/endlevellayerinfo/enabled")) return;
+		if (!Settings::get<bool>("level/endlevellayerinfo/enabled")) return;
 
 		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
 		auto playLayer = GameManager::get()->getPlayLayer();

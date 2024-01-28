@@ -4,6 +4,7 @@
 #include <Geode/modify/MenuLayer.hpp>
 
 #include "WindowAction.h"
+#include "../Settings.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -14,11 +15,11 @@
 using namespace geode::prelude;
 
 class $modify(CCKeyboardDispatcher) {
-    bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
+	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
 	{
 		if(!arr)
 		{
-			int menuKey = Mod::get()->getSavedValue<int>("menu/togglekey", VK_TAB);
+			int menuKey = Settings::get<int>("menu/togglekey", VK_TAB);
 
 			if (down && (key == menuKey))
 			{
@@ -47,13 +48,13 @@ class $modify(CCKeyboardDispatcher) {
 				ImGui::GetIO().AddKeyEvent(imKey, down);
 		}
 
-        return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
-    }
+		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
+	}
 };
 
 class $modify(MenuLayer)
 {
-    bool init()
+	bool init()
 	{
 		static bool init = false;
 		if (!init)
@@ -64,8 +65,8 @@ class $modify(MenuLayer)
 		}
 		init = true;
 
-        return MenuLayer::init();
-    }
+		return MenuLayer::init();
+	}
 };
 
 ImVec2 GUI::getJsonPosition(const std::string& name)
@@ -129,7 +130,7 @@ void GUI::draw()
 	windowPositions["res"]["x"] = ImGui::GetIO().DisplaySize.x;
 	windowPositions["res"]["y"] = ImGui::GetIO().DisplaySize.y;
 
-	float transitionDuration = Mod::get()->getSavedValue<float>("menu/transition_duration", 0.35f);
+	float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
 
 	hideTimer += ImGui::GetIO().DeltaTime;
 	if (hideTimer > transitionDuration)
@@ -190,7 +191,7 @@ void GUI::toggle()
 			break;
 		}
 
-		float transitionDuration = Mod::get()->getSavedValue<float>("menu/transition_duration", 0.35f);
+		float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
 
 		WindowAction* action = WindowAction::create(
 			transitionDuration, &w, toggle ? w.position : ImVec2(w.position.x + dir.x, w.position.y + dir.y));
@@ -318,16 +319,16 @@ void GUI::setStyle()
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 
-	float r = Mod::get()->getSavedValue<float>("menu/window/color/r", 1.f);
-	float g = Mod::get()->getSavedValue<float>("menu/window/color/g", 0.f);
-	float b = Mod::get()->getSavedValue<float>("menu/window/color/b", 0.f);
+	float r = Settings::get<float>("menu/window/color/r", 1.f);
+	float g = Settings::get<float>("menu/window/color/g", 0.f);
+	float b = Settings::get<float>("menu/window/color/b", 0.f);
 
-	if (Mod::get()->getSavedValue<bool>("menu/window/rainbow/enabled"))
+	if (Settings::get<bool>("menu/window/rainbow/enabled"))
 	{
 		ImGui::ColorConvertHSVtoRGB(
-			ImGui::GetTime() * Mod::get()->getSavedValue<float>("menu/window/rainbow/speed", .4f),
-			Mod::get()->getSavedValue<float>("menu/window/rainbow/brightness", .8f),
-			Mod::get()->getSavedValue<float>("menu/window/rainbow/brightness"),
+			ImGui::GetTime() * Settings::get<float>("menu/window/rainbow/speed", .4f),
+			Settings::get<float>("menu/window/rainbow/brightness", .8f),
+			Settings::get<float>("menu/window/rainbow/brightness"),
 			r, g, b
 		);
 

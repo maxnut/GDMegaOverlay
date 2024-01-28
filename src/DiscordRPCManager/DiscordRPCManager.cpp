@@ -1,12 +1,13 @@
 #include "DiscordRPCManager.h"
 
 #include "../Common.h"
-#include <Geode/binding/GJGameLevel.hpp>
 #include "../util.hpp"
+#include "Settings.hpp"
 
 #include <discord_register.h>
 #include <discord_rpc.h>
 
+#include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/binding/GJAccountManager.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
@@ -85,13 +86,13 @@ void DiscordRPCManager::init()
 
 void DiscordRPCManager::updateState()
 {
-	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled") && hasInit)
+	if (!Settings::get<bool>("general/discordrpc/enabled") && hasInit)
 	{
 		Discord_ClearPresence();
 		Discord_Shutdown();
 		hasInit = false;
 	}
-	else if (Mod::get()->getSavedValue<bool>("general/discordrpc/enabled") && !hasInit)
+	else if (Settings::get<bool>("general/discordrpc/enabled") && !hasInit)
 	{
 		init();
 		hasInit = true;
@@ -100,11 +101,11 @@ void DiscordRPCManager::updateState()
 
 void DiscordRPCManager::updateRPC(State state, GJGameLevel* level)
 {
-	if (!Mod::get()->getSavedValue<bool>("general/discordrpc/enabled")) return;
+	if (!Settings::get<bool>("general/discordrpc/enabled")) return;
 
 	DiscordRichPresence presence{};
 
-	if (Mod::get()->getSavedValue<bool>("general/discordrpc/incognito"))
+	if (Settings::get<bool>("general/discordrpc/incognito"))
 	{
 		presence.state = "Playing the game";
 		presence.startTimestamp = rpcStartTime;

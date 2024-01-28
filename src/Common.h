@@ -6,16 +6,16 @@
 
 namespace cocos2d
 {
-    class CCLayer;
+	class CCLayer;
 }
 
 namespace Common
 {
-    inline bool iconsLoaded = false;
-    void calculateFramerate();
-    void setPriority();
-    void onAudioSpeedChange();
-    void onAudioPitchChange();
-    void saveIcons();
-    void loadIcons();
+	inline bool iconsLoaded = false;
+	void calculateFramerate();
+	void setPriority();
+	void onAudioSpeedChange();
+	void onAudioPitchChange();
+	void saveIcons();
+	void loadIcons();
 };

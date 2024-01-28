@@ -3,6 +3,7 @@
 
 
 #include "../GUI/GUI.h"
+#include "../Settings.hpp"
 #include <portable-file-dialogs.h>
 #include <filesystem>
 
@@ -45,7 +46,7 @@ Clickpack Clickpack::fromPath(const std::string& pathString)
 
 void Clickpacks::init()
 {
-	std::string clickPath = Mod::get()->getSavedValue<std::string>("clickpacks/path", "");
+	std::string clickPath = Settings::get<std::string>("clickpacks/path");
 
 	if (clickPath != "")
 		currentClickpack = Clickpack::fromPath(clickPath);
@@ -59,7 +60,7 @@ void Clickpacks::drawGUI()
 
 		if (GUI::button("Select clickpack"))
 		{
-			std::string clickPath = Mod::get()->getSavedValue<std::string>("clickpacks/path", "");
+			std::string clickPath = Settings::get<std::string>("clickpacks/path");
 
 			const auto result = pfd::select_folder("Choose a folder", Mod::get()->getSaveDir().string() + "\\clickpacks").result();
 
@@ -70,14 +71,14 @@ void Clickpacks::drawGUI()
 			}
 		}
 
-		float clickVolume = Mod::get()->getSavedValue<float>("clickpacks/click/volume", 2.f);
+		float clickVolume = Settings::get<float>("clickpacks/click/volume", 2.f);
 		GUI::inputFloat("Click Volume", &clickVolume);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())
 			Mod::get()->setSavedValue<float>("clickpacks/click/volume", clickVolume);
 		
 
-		float softclickAt = Mod::get()->getSavedValue<float>("clickpacks/softclicks_at", 0.1f);
+		float softclickAt = Settings::get<float>("clickpacks/softclicks_at", 0.1f);
 		GUI::inputFloat("Softclicks at", &softclickAt);
 
 		if (ImGui::IsItemDeactivatedAfterEdit())

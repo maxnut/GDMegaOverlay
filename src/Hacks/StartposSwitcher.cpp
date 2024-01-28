@@ -2,6 +2,7 @@
 #include "../Common.h"
 
 #include "../util.hpp"
+#include "../Settings.hpp"
 
 #include <cocos2d.h>
 #include <iostream>
@@ -43,7 +44,7 @@ class $modify(PlayLayer)
 
 void StartposSwitcher::change(bool right)
 {
-	if (!GameManager::get()->getPlayLayer() || !Mod::get()->getSavedValue<bool>("level/startpos_switcher") || startposObjects.size() <= 0)
+	if (!GameManager::get()->getPlayLayer() || !Settings::get<bool>("level/startpos_switcher") || startposObjects.size() <= 0)
 		return;
 
 	if (right)

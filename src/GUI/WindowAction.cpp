@@ -24,11 +24,11 @@ bool WindowAction::initWithDuration(float duration, GUI::Window* window, ImVec2 
 
 float tweenFunc(float time)
 {
-    time = time * 2;
-    if (time < 1)
-        return 0.5f * time * time;
-    --time;
-    return -0.5f * (time * (time - 2) - 1);
+	time = time * 2;
+	if (time < 1)
+		return 0.5f * time * time;
+	--time;
+	return -0.5f * (time * (time - 2) - 1);
 }
 
 void WindowAction::step(float dt)

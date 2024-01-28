@@ -14,45 +14,45 @@ class WindowAction;
 
 namespace GUI
 {
-    inline std::vector<Window> windows;
-    inline std::vector<Shortcut> shortcuts;
-    inline std::vector<WindowAction*> windowActions;
-    inline std::string currentShortcut = "";
-    inline json windowPositions;
+	inline std::vector<Window> windows;
+	inline std::vector<Shortcut> shortcuts;
+	inline std::vector<WindowAction*> windowActions;
+	inline std::string currentShortcut = "";
+	inline json windowPositions;
 
-    inline bool isVisible = false;
-    inline bool shortcutLoop = false;
+	inline bool isVisible = false;
+	inline bool shortcutLoop = false;
 
-    inline bool canToggle = false;
+	inline bool canToggle = false;
 
-    inline float hideTimer = 0.0f;
+	inline float hideTimer = 0.0f;
 
-    inline std::function<void()> lateInit;
+	inline std::function<void()> lateInit;
 
-    inline bool(__thiscall* menuLayerInit)(int* self);
-    bool __fastcall menuLayerInitHook(int* self, void*);
+	inline bool(__thiscall* menuLayerInit)(int* self);
+	bool __fastcall menuLayerInitHook(int* self, void*);
 
-    ImVec2 getJsonPosition(const std::string&);
-    void setJsonPosition(const std::string&, ImVec2);
+	ImVec2 getJsonPosition(const std::string&);
+	void setJsonPosition(const std::string&, ImVec2);
 
-    ImVec2 getJsonSize(const std::string&, ImVec2 defaultSize);
-    void setJsonSize(const std::string&, ImVec2);
+	ImVec2 getJsonSize(const std::string&, ImVec2 defaultSize);
+	void setJsonSize(const std::string&, ImVec2);
 
-    void init();
-    void setLateInit(const std::function<void()>&func);
+	void init();
+	void setLateInit(const std::function<void()>&func);
 
-    void draw();
+	void draw();
 
-    void toggle();
+	void toggle();
 
-    void addWindow(Window window);
+	void addWindow(Window window);
 
-    void save();
-    void load();
+	void save();
+	void load();
 
-    void saveStyle(const std::string& name);
-    void loadStyle(const std::string& name);
-    void setStyle();
+	void saveStyle(const std::string& name);
+	void loadStyle(const std::string& name);
+	void setStyle();
 
-    bool shouldRender();
+	bool shouldRender();
 };
