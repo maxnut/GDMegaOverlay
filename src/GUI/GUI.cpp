@@ -56,14 +56,12 @@ class $modify(MenuLayer)
 {
 	bool init()
 	{
-		static bool init = false;
-		if (!init)
+		if (!GUI::hasLateInit)
 		{
 			GUI::lateInit();
-			GUI::loadStyle(Mod::get()->getResourcesDir() / "Style.style");
 			GUI::canToggle = true;
 		}
-		init = true;
+		GUI::hasLateInit = true;
 
 		return MenuLayer::init();
 	}
@@ -105,9 +103,11 @@ void GUI::setJsonSize(const std::string& name, ImVec2 size)
 
 void GUI::init()
 {
+	hasLateInit = false;
 	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF(string::wideToUtf8((Mod::get()->getResourcesDir() / "arial.ttf").wstring()).c_str(), 14);
 	ImGui::GetIO().FontDefault = fnt;
 	windowPositions = json::object();
+	GUI::loadStyle(Mod::get()->getResourcesDir() / "Style.style");
 	load();
 }
 

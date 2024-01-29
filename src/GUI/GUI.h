@@ -23,6 +23,8 @@ namespace GUI
 	inline bool isVisible = false;
 	inline bool shortcutLoop = false;
 
+	inline bool hasLateInit = false;
+
 	inline bool canToggle = false;
 
 	inline float hideTimer = 0.0f;

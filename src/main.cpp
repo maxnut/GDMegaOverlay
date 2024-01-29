@@ -33,7 +33,6 @@ void init()
 		ghc::filesystem::create_directory(Mod::get()->getSaveDir() / "clickpacks");
 
 	JsonPatches::init();
-	GUI::init();
 	DiscordRPCManager::init();
 
 	GUI::setLateInit([] {
@@ -44,7 +43,12 @@ void init()
 		Clickpacks::init();
 		SafeMode::updateState();
 	});
+}
 
+void initGUI()
+{
+	GUI::windows.clear();
+	
 	GUI::Window generalWindow("General", [] {
 		float framerate = Settings::get<float>("general/fps/value", 60.f);
 		if (GUI::inputFloat("##FPSValue", &framerate))
@@ -302,8 +306,11 @@ $on_mod(Loaded)
 {
 	Mod::get()->setLoggingEnabled(true);
 
+	init();
+
 	ImGuiCocos::get().setup([]{
-		init();
+		GUI::init();
+		initGUI();
 	}).draw([]{
 		render();
 	});
