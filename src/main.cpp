@@ -61,9 +61,12 @@ void init()
 		if (GUI::checkbox("FPS", "general/fps/enabled"))
 			Common::calculateFramerate();
 
-		float speedhack = Settings::get<float>("general/speedhack/value", 60.f);
+		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
-			Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
+		{
+			if(speedhack > 0)
+				Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
+		}
 
 		if (GUI::shouldRender())
 		{
