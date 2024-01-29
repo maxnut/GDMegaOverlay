@@ -74,7 +74,7 @@ void Common::loadIcons()
 	GameManager::get()->m_playerSpider = Settings::get<int>("icons/spider", GameManager::get()->m_playerSpider);
 	GameManager::get()->m_playerSwing = Settings::get<int>("icons/swing", GameManager::get()->m_playerSwing);
 	GameManager::get()->m_playerColor = Settings::get<int>("icons/color", GameManager::get()->m_playerColor);
-	GameManager::get()->m_playerColor2 = Settings::get<int>("icons/color", GameManager::get()->m_playerColor2);
+	GameManager::get()->m_playerColor2 = Settings::get<int>("icons/color2", GameManager::get()->m_playerColor2);
 	GameManager::get()->m_playerGlowColor = Settings::get<int>("icons/colorglow", GameManager::get()->m_playerGlowColor);
 	GameManager::get()->m_playerStreak = Settings::get<int>("icons/streak", GameManager::get()->m_playerStreak);
 	GameManager::get()->m_playerShipFire = Settings::get<int>("icons/shipfire", GameManager::get()->m_playerShipFire);
