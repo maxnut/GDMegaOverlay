@@ -11,22 +11,22 @@
 
 using namespace geode::prelude;
 
-namespace fs = std::filesystem;
+namespace fs = ghc::filesystem;
 
-Clickpack Clickpack::fromPath(const std::string& pathString)
+Clickpack Clickpack::fromPath(const fs::path& pathString)
 {
 	Clickpack pack;
 	fs::path path = pathString;
 
 	pack.name = path.filename().string();
 
-	fs::path clickPath = pathString + "\\clicks";
-	fs::path softclickPath = pathString + "\\softclicks";
-	fs::path releasePath = pathString + "\\releases";
-	fs::path platClickPath = pathString + "\\plat_clicks";
-	fs::path platReleasePath = pathString + "\\plat_releases";
+	fs::path clickPath = pathString / "clicks";
+	fs::path softclickPath = pathString / "softclicks";
+	fs::path releasePath = pathString / "releases";
+	fs::path platClickPath = pathString / "plat_clicks";
+	fs::path platReleasePath = pathString / "plat_releases";
 
-	auto addFromPath = [](std::vector<std::string>& vector, fs::path folder) {
+	auto addFromPath = [](std::vector<fs::path>& vector, fs::path folder) {
 		if (!fs::exists(folder))
 			return;
 
@@ -62,7 +62,7 @@ void Clickpacks::drawGUI()
 		{
 			std::string clickPath = Settings::get<std::string>("clickpacks/path");
 
-			const auto result = pfd::select_folder("Choose a folder", Mod::get()->getSaveDir().string() + "\\clickpacks").result();
+			const auto result = pfd::select_folder("Choose a folder", (Mod::get()->getSaveDir() / "clickpacks").string()).result();
 
 			if (!result.empty())
 			{

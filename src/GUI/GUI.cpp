@@ -60,7 +60,7 @@ class $modify(MenuLayer)
 		if (!init)
 		{
 			GUI::lateInit();
-			GUI::loadStyle(Mod::get()->getResourcesDir().string() + "\\Style.style");
+			GUI::loadStyle(Mod::get()->getResourcesDir() / "Style.style");
 			GUI::canToggle = true;
 		}
 		init = true;
@@ -105,7 +105,7 @@ void GUI::setJsonSize(const std::string& name, ImVec2 size)
 
 void GUI::init()
 {
-	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF((Mod::get()->getResourcesDir().string() + "\\arial.ttf").c_str(), 14);
+	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF(string::wideToUtf8((Mod::get()->getResourcesDir() / "arial.ttf").wstring()).c_str(), 14);
 	ImGui::GetIO().FontDefault = fnt;
 	windowPositions = json::object();
 	load();
@@ -241,11 +241,11 @@ void GUI::save()
 	windowPositions["res"]["x"] = ImGui::GetIO().DisplaySize.x;
 	windowPositions["res"]["y"] = ImGui::GetIO().DisplaySize.y;
 
-	std::ofstream f(Mod::get()->getSaveDir().string() + "\\windows.json");
+	std::ofstream f(Mod::get()->getSaveDir() / "windows.json");
 	f << windowPositions.dump(4);
 	f.close();
 
-	f.open(Mod::get()->getSaveDir().string() + "\\shortcuts.json");
+	f.open(Mod::get()->getSaveDir() / "shortcuts.json");
 	json shortcutArray = json::array();
 
 	for (Shortcut& s : shortcuts)
@@ -261,18 +261,18 @@ void GUI::save()
 
 	Mod::get()->saveData();
 
-	saveStyle(Mod::get()->getResourcesDir().string() + "\\Style.style");
+	saveStyle(Mod::get()->getResourcesDir() / "Style.style");
 }
 
 void GUI::load()
 {
-	std::ifstream f(Mod::get()->getSaveDir().string() + "\\windows.json");
+	std::ifstream f(Mod::get()->getSaveDir() / "windows.json");
 
 	if(!f)
 	{
 		f.close();
 
-		f.open(Mod::get()->getResourcesDir().string() + "\\default_windows.json");
+		f.open(Mod::get()->getResourcesDir() / "default_windows.json");
 	}
 
 	if (f)
@@ -290,7 +290,7 @@ void GUI::load()
 		windowPositions["res"]["y"] = ImGui::GetIO().DisplaySize.x;
 	}
 
-	f.open(Mod::get()->getSaveDir().string() + "\\shortcuts.json");
+	f.open(Mod::get()->getSaveDir() / "shortcuts.json");
 	if (f)
 	{
 		std::stringstream buffer;
@@ -308,14 +308,14 @@ void GUI::load()
 	f.close();
 }
 
-void GUI::saveStyle(const std::string& name)
+void GUI::saveStyle(const ghc::filesystem::path& name)
 {
 	ImGuiStyle style = ImGui::GetStyle();
 	std::ofstream styleFile(name, std::ios::binary);
 	styleFile.write((const char*)&style, sizeof(ImGuiStyle));
 	styleFile.close();
 }
-void GUI::loadStyle(const std::string& name)
+void GUI::loadStyle(const ghc::filesystem::path& name)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	std::ifstream styleFile(name, std::ios::binary);

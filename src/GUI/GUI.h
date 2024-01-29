@@ -50,8 +50,8 @@ namespace GUI
 	void save();
 	void load();
 
-	void saveStyle(const std::string& name);
-	void loadStyle(const std::string& name);
+	void saveStyle(const ghc::filesystem::path& name);
+	void loadStyle(const ghc::filesystem::path& name);
 	void setStyle();
 
 	bool shouldRender();

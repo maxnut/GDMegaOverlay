@@ -305,7 +305,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject *player, bool fullRestore)
 
 void Macrobot::save(const std::string& file)
 {
-	std::ofstream f(Mod::get()->getSaveDir().string() + "\\macros\\" + file + ".gdr", std::ios::binary);
+	std::ofstream f(Mod::get()->getSaveDir() / "macros" / file / ".gdr", std::ios::binary);
 
 	std::string playerName = GJAccountManager::sharedState()->m_username;
 	GJGameLevel *level = GameManager::get()->getPlayLayer()->m_level;
@@ -327,7 +327,7 @@ void Macrobot::save(const std::string& file)
 
 void Macrobot::load(const std::string& file)
 {
-	std::ifstream f(Mod::get()->getSaveDir().string() + "\\macros\\" + file + ".gdr", std::ios::binary);
+	std::ifstream f(Mod::get()->getSaveDir() / "macros" / file / ".gdr", std::ios::binary);
 
 	f.seekg(0, std::ios::end);
 	size_t fileSize = f.tellg();

@@ -7,9 +7,9 @@ class Clickpack
 {
 public:
 	std::string name = "None";
-	std::vector<std::string> clicks, softclicks, releases, platClicks, platReleases;
+	std::vector<ghc::filesystem::path> clicks, softclicks, releases, platClicks, platReleases;
 
-	static Clickpack fromPath(const std::string& path);
+	static Clickpack fromPath(const ghc::filesystem::path& path);
 };
 
 namespace Clickpacks

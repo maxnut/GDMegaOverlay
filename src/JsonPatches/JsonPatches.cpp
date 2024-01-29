@@ -40,14 +40,13 @@ void JsonPatches::init()
 
 	auto read_or_default = [](const std::string& modsName, nlohmann::json& mods)
 	{
-		std::string path = Mod::get()->getResourcesDir().string() + "/" + modsName;
 
-		std::ifstream file(path);
+		std::ifstream file(Mod::get()->getResourcesDir() / modsName);
 
 		if (file.peek() == std::ifstream::traits_type::eof())
 		{
 			file.close();
-			std::ofstream file_write(path);
+			std::ofstream file_write(Mod::get()->getResourcesDir() / modsName);
 			file_write << mods;
 			file_write.close();
 		}

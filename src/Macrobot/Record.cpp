@@ -136,10 +136,10 @@ void Recorder::start()
 
 	auto song_offset = m_song_start_offset;
 
-	if (!std::filesystem::is_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id) ||
-		!std::filesystem::exists(Mod::get()->getSaveDir().string() + "/renders/" + level_id))
+	if (!ghc::filesystem::is_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id) ||
+		!ghc::filesystem::exists(Mod::get()->getSaveDir().string() + "/renders/" + level_id))
 	{
-		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id);
+		ghc::filesystem::create_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id);
 	}
 
 	if (m_recording_audio)
@@ -302,7 +302,7 @@ void Recorder::stop_audio()
 
 	std::string video_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4";
 
-	bool clicks = std::filesystem::exists(video_path);
+	bool clicks = ghc::filesystem::exists(video_path);
 
 	if (!clicks)
 		video_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4";
@@ -335,10 +335,10 @@ void Recorder::stop_audio()
 		std::cout << e.what() << '\n';
 	}
 
-	std::filesystem::remove("fmodoutput.wav");
+	ghc::filesystem::remove("fmodoutput.wav");
 
-	std::filesystem::remove(widen(video_path));
-	std::filesystem::rename(temp_path, widen(video_path));
+	ghc::filesystem::remove(widen(video_path));
+	ghc::filesystem::rename(temp_path, widen(video_path));
 }
 
 void Recorder::handle_recording_audio(GJBaseGameLayer *play_layer, float dt)
@@ -392,7 +392,7 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 	}
 }
 
-bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, const std::string& dirName)
+bool Recorder::areAudioFilesValid(const std::vector<ghc::filesystem::path> &files, const std::string& dirName)
 {
 	if(files.size() <= 0)
 	{
@@ -403,12 +403,12 @@ bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, const s
 	for (auto filename : Clickpacks::currentClickpack.clicks)
 	{
 		SF_INFO inputSfInfoDummy;
-		SNDFILE *inputSndFileDummy = sf_open(filename.c_str(), SFM_READ, &inputSfInfoDummy);
+		SNDFILE *inputSndFileDummy = sf_open(filename.string().c_str(), SFM_READ, &inputSfInfoDummy);
 
 		if (sampleRate != 0 && inputSfInfoDummy.samplerate != sampleRate)
 		{
 			FLAlertLayer::create("Info", "Make sure all of your files have the same sample rate! " + dirName + "/" +
-										 filename + ".wav", "Ok")->show();
+										 filename.string() + ".wav", "Ok")->show();
 			sf_close(inputSndFileDummy);
 			return false;
 		}
@@ -416,7 +416,7 @@ bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, const s
 		if (numChannels != 0 && inputSfInfoDummy.channels != numChannels)
 		{
 			FLAlertLayer::create("Info", "Make sure all of your files have the same channel number! " + dirName + "/" +
-										 filename + ".wav", "Ok")->show();
+										 filename.string() + ".wav", "Ok")->show();
 			sf_close(inputSndFileDummy);
 			return false;
 		}
@@ -424,7 +424,7 @@ bool Recorder::areAudioFilesValid(const std::vector<std::string> &files, const s
 		if (sampleFormat != 0 && inputSfInfoDummy.format != sampleFormat)
 		{
 			FLAlertLayer::create("Info", "Make sure all of your files have the same sample format! " + dirName + "/" +
-										 filename + ".wav", "Ok")->show();
+										 filename.string() + ".wav", "Ok")->show();
 			sf_close(inputSndFileDummy);
 			return false;
 		}
@@ -463,7 +463,7 @@ bool Recorder::generate_clicks(const std::string& outputPath)
 
 	const char *outputFile = outputPath.c_str();
 
-	std::filesystem::create_directories(std::filesystem::path(outputFile).parent_path());
+	ghc::filesystem::create_directories(ghc::filesystem::path(outputFile).parent_path());
 
 	SF_INFO sfInfo;
 	sfInfo.samplerate = sampleRate;
@@ -493,7 +493,7 @@ bool Recorder::generate_clicks(const std::string& outputPath)
 		if (timestamp == previousTimestamp)
 			continue;
 
-		std::string soundPath;
+		ghc::filesystem::path soundPath;
 		if (ac.button <= 1)
 		{
 			if (!ac.player2)
@@ -545,7 +545,7 @@ bool Recorder::generate_clicks(const std::string& outputPath)
 		}
 
 		SF_INFO inputSfInfo;
-		SNDFILE *inputSndFile = sf_open(soundPath.c_str(), SFM_READ, &inputSfInfo);
+		SNDFILE *inputSndFile = sf_open(soundPath.string().c_str(), SFM_READ, &inputSfInfo);
 		if (!inputSndFile)
 		{
 			std::cout << "Failed to open input file: " << soundPath << std::endl;
@@ -594,9 +594,9 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Recording") && GameManager::get()->getPlayLayer())
 	{
-		if (!std::filesystem::exists("ffmpeg.exe"))
+		if (!ghc::filesystem::exists("ffmpeg.exe"))
 		{
-			auto process = subprocess::Popen(Mod::get()->getResourcesDir().string() + "\\get_ffmpeg.exe");
+			auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
 			try
 			{
 				process.close();
@@ -620,9 +620,9 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Audio") && GameManager::get()->getPlayLayer())
 	{
-		if (!std::filesystem::exists("ffmpeg.exe"))
+		if (!ghc::filesystem::exists("ffmpeg.exe"))
 		{
-			auto process = subprocess::Popen(Mod::get()->getResourcesDir().string() + "\\get_ffmpeg.exe");
+			auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
 			try
 			{
 				process.close();

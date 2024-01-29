@@ -25,12 +25,12 @@ using namespace geode::prelude;
 
 void init()
 {
-	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\macros"))
-		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\macros");
-	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\renders"))
-		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\renders");
-	if (!std::filesystem::exists(Mod::get()->getSaveDir().string() + "\\clickpacks"))
-		std::filesystem::create_directory(Mod::get()->getSaveDir().string() + "\\clickpacks");
+	if (!ghc::filesystem::exists(Mod::get()->getSaveDir() / "macros"))
+		ghc::filesystem::create_directory(Mod::get()->getSaveDir() / "macros");
+	if (!ghc::filesystem::exists(Mod::get()->getSaveDir() / "renders"))
+		ghc::filesystem::create_directory(Mod::get()->getSaveDir() / "renders");
+	if (!ghc::filesystem::exists(Mod::get()->getSaveDir() / "clickpacks"))
+		ghc::filesystem::create_directory(Mod::get()->getSaveDir() / "clickpacks");
 
 	JsonPatches::init();
 	GUI::init();
