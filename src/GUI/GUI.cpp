@@ -267,6 +267,14 @@ void GUI::save()
 void GUI::load()
 {
 	std::ifstream f(Mod::get()->getSaveDir().string() + "\\windows.json");
+
+	if(!f)
+	{
+		f.close();
+
+		f.open(Mod::get()->getResourcesDir().string() + "\\default_windows.json");
+	}
+
 	if (f)
 	{
 		std::stringstream buffer;
