@@ -26,7 +26,7 @@ Manual Installations using Steam:
 1. Go onto Steam, and go onto the Geometry Dash page in your library.
 2. Press the settings button, right of the Play button. It is shown as a cogwheel.
 3. Hover over the Manage submenu, and press "Browse Local Files". The folder in which the game is installed should pop up in Windows Explorer.
-4. Copy `maxnu.gd_mega_overlay.geode` to `\path\to\Geometry Dash\geode\mods\`
+4. Copy `maxnu.gd_mega_overlay.geode` to `\geode\mods\`. You can find `\geode\mods\` in the Windows Explorer window you opened from Steam.
 
 ## Description
 
