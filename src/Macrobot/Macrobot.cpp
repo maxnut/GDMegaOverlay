@@ -165,9 +165,9 @@ Macrobot::Action *Macrobot::recordAction(PlayerButton key, double frame, bool pr
 
 class $modify(CheckpointObject)
 {
-	CheckpointObject* create()
+	bool init()
 	{
-		auto self = CheckpointObject::create();
+		bool res = CheckpointObject::init();
 
 		if (playerMode != -1 && gameTime > 0 && GameManager::get()->getPlayLayer())
 		{
@@ -176,10 +176,10 @@ class $modify(CheckpointObject)
 			data.p1.fromPlayer(playerObject1, true);
 			data.p2.fromPlayer(playerObject2, true);
 
-			checkpoints[self] = data;
+			checkpoints[this] = data;
 		}
 
-		return self;
+		return res;
 	}
 };
 
@@ -305,7 +305,20 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject *player, bool fullRestore)
 
 void Macrobot::save(const std::string& file)
 {
+	if(macro.inputs.size() <= 0)
+	{
+		FLAlertLayer::create("Error", "No inputs in macro!", "Ok")->show();
+		return;
+	}
+
 	std::ofstream f(Mod::get()->getSaveDir() / "macros" / (file + ".gdr"), std::ios::binary);
+
+	if(!f)
+	{
+		FLAlertLayer::create("Error", "Could not save macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok")->show();
+		f.close();
+		return;
+	}
 
 	std::string playerName = GJAccountManager::sharedState()->m_username;
 	GJGameLevel *level = GameManager::get()->getPlayLayer()->m_level;
@@ -323,11 +336,20 @@ void Macrobot::save(const std::string& file)
 	f.write(reinterpret_cast<const char *>(data.data()), data.size());
 
 	f.close();
+
+	FLAlertLayer::create("Info", fmt::format("{} saved with {} inputs.", file, macro.inputs.size()), "Ok")->show();
 }
 
 void Macrobot::load(const std::string& file)
 {
 	std::ifstream f(Mod::get()->getSaveDir() / "macros" / (file + ".gdr"), std::ios::binary);
+
+	if(!f)
+	{
+		FLAlertLayer::create("Error", "Could not load macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok")->show();
+		f.close();
+		return;
+	}
 
 	f.seekg(0, std::ios::end);
 	size_t fileSize = f.tellg();
@@ -340,6 +362,8 @@ void Macrobot::load(const std::string& file)
 	f.close();
 
 	macro = Macro::importData(macroData);
+
+	FLAlertLayer::create("Info", fmt::format("{} loaded with {} inputs.", file, macro.inputs.size()), "Ok")->show();
 }
 
 void Macrobot::drawWindow()
@@ -365,8 +389,37 @@ void Macrobot::drawWindow()
 		if (GUI::button("Save##macro"))
 			save(macroName);
 		GUI::sameLine();
-		if (GUI::button("Load##macro"))
-			load(macroName);
+		if (GUI::button("Load##macropopup"))
+			ImGui::OpenPopup("Load Macro");
+
+		GUI::modalPopup("Load Macro", []{
+
+			if(macroList.size() > 0)
+			{
+				static int macroIndex = 0;
+
+				ImGui::Combo(
+				"Macro", &macroIndex,
+				[](void* vec, int idx, const char** out_text) {
+					std::vector<std::string>* vector = reinterpret_cast<std::vector<std::string>*>(vec);
+					if (idx < 0 || idx >= vector->size())
+						return false;
+					*out_text = vector->at(idx).c_str();
+					return true;
+				},
+				reinterpret_cast<void*>(&macroList), macroList.size());
+
+				if (GUI::button("Load##macro"))
+				{
+					load(macroList[macroIndex]);
+					ImGui::CloseCurrentPopup();
+				}
+			}
+			else
+			{
+				ImGui::Text("There are no macros to load! Create some macros first.");
+			}
+		});
 
 		int corrections = Settings::get<int>("macrobot/corrections");
 
@@ -374,5 +427,18 @@ void Macrobot::drawWindow()
 			Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);
 
 		GUI::marker("[INFO]", "Corrections are recommended to be safe, but the bot also works decently without.");
+	}
+}
+
+void Macrobot::getMacros()
+{
+	ghc::filesystem::path macroPath = Mod::get()->getSaveDir() / "macros";
+
+	for (const auto& entry : ghc::filesystem::directory_iterator(macroPath))
+	{
+		if(entry.path().extension() == ".gdr")
+		{
+			macroList.push_back(string::wideToUtf8(entry.path().stem().wstring()));
+		}
 	}
 }

@@ -12,6 +12,7 @@ namespace cocos2d
 namespace Common
 {
 	inline bool iconsLoaded = false;
+
 	void calculateFramerate();
 	void setPriority();
 	void onAudioSpeedChange();

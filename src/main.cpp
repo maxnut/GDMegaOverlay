@@ -34,13 +34,14 @@ void init()
 
 	JsonPatches::init();
 	DiscordRPCManager::init();
+	Macrobot::getMacros();
+	Clickpacks::init();
 
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
 		Common::setPriority();
 		Common::onAudioSpeedChange();
 		Common::loadIcons();
-		Clickpacks::init();
 		SafeMode::updateState();
 	});
 }

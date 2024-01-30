@@ -108,6 +108,7 @@ void GUI::init()
 	ImGui::GetIO().FontDefault = fnt;
 	windowPositions = json::object();
 	GUI::loadStyle(Mod::get()->getResourcesDir() / "Style.style");
+	shortcuts.clear();
 	load();
 }
 
@@ -312,14 +313,17 @@ void GUI::saveStyle(const ghc::filesystem::path& name)
 {
 	ImGuiStyle style = ImGui::GetStyle();
 	std::ofstream styleFile(name, std::ios::binary);
-	styleFile.write((const char*)&style, sizeof(ImGuiStyle));
+	if(styleFile)
+		styleFile.write((const char*)&style, sizeof(ImGuiStyle));
 	styleFile.close();
 }
 void GUI::loadStyle(const ghc::filesystem::path& name)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	std::ifstream styleFile(name, std::ios::binary);
-	styleFile.read((char*)&style, sizeof(ImGuiStyle));
+	if(styleFile)
+		styleFile.read((char*)&style, sizeof(ImGuiStyle));
+	
 	styleFile.close();
 }
 

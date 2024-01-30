@@ -121,6 +121,7 @@ inline PlayerObject* playerObject2 = nullptr;
 inline Macro macro;
 
 inline std::unordered_map<void*, Macrobot::CheckpointData> checkpoints;
+inline std::vector<std::string> macroList;
 
 inline std::string macroName;
 inline std::string macroDescription;
@@ -131,6 +132,8 @@ Action* recordAction(PlayerButton key, double frame, bool press, bool player1);
 
 void save(const std::string& file);
 void load(const std::string& file);
+
+void getMacros();
 
 void drawWindow();
 }; // namespace Macrobot
