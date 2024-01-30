@@ -338,6 +338,8 @@ void Macrobot::save(const std::string& file)
 	f.close();
 
 	FLAlertLayer::create("Info", fmt::format("{} saved with {} inputs.", file, macro.inputs.size()), "Ok")->show();
+
+	macroList.push_back(file);
 }
 
 void Macrobot::load(const std::string& file)
@@ -432,6 +434,8 @@ void Macrobot::drawWindow()
 
 void Macrobot::getMacros()
 {
+	macroList.clear();
+
 	ghc::filesystem::path macroPath = Mod::get()->getSaveDir() / "macros";
 
 	for (const auto& entry : ghc::filesystem::directory_iterator(macroPath))

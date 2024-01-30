@@ -56,6 +56,7 @@ void Common::saveIcons()
 	Mod::get()->setSavedValue<int>("icons/color", GameManager::get()->m_playerColor);
 	Mod::get()->setSavedValue<int>("icons/color2", GameManager::get()->m_playerColor2);
 	Mod::get()->setSavedValue<int>("icons/colorglow", GameManager::get()->m_playerGlowColor);
+	Mod::get()->setSavedValue<int>("icons/glow", GameManager::get()->m_playerGlow);
 	Mod::get()->setSavedValue<int>("icons/streak", GameManager::get()->m_playerStreak);
 	Mod::get()->setSavedValue<int>("icons/shipfire", GameManager::get()->m_playerShipFire);
 	Mod::get()->setSavedValue<int>("icons/death", GameManager::get()->m_playerDeathEffect);
@@ -76,6 +77,7 @@ void Common::loadIcons()
 	GameManager::get()->m_playerColor = Settings::get<int>("icons/color", GameManager::get()->m_playerColor);
 	GameManager::get()->m_playerColor2 = Settings::get<int>("icons/color2", GameManager::get()->m_playerColor2);
 	GameManager::get()->m_playerGlowColor = Settings::get<int>("icons/colorglow", GameManager::get()->m_playerGlowColor);
+	GameManager::get()->m_playerGlow = Settings::get<int>("icons/glow", GameManager::get()->m_playerGlow);
 	GameManager::get()->m_playerStreak = Settings::get<int>("icons/streak", GameManager::get()->m_playerStreak);
 	GameManager::get()->m_playerShipFire = Settings::get<int>("icons/shipfire", GameManager::get()->m_playerShipFire);
 	GameManager::get()->m_playerDeathEffect = Settings::get<int>("icons/death", GameManager::get()->m_playerDeathEffect);
