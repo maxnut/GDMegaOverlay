@@ -36,6 +36,7 @@ void init()
 	DiscordRPCManager::init();
 	Macrobot::getMacros();
 	Clickpacks::init();
+	Common::updateCheathing();
 
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
@@ -175,11 +176,13 @@ void initGUI()
 		GUI::modalPopup(
 			"Startpos Switcher Settings",
 			[] {
-				if (GUI::button("Switch Left"))
-					StartposSwitcher::change(false);
+				int key = Settings::get<int>("level/startpos_switcher/left", ImGuiKey_LeftArrow);
+				if (GUI::hotkey("Switch Left", &key))
+					Mod::get()->setSavedValue<int>("level/startpos_switcher/left", key);
 
-				if (GUI::button("Switch Right"))
-					StartposSwitcher::change(true);
+				key = Settings::get<int>("level/startpos_switcher/right", ImGuiKey_RightArrow);
+				if (GUI::hotkey("Switch Right", &key))
+					Mod::get()->setSavedValue<int>("level/startpos_switcher/right", key);
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
@@ -247,7 +250,7 @@ void initGUI()
 			Mod::get()->setSavedValue<float>("menu/window/color/b", windowColor[2]);
 		}
 
-		int togglekey = Settings::get<int>("menu/togglekey", VK_TAB);
+		int togglekey = Settings::get<int>("menu/togglekey", ImGuiKey_Tab);
 		if (GUI::hotkey("Toggle Menu", &togglekey))
 			Mod::get()->setSavedValue<int>("menu/togglekey", togglekey);
 

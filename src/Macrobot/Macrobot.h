@@ -106,7 +106,6 @@ struct Macro : gdr::Replay<Macro, Action>
 	Macro() : gdr::Replay<Macro, Action>("Macrobot", "1.0") {}
 };
 
-inline float framerate = 60.f;
 inline int playerMode = -1;
 
 inline double gameTime = 0;
@@ -114,9 +113,6 @@ inline unsigned int actionIndex = 0;
 inline unsigned int correctionIndex = 0;
 
 inline int8_t direction = 0;
-
-inline PlayerObject* playerObject1 = nullptr;
-inline PlayerObject* playerObject2 = nullptr;
 
 inline Macro macro;
 

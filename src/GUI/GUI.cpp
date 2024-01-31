@@ -12,6 +12,8 @@
 #include <imgui-cocos.hpp>
 #include "ConstData.h"
 
+#include "Common.h"
+
 using namespace geode::prelude;
 
 class $modify(CCKeyboardDispatcher) {
@@ -19,9 +21,12 @@ class $modify(CCKeyboardDispatcher) {
 	{
 		if(!arr)
 		{
-			int menuKey = Settings::get<int>("menu/togglekey", VK_TAB);
+			int menuKey = Settings::get<int>("menu/togglekey", ImGuiKey_Tab);
 
-			if (down && (key == menuKey))
+			if(menuKey == VK_TAB)
+				menuKey = ImGuiKey_Tab;
+
+			if (down && (ConvertKeyEnum(key) == menuKey))
 			{
 				GUI::toggle();
 				return true;
@@ -37,6 +42,8 @@ class $modify(CCKeyboardDispatcher) {
 						GUI::shortcutLoop = true;
 						GUI::draw();
 						GUI::shortcutLoop = false;
+
+						Common::updateCheathing();
 					}
 				}
 			}
@@ -142,6 +149,8 @@ void GUI::toggle()
 {
 	if (!canToggle)
 		return;
+
+	Common::updateCheathing();
 
 	isVisible = true;
 	static bool toggle = false;

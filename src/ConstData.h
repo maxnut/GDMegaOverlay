@@ -5,6 +5,10 @@
 
 using namespace cocos2d;
 
+static std::set<unsigned long> cheatOpcodes = {
+	3041235
+};
+
 static ImGuiKey ConvertKeyEnum(int key)
 {
 	switch (key)

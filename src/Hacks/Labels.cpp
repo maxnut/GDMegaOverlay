@@ -42,6 +42,20 @@ class $modify(PlayLayer)
 		bool res = PlayLayer::init(p0, p1, p2);
 
 		setupLabel(
+			"Cheat Indicator",
+			[&](cocos2d::CCLabelBMFont* pointer) {
+				pointer->setString(".");
+				pointer->setScale(0.85f);
+
+				if(!Common::isCheating)
+					pointer->setColor({ 0, 255, 0 });
+				else
+					pointer->setColor({ 255, 0, 0 });
+			},
+			this
+		);
+
+		setupLabel(
 			"Framerate",
 			[&](cocos2d::CCLabelBMFont* pointer) {
 			pointer->setString(std::to_string((int)ImGui::GetIO().Framerate).c_str());
@@ -130,6 +144,15 @@ class $modify(PlayLayer)
 			this
 		);
 
+		setupLabel(
+			"Custom Message",
+			[&](cocos2d::CCLabelBMFont* pointer) {
+				std::string message = Settings::get<std::string>("labels/Custom Message/message", "Hello");
+				pointer->setString(message.c_str());
+			},
+			this
+		);
+
 		calculatePositions();
 
 		labelsCreated = true;
@@ -149,6 +172,7 @@ class $modify(PlayLayer)
 
 	void resetLevel()
 	{
+		Common::updateCheathing();
 		noclipDead = false;
 		dead = false;
 		totalClicks = 0;
@@ -236,18 +260,26 @@ void Labels::calculatePositions()
 		{
 		case 0:
 			l.pointer->setAnchorPoint({ 0.f, 0.5f });
+			if(l.settingName == "Cheat Indicator")
+				l.pointer->setAnchorPoint({ 0.f, 0.2f });
 			tl.push_back(l);
 			break;
 		case 1:
 			l.pointer->setAnchorPoint({ 1.f, 0.5f });
+			if(l.settingName == "Cheat Indicator")
+				l.pointer->setAnchorPoint({ 1.f, 0.2f });
 			tr.push_back(l);
 			break;
 		case 2:
 			l.pointer->setAnchorPoint({ 0.f, 0.5f });
+			if(l.settingName == "Cheat Indicator")
+				l.pointer->setAnchorPoint({ 0.f, 0.2f });
 			bl.push_back(l);
 			break;
 		case 3:
 			l.pointer->setAnchorPoint({ 1.f, 0.5f });
+			if(l.settingName == "Cheat Indicator")
+				l.pointer->setAnchorPoint({ 1.f, 0.2f });
 			br.push_back(l);
 			break;
 		}
@@ -332,6 +364,7 @@ void Labels::settingsForLabel(const std::string& labelSettingName, std::function
 
 void Labels::renderWindow()
 {
+	settingsForLabel("Cheat Indicator", [] {});
 	settingsForLabel("Framerate", [] {});
 	settingsForLabel("CPS", [] {
 		float clickColor[3];
@@ -354,4 +387,11 @@ void Labels::renderWindow()
 			Mod::get()->setSavedValue<float>("labels/Noclip Accuracy/limit", limit);
 	});
 	settingsForLabel("Noclip Deaths", [] { });
+
+	settingsForLabel("Custom Message", [] {
+		std::string message = Settings::get<std::string>("labels/Custom Message/message", "Hello");
+
+		if (GUI::inputText("Message", &message))
+			Mod::get()->setSavedValue<std::string>("labels/Custom Message/message", message);
+	});
 }

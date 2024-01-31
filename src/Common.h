@@ -12,6 +12,7 @@ namespace cocos2d
 namespace Common
 {
 	inline bool iconsLoaded = false;
+	inline bool isCheating = false;
 
 	void calculateFramerate();
 	void setPriority();
@@ -19,4 +20,6 @@ namespace Common
 	void onAudioPitchChange();
 	void saveIcons();
 	void loadIcons();
+
+	void updateCheathing();
 };

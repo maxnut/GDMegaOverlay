@@ -4,6 +4,8 @@
 #include "Macrobot/Macrobot.h"
 #include "util.hpp"
 #include "Settings.hpp"
+#include "ConstData.h"
+#include "JsonPatches/JsonPatches.h"
 
 #include <fstream>
 #include <imgui.h>
@@ -136,6 +138,45 @@ void Common::onAudioPitchChange()
 	float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
 
 	AudioChannelControl::setPitch(enabled ? pitch : 1.f);
+}
+
+void Common::updateCheathing()
+{
+	auto checkPatchGroup = [&](JsonPatches::patch_group_type group)
+	{
+		for(const auto& pair : group)
+		{
+			if(cheatOpcodes.contains(pair.second.patches[0]->getAddress() - base::get()) && pair.second.patches[0]->isEnabled())
+			{
+				isCheating = true;
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	if(checkPatchGroup(JsonPatches::bypass))
+		return;
+	if(checkPatchGroup(JsonPatches::creator))
+		return;
+	if(checkPatchGroup(JsonPatches::global))
+		return;
+	if(checkPatchGroup(JsonPatches::level))
+		return;
+	if(checkPatchGroup(JsonPatches::player))
+		return;
+
+	float speedhack =
+		Settings::get<bool>("general/speedhack/enabled") ? Settings::get<float>("general/speedhack/value") : 1.f;
+
+	if(speedhack != 1.f)
+	{
+		isCheating = true;
+		return;
+	}
+
+	isCheating = false;
 }
 
 class $modify(MenuLayer) {

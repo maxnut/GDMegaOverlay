@@ -19,6 +19,8 @@ void JsonPatches::init()
 
 			jpatch.description = jsonPatch["description"];
 
+			//log::debug("Patch {} first opcode {}", jsonPatch["name"].get<std::string>(), std::stoul(jsonPatch["opcodes"][0]["address"].get<std::string>(), nullptr, 16));
+
 			for (const auto& patch : jsonPatch["opcodes"])
 			{
 				bool isCocos = patch.contains("lib") && patch["lib"].get<std::string>() == "libcocos2d.dll";

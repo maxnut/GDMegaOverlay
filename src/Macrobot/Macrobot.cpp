@@ -42,8 +42,9 @@ class $modify(PlayLayer){
 	void onQuit()
 	{
 		PlayLayer::onQuit();
-		playerObject1 = nullptr;
-		playerObject2 = nullptr;
+		this->m_player1 = nullptr;
+		this->m_player2 = nullptr;
+		gameTime = 0;
 		checkpoints.clear();
 	}
 
@@ -58,12 +59,12 @@ class $modify(PlayLayer){
 
 			*((double *)GameManager::get()->getPlayLayer() + 1412) = checkpointData.time;
 			gameTime = checkpointData.time;
-			checkpointData.p1.apply(playerObject1, true);
-			checkpointData.p2.apply(playerObject2, true);
+			checkpointData.p1.apply(this->m_player1, true);
+			checkpointData.p2.apply(this->m_player2, true);
 			if (playerMode == 1)
 			{
-				playerObject1->releaseButton(PlayerButton::Jump);
-				playerObject2->releaseButton(PlayerButton::Jump);
+				this->m_player1->releaseButton(PlayerButton::Jump);
+				this->m_player2->releaseButton(PlayerButton::Jump);
 			}
 		}
 		else PlayLayer::loadFromCheckpoint(checkpoint);
@@ -73,9 +74,6 @@ void resetLevel()
 {
 	if (playerMode != -1)
 	{
-		framerate = GameManager::get()->m_customFPSTarget;
-		playerObject1 = this->m_player1;
-		playerObject2 = this->m_player2;
 		actionIndex = 0;
 		correctionIndex = 0;
 		gameTime = 9999999999;
@@ -93,14 +91,14 @@ void resetLevel()
 			}
 		}
 
-		if (playerObject1->m_isPlatformer)
+		if (this->m_player1->m_isPlatformer)
 		{
 			if ((ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)) &&
 				!(ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
-				playerObject1->pushButton(PlayerButton::Right);
+				this->m_player1->pushButton(PlayerButton::Right);
 			else if (!(ImGui::IsKeyDown(ImGuiKey_RightArrow) || ImGui::IsKeyDown(ImGuiKey_D)) &&
 					 (ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
-				playerObject1->pushButton(PlayerButton::Left);
+				this->m_player1->pushButton(PlayerButton::Left);
 		}
 	}
 	else
@@ -114,13 +112,13 @@ class $modify(PlayerObject){
 
 if (GameManager::get()->getPlayLayer() && playerMode == 1 && gameTime != 9999999999)
 {
-	Action *ac = recordAction(btn, gameTime, true, this == playerObject1);
+	Action *ac = recordAction(btn, gameTime, true, this == GameManager::get()->getPlayLayer()->m_player1);
 
 	if (Settings::get<int>("macrobot/corrections") > 0)
 	{
 		Correction c;
 		c.time = gameTime;
-		c.player2 = this == playerObject2;
+		c.player2 = this == GameManager::get()->getPlayLayer()->m_player2;
 		c.checkpoint.fromPlayer(this, false);
 		ac->correction = c;
 	}
@@ -139,13 +137,13 @@ void releaseButton(PlayerButton btn)
 		if (btn == PlayerButton::Left && direction == -1)
 			return;
 
-		Action *ac = recordAction(btn, gameTime, false, this == playerObject1);
+		Action *ac = recordAction(btn, gameTime, false, this == GameManager::get()->getPlayLayer()->m_player1);
 
 		if (Settings::get<int>("macrobot/corrections") > 0)
 		{
 			Correction c;
 			c.time = gameTime;
-			c.player2 = this == playerObject2;
+			c.player2 = this == GameManager::get()->getPlayLayer()->m_player2;
 			c.checkpoint.fromPlayer(this, false);
 			ac->correction = c;
 		}
@@ -173,8 +171,8 @@ class $modify(CheckpointObject)
 		{
 			CheckpointData data;
 			data.time = gameTime;
-			data.p1.fromPlayer(playerObject1, true);
-			data.p2.fromPlayer(playerObject2, true);
+			data.p1.fromPlayer(GameManager::get()->getPlayLayer()->m_player1, true);
+			data.p2.fromPlayer(GameManager::get()->getPlayLayer()->m_player2, true);
 
 			checkpoints[this] = data;
 		}
@@ -206,7 +204,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 				if (correctionType > 0 && ac.correction.has_value())
 				{
 					Correction &co = ac.correction.value();
-					co.checkpoint.apply(co.player2 ? playerObject2 : playerObject1, false);
+					co.checkpoint.apply(co.player2 ? GameManager::get()->getPlayLayer()->m_player2 : GameManager::get()->getPlayLayer()->m_player1, false);
 				}
 				actionIndex++;
 			} while (actionIndex < macro.inputs.size() && gameTime >= macro.inputs[actionIndex].time);
