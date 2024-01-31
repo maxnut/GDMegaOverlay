@@ -1,3 +1,44 @@
 {
-    "mods": []
+    "mods": [
+        {
+            "description": "Disables pulsing on objects.",
+            "name": "No Object Pulse",
+            "opcodes": [
+                {
+                    "address": "0x2E35AB",
+                    "on": "90 E9 A1 00 00 00"
+                },
+                {
+                    "address": "0x2E35B8",
+                    "on": "90 E9 94 00 00 00"
+                }
+            ]
+        },
+        {
+            "description": "Disables the particles from the ship and the ufo.",
+            "name": "No Vehicle Particles",
+            "opcodes": [
+                {
+                    "address": "0x2D4810",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x2C2DF1",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x49E5A0",
+                    "on": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+                },
+                {
+                    "address": "0x49E5D0",
+                    "on": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+                },
+                {
+                    "address": "0x49E600",
+                    "on": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+                }
+            ]
+        }
+    ]
 }

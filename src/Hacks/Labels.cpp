@@ -193,25 +193,26 @@ class $modify(PlayLayer)
 void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 {
 	if (labelsCreated)
-		{
-			for (Label& l : labels)
-				l.process();
-		}
+	{
+		for (Label& l : labels)
+			l.process();
+	}
 
-		clickRegistered = false;
+	clickRegistered = false;
 
-		frames++;
+	frames++;
 
-		if(dead)
-		{
-			deaths++;
+	if(dead)
+	{
+		deaths++;
 
-			if(!lastFrameDead)
-				realDeaths++;
-		}
+		if(!lastFrameDead)
+			realDeaths++;
+	}
 
-		lastFrameDead = dead;
-		dead = false;
+	lastFrameDead = dead;
+	dead = false;
+
 	reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *)>(base::get() + 0x1BD240)(self);
 }
 
