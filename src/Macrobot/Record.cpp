@@ -589,7 +589,8 @@ bool Recorder::generate_clicks(const std::string& outputPath)
 
 void Record::renderWindow()
 {
-	if (Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0)
+	bool disabled = Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
+	if (disabled)
 		ImGui::BeginDisabled();
 
 	if (GUI::button("Start Recording") && GameManager::get()->getPlayLayer())
@@ -612,10 +613,10 @@ void Record::renderWindow()
 	if (GUI::button("Stop Recording") && Record::recorder.m_recording && GameManager::get()->getPlayLayer())
 		Record::recorder.stop();
 
-	if (Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0)
+	if (disabled)
 		ImGui::EndDisabled();
 
-	if (Record::recorder.m_recording || Macrobot::macro.inputs.size() <= 0)
+	if (disabled)
 		ImGui::BeginDisabled();
 
 	if (GUI::button("Start Audio") && GameManager::get()->getPlayLayer())
@@ -643,7 +644,7 @@ void Record::renderWindow()
 		AudioRecord::stop();
 	}
 
-	if (Record::recorder.m_recording || Macrobot::macro.inputs.size() <= 0)
+	if (disabled)
 		ImGui::EndDisabled();
 
 	int resolution[2];

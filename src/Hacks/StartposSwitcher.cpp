@@ -55,12 +55,16 @@ class $modify(PlayLayer)
 
 	bool init(GJGameLevel* p0, bool p1, bool p2)
 	{
+		startposObjects.clear();
 		bool res = PlayLayer::init(p0, p1, p2);
 
-		std::sort(startposObjects.begin(), startposObjects.end(), [](StartPosObject* s0, StartPosObject* s1)
+		if(startposObjects.size() > 0)
 		{
-			return s0->getPositionX() < s1->getPositionX();
-		});
+			std::sort(startposObjects.begin(), startposObjects.end(), [](StartPosObject* s0, StartPosObject* s1)
+			{
+				return s0->getPositionX() < s1->getPositionX();
+			});
+		}
 
 		return res;
 	}
