@@ -4,6 +4,12 @@
 [![Discord](https://img.shields.io/badge/Discord-white?style=flat&logo=discord)](https://discord.gg/nbDjEg7SSU)
 </div>
 
+## Description
+
+Open Source, feature-rich, gui-integrated Geometry Dash mod menu. Currently supports Geometry Dash 2.204.
+
+![Menu screen](/img/screen.jpg)
+
 ## Standard Installation
 1. [**Install Geode. This is required for the overlay to work!**](https://geode-sdk.org/install/)
 2. Open Geometry Dash.
@@ -27,12 +33,6 @@ Manual Installations using Steam:
 2. Press the settings button, right of the Play button. It is shown as a cogwheel.
 3. Hover over the Manage submenu, and press "Browse Local Files". The folder in which the game is installed should pop up in Windows Explorer.
 4. Copy `maxnu.gd_mega_overlay.geode` to `\geode\mods\`. You can find `\geode\mods\` in the Windows Explorer window you opened from Steam.
-
-## Description
-
-Open Source, feature-rich, gui-integrated Geometry Dash mod menu. Currently supports Geometry Dash 2.204.
-
-![Menu screen](/img/screen.jpg)
 
 ## Features
 
