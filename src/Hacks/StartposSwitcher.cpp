@@ -11,6 +11,7 @@
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/StartPosObject.hpp>
 #include <Geode/modify/CCKeyboardDispatcher.hpp>
+#include <Geode/modify/LevelEditorLayer.hpp>
 
 #include "ConstData.h"
 
@@ -45,6 +46,17 @@ class $modify(StartPosObject)
 	}
 };
 
+class $modify(LevelEditorLayer)
+{
+	bool init(GJGameLevel* level, bool unk)
+	{
+		startposObjects.clear();
+
+		bool res = LevelEditorLayer::init(level, unk);
+		return res;
+	}
+};
+
 class $modify(PlayLayer)
 {
 	void onQuit()
@@ -55,6 +67,7 @@ class $modify(PlayLayer)
 
 	bool init(GJGameLevel* p0, bool p1, bool p2)
 	{
+		CC_SAFE_RELEASE_NULL(startPosLabel);
 		startposObjects.clear();
 		bool res = PlayLayer::init(p0, p1, p2);
 

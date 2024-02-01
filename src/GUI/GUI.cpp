@@ -13,6 +13,7 @@
 #include "ConstData.h"
 
 #include "Common.h"
+#include "Hacks/SafeMode.h"
 
 using namespace geode::prelude;
 
@@ -43,7 +44,8 @@ class $modify(CCKeyboardDispatcher) {
 						GUI::draw();
 						GUI::shortcutLoop = false;
 
-						Common::updateCheathing();
+						Common::updateCheating();
+						SafeMode::updateAuto();
 					}
 				}
 			}
@@ -150,7 +152,8 @@ void GUI::toggle()
 	if (!canToggle)
 		return;
 
-	Common::updateCheathing();
+	Common::updateCheating();
+	SafeMode::updateAuto();
 
 	isVisible = true;
 	static bool toggle = false;

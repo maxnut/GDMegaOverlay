@@ -3,6 +3,7 @@
 #include "../GUI/GUI.h"
 #include "../JsonPatches/JsonPatches.h"
 #include "../Settings.hpp"
+#include "Hacks/SafeMode.h"
 
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/PlayerObject.hpp>
@@ -173,7 +174,8 @@ class $modify(PlayLayer)
 
 	void resetLevel()
 	{
-		Common::updateCheathing();
+		Common::updateCheating();
+		SafeMode::updateAuto();
 		noclipDead = false;
 		dead = false;
 		totalClicks = 0;

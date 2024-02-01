@@ -14,6 +14,7 @@ namespace SafeMode
 	using opcode = std::pair<unsigned long, std::vector<uint8_t>>;
 
 	void updateState();
+	void updateAuto();
 
 	// move to JsonHacks
 	inline const std::array<opcode, PATCHES_SIZE> opcodes{

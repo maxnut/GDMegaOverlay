@@ -21,5 +21,5 @@ namespace Common
 	void saveIcons();
 	void loadIcons();
 
-	void updateCheathing();
+	void updateCheating();
 };

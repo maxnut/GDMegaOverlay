@@ -140,7 +140,7 @@ void Common::onAudioPitchChange()
 	AudioChannelControl::setPitch(enabled ? pitch : 1.f);
 }
 
-void Common::updateCheathing()
+void Common::updateCheating()
 {
 	auto checkPatchGroup = [&](JsonPatches::patch_group_type group)
 	{
@@ -152,10 +152,8 @@ void Common::updateCheathing()
 				return true;
 			}
 		}
-
 		return false;
 	};
-
 	if(checkPatchGroup(JsonPatches::bypass))
 		return;
 	if(checkPatchGroup(JsonPatches::creator))
@@ -166,16 +164,13 @@ void Common::updateCheathing()
 		return;
 	if(checkPatchGroup(JsonPatches::player))
 		return;
-
 	float speedhack =
 		Settings::get<bool>("general/speedhack/enabled") ? Settings::get<float>("general/speedhack/value") : 1.f;
-
-	if(speedhack != 1.f)
+	if(speedhack != 1.f || Macrobot::playerMode == 0)
 	{
 		isCheating = true;
 		return;
 	}
-
 	isCheating = false;
 }
 

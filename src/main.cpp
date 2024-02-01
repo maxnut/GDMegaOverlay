@@ -36,14 +36,14 @@ void init()
 	DiscordRPCManager::init();
 	Macrobot::getMacros();
 	Clickpacks::init();
-	Common::updateCheathing();
+	Common::updateCheating();
 
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
 		Common::setPriority();
 		Common::onAudioSpeedChange();
 		Common::loadIcons();
-		SafeMode::updateState();
+		SafeMode::updateAuto();
 	});
 }
 
@@ -187,6 +187,8 @@ void initGUI()
 			ImGuiWindowFlags_AlwaysAutoResize);
 
 		GUI::checkbox("Replay Last Checkpoint", "level/replay_checkpoint");
+
+		GUI::checkbox("Auto Safe Mode", "level/safe_mode/auto");
 
 		if (GUI::checkbox("Safe Mode", "level/safe_mode/enabled"))
 			SafeMode::updateState();

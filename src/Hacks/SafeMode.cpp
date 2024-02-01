@@ -10,6 +10,8 @@
 #include "../util.hpp"
 #include "../Settings.hpp"
 
+#include "Common.h"
+
 using namespace geode::prelude;
 using namespace SafeMode;
 
@@ -57,6 +59,14 @@ class $modify(EndLevelLayer)
 			endScreenMessageLabel->setString("- Safe Mode -");
 	}
 };
+
+void SafeMode::updateAuto()
+{
+	if(Settings::get<bool>("level/safe_mode/auto", false))
+		Mod::get()->setSavedValue<bool>("level/safe_mode/enabled", Common::isCheating);
+
+	updateState();
+}
 
 void SafeMode::updateState()
 {
