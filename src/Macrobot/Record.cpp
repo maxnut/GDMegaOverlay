@@ -130,16 +130,16 @@ void Recorder::start()
 
 	GameManager::get()->getPlayLayer()->resetLevel();
 
-	std::string level_id = std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value());
+	std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelName.c_str() + ("_" + std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()));
 	auto bg_volume = 1;
 	auto sfx_volume = 1;
 
 	auto song_offset = m_song_start_offset;
 
-	if (!ghc::filesystem::is_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id) ||
-		!ghc::filesystem::exists(Mod::get()->getSaveDir().string() + "/renders/" + level_id))
+	if (!ghc::filesystem::is_directory(Mod::get()->getSaveDir() / "renders" / level_id) ||
+		!ghc::filesystem::exists(Mod::get()->getSaveDir() / "renders" / level_id))
 	{
-		ghc::filesystem::create_directory(Mod::get()->getSaveDir().string() + "/renders/" + level_id);
+		ghc::filesystem::create_directory(Mod::get()->getSaveDir() / "renders" / level_id);
 	}
 
 	if (m_recording_audio)
@@ -147,9 +147,9 @@ void Recorder::start()
 
 	std::thread([&, bg_volume, sfx_volume, song_offset, level_id]()
 				{
-		auto finalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4");
-		auto notfinalpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4");
-		auto clickpath = (Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_clicks.wav");
+		auto finalpath = (Mod::get()->getSaveDir() / "renders" / level_id / "final.mp4");
+		auto notfinalpath = (Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4");
+		auto clickpath = (Mod::get()->getSaveDir() / "renders" / level_id / "rendered_clicks.wav");
 
 		{
 			std::stringstream stream;
@@ -170,7 +170,7 @@ void Recorder::start()
 			else
 				stream << "-pix_fmt yuv420p ";
 
-			stream << "-vf \"vflip\" -an \"" << notfinalpath << "\" "; // i hope just putting it in "" escapes it
+			stream << "-vf \"vflip\" -an " << notfinalpath; // i hope just putting it in "" escapes it
 			auto process = subprocess::Popen(stream.str());
 			while (m_recording || m_frame_has_data)
 			{
@@ -199,13 +199,13 @@ void Recorder::start()
 		if (!Settings::get<bool>("recorder/clicks/enabled", false))
 			return;
 
-		generate_clicks(clickpath);
+		generate_clicks(string::wideToUtf8(clickpath.wstring()));
 
 		{
 			float clickVolume = Settings::get<float>("clickpacks/click/volume", 1.f);
 			std::stringstream f;
-			f << '"' << m_ffmpeg_path << '"' << " -y -i " << '"' << notfinalpath << '"' << " -i " << '"' << clickpath
-			  << '"' << " -c:v copy -map 0:v -map 1:a " << '"' << finalpath << '"';
+			f << '"' << m_ffmpeg_path << '"' << " -y -i " << notfinalpath << " -i " << clickpath
+			  << " -c:v copy -map 0:v -map 1:a " << finalpath;
 			std::cout << f.str() << std::endl;
 			auto process = subprocess::Popen(f.str());
 			try
@@ -298,16 +298,16 @@ void Recorder::stop_audio()
 			->getPlayLayer()
 			->m_level; // MBO(gd::GJGameLevel*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
 
-	std::string level_id = std::to_string(level->m_levelID.value());
+	std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelName.c_str() + ("_" + std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()));
 
-	std::string video_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/final.mp4";
+	ghc::filesystem::path video_path = Mod::get()->getSaveDir() / "renders" / level_id / "final.mp4";
 
 	bool clicks = ghc::filesystem::exists(video_path);
 
 	if (!clicks)
-		video_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/rendered_video.mp4";
+		video_path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
 
-	std::string temp_path = Mod::get()->getSaveDir().string() + "/renders/" + level_id + "/music.mp4";
+	ghc::filesystem::path temp_path = Mod::get()->getSaveDir() / "renders" / level_id / "music.mp4";
 
 	std::stringstream ss;
 
@@ -337,8 +337,8 @@ void Recorder::stop_audio()
 
 	ghc::filesystem::remove("fmodoutput.wav");
 
-	ghc::filesystem::remove(widen(video_path));
-	ghc::filesystem::rename(temp_path, widen(video_path));
+	ghc::filesystem::remove(video_path);
+	ghc::filesystem::rename(temp_path,video_path);
 }
 
 void Recorder::handle_recording_audio(GJBaseGameLayer *play_layer, float dt)

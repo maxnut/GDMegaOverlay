@@ -21,12 +21,15 @@ class $modify(CCScheduler)
 
 		if (Record::recorder.m_recording)
 		{
-			float framerate;
+			float framerate = 60.f;
 
 			if (Settings::get<bool>("general/fps/enabled"))
 				framerate = Settings::get<float>("general/fps/value", 60.f);
 			else
 				framerate = GameManager::get()->m_customFPSTarget;
+
+			if(framerate < 1)
+				framerate = 1;
 
 			dt = 1.0f / (framerate * speedhack);
 			dt *= speedhack;

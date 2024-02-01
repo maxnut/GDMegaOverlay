@@ -6,6 +6,7 @@
 
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/PlayerObject.hpp>
+#include <Geode/modify/LevelEditorLayer.hpp>
 
 #include <Geode/Geode.hpp>
 
@@ -190,8 +191,20 @@ class $modify(PlayLayer)
 	}
 };
 
+class $modify(LevelEditorLayer)
+{
+	bool init(GJGameLevel* level, bool unk)
+	{
+		labels.clear();
+
+		return LevelEditorLayer::init(level, unk);
+	}
+};
+
 void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 {
+	if (!GameManager::sharedState()->getPlayLayer()) return;
+
 	if (labelsCreated)
 	{
 		for (Label& l : labels)

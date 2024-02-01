@@ -309,6 +309,12 @@ void Macrobot::save(const std::string& file)
 		return;
 	}
 
+	if(file == "")
+	{
+		FLAlertLayer::create("Error", "Macro name is empty!", "Ok")->show();
+		return;
+	}
+
 	std::ofstream f(Mod::get()->getSaveDir() / "macros" / (file + ".gdr"), std::ios::binary);
 
 	if(!f)
