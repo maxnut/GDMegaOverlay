@@ -205,7 +205,11 @@ class $modify(LevelEditorLayer)
 
 void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 {
-	if (!GameManager::sharedState()->getPlayLayer()) return;
+	if (!GameManager::sharedState()->getPlayLayer()) 
+	{
+		reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *)>(base::get() + 0x1BD240)(self);
+		return;
+	}
 
 	if (labelsCreated)
 	{
