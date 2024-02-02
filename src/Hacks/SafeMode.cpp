@@ -62,7 +62,7 @@ class $modify(EndLevelLayer)
 
 void SafeMode::updateAuto()
 {
-	if(Settings::get<bool>("level/safe_mode/auto", false))
+	if (Settings::get<bool>("level/safe_mode/auto", false))
 		Mod::get()->setSavedValue<bool>("level/safe_mode/enabled", Common::isCheating);
 
 	updateState();

@@ -70,7 +70,7 @@ void initGUI()
 		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
 		{
-			if(speedhack > 0)
+			if (speedhack > 0)
 				Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
 		}
 

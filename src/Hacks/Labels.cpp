@@ -49,7 +49,7 @@ class $modify(PlayLayer)
 				pointer->setString(".");
 				pointer->setScale(0.85f);
 
-				if(!Common::isCheating)
+				if (!Common::isCheating)
 					pointer->setColor({ 0, 255, 0 });
 				else
 					pointer->setColor({ 255, 0, 0 });
@@ -168,7 +168,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::destroyPlayer(player, object);
 
-		if(frames > 60)
+		if (frames > 60)
 			dead = true;
 	}
 
@@ -221,11 +221,11 @@ void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 
 	frames++;
 
-	if(dead)
+	if (dead)
 	{
 		deaths++;
 
-		if(!lastFrameDead)
+		if (!lastFrameDead)
 			realDeaths++;
 	}
 
@@ -280,25 +280,25 @@ void Labels::calculatePositions()
 		{
 		case 0:
 			l.pointer->setAnchorPoint({ 0.f, 0.5f });
-			if(l.settingName == "Cheat Indicator")
+			if (l.settingName == "Cheat Indicator")
 				l.pointer->setAnchorPoint({ 0.f, 0.2f });
 			tl.push_back(l);
 			break;
 		case 1:
 			l.pointer->setAnchorPoint({ 1.f, 0.5f });
-			if(l.settingName == "Cheat Indicator")
+			if (l.settingName == "Cheat Indicator")
 				l.pointer->setAnchorPoint({ 1.f, 0.2f });
 			tr.push_back(l);
 			break;
 		case 2:
 			l.pointer->setAnchorPoint({ 0.f, 0.5f });
-			if(l.settingName == "Cheat Indicator")
+			if (l.settingName == "Cheat Indicator")
 				l.pointer->setAnchorPoint({ 0.f, 0.2f });
 			bl.push_back(l);
 			break;
 		case 3:
 			l.pointer->setAnchorPoint({ 1.f, 0.5f });
-			if(l.settingName == "Cheat Indicator")
+			if (l.settingName == "Cheat Indicator")
 				l.pointer->setAnchorPoint({ 1.f, 0.2f });
 			br.push_back(l);
 			break;

@@ -28,7 +28,7 @@ class $modify(CCScheduler)
 			else
 				framerate = GameManager::get()->m_customFPSTarget;
 
-			if(framerate < 1)
+			if (framerate < 1)
 				framerate = 1;
 
 			dt = 1.0f / (framerate * speedhack);

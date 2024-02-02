@@ -67,7 +67,7 @@ bool GUI::checkbox(const std::string& name, const std::string& settingName, bool
 			value = !value;
 	}
 
-	if(result)
+	if (result)
 		Mod::get()->setSavedValue(settingName, value);
 
 	return result;
@@ -75,7 +75,7 @@ bool GUI::checkbox(const std::string& name, const std::string& settingName, bool
 
 bool GUI::hotkey(const std::string& name, int* keyPointer, const ImVec2& size_arg)
 {
-	if(!shouldRender())
+	if (!shouldRender())
 		return false;
 	
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -158,7 +158,7 @@ bool GUI::hotkey(const std::string& name, int* keyPointer, const ImVec2& size_ar
 					   style.FrameRounding);
 
 	int displayKeyIndex = *keyPointer - 511;
-	if(displayKeyIndex < 0)
+	if (displayKeyIndex < 0)
 		displayKeyIndex = 0;
 
 	if (*keyPointer != 0 && g.ActiveId != id)
@@ -497,7 +497,7 @@ bool GUI::customCheckbox(const char* label, bool* v)
 
 void GUI::sameLine(float offset_from_start_x, float spacing_w)
 {
-	if(!GUI::shouldRender())
+	if (!GUI::shouldRender())
 		return;
 
 	ImGui::SameLine(offset_from_start_x, spacing_w);

@@ -21,14 +21,14 @@ using namespace geode::prelude;
 class $modify(CCKeyboardDispatcher) {
 	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
 	{
-		if(!down || arr)
+		if (!down || arr)
 			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
 		
 		int leftKey = Settings::get<int>("level/startpos_switcher/left", ImGuiKey_LeftArrow);
 		int rightKey = Settings::get<int>("level/startpos_switcher/right", ImGuiKey_RightArrow);
-		if(ConvertKeyEnum(key) == leftKey)
+		if (ConvertKeyEnum(key) == leftKey)
 			change(false);
-		else if(ConvertKeyEnum(key) == rightKey)
+		else if (ConvertKeyEnum(key) == rightKey)
 			change(true);
 
 		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
@@ -71,7 +71,7 @@ class $modify(PlayLayer)
 		startposObjects.clear();
 		bool res = PlayLayer::init(p0, p1, p2);
 
-		if(startposObjects.size() > 0)
+		if (startposObjects.size() > 0)
 		{
 			std::sort(startposObjects.begin(), startposObjects.end(), [](StartPosObject* s0, StartPosObject* s1)
 			{
@@ -85,7 +85,7 @@ class $modify(PlayLayer)
 
 void StartposSwitcher::showLabel()
 {
-	if(!startPosLabel)
+	if (!startPosLabel)
 	{
 		auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 		startPosLabel = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");

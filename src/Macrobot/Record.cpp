@@ -18,33 +18,39 @@ using namespace Record;
 
 bool levelDone = false;
 
-class $modify(PlayLayer){void onQuit(){if (recorder.m_recording) recorder.stop();
-PlayLayer::onQuit();
-}
-
-void levelComplete()
+class $modify(PlayLayer)
 {
-	PlayLayer::levelComplete();
-	levelDone = true;
-}
+	void onQuit()
+	{
+		if (recorder.m_recording) recorder.stop();
+		PlayLayer::onQuit();
+	}
 
-void resetLevel()
+	void levelComplete()
+	{
+		PlayLayer::levelComplete();
+		levelDone = true;
+	}
+
+	void resetLevel()
+	{
+		levelDone = false;
+		PlayLayer::resetLevel();
+	}
+};
+
+class $modify(GJBaseGameLayer)
 {
-	levelDone = false;
-	PlayLayer::resetLevel();
-}
-}
-;
+	void update(float dt)
+	{
+		if (recorder.m_recording) recorder.handle_recording(this, dt);
 
-class $modify(GJBaseGameLayer){void update(float dt){if (recorder.m_recording) recorder.handle_recording(this, dt);
+		if (recorder.m_recording_audio)
+			recorder.handle_recording_audio(this, dt);
 
-if (recorder.m_recording_audio)
-	recorder.handle_recording_audio(this, dt);
-
-GJBaseGameLayer::update(dt);
-}
-}
-;
+		GJBaseGameLayer::update(dt);
+	}
+};
 
 std::string narrow(const wchar_t *str)
 {
@@ -80,9 +86,9 @@ inline auto widen(const std::string &str)
 	return widen(str.c_str());
 }
 
-Recorder::Recorder() : m_width(1280), m_height(720), m_fps(60)
-{
-}
+Recorder::Recorder()
+	: m_width(1280), m_height(720), m_fps(60)
+{}
 
 void Recorder::start()
 {
@@ -394,7 +400,7 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 
 bool Recorder::areAudioFilesValid(const std::vector<ghc::filesystem::path> &files, const std::string& dirName)
 {
-	if(files.size() <= 0)
+	if (files.size() <= 0)
 	{
 		FLAlertLayer::create("Info", "Make sure your clickpacks contains " + dirName + "!", "Ok")->show();
 		return false;

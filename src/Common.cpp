@@ -146,7 +146,7 @@ void Common::updateCheating()
 	{
 		for(const auto& pair : group)
 		{
-			if(cheatOpcodes.contains(pair.second.patches[0]->getAddress() - base::get()) && pair.second.patches[0]->isEnabled())
+			if (cheatOpcodes.contains(pair.second.patches[0]->getAddress() - base::get()) && pair.second.patches[0]->isEnabled())
 			{
 				isCheating = true;
 				return true;
@@ -154,19 +154,19 @@ void Common::updateCheating()
 		}
 		return false;
 	};
-	if(checkPatchGroup(JsonPatches::bypass))
+	if (checkPatchGroup(JsonPatches::bypass))
 		return;
-	if(checkPatchGroup(JsonPatches::creator))
+	if (checkPatchGroup(JsonPatches::creator))
 		return;
-	if(checkPatchGroup(JsonPatches::global))
+	if (checkPatchGroup(JsonPatches::global))
 		return;
-	if(checkPatchGroup(JsonPatches::level))
+	if (checkPatchGroup(JsonPatches::level))
 		return;
-	if(checkPatchGroup(JsonPatches::player))
+	if (checkPatchGroup(JsonPatches::player))
 		return;
 	float speedhack =
 		Settings::get<bool>("general/speedhack/enabled") ? Settings::get<float>("general/speedhack/value") : 1.f;
-	if(speedhack != 1.f || Macrobot::playerMode == 0)
+	if (speedhack != 1.f || Macrobot::playerMode == 0)
 	{
 		isCheating = true;
 		return;
@@ -174,10 +174,11 @@ void Common::updateCheating()
 	isCheating = false;
 }
 
-class $modify(MenuLayer) {
+class $modify(MenuLayer)
+{
 	bool init()
 	{
-		if(Common::iconsLoaded)
+		if (Common::iconsLoaded)
 			Common::saveIcons();
 
 		return MenuLayer::init();

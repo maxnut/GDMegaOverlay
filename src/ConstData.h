@@ -5,6 +5,7 @@
 
 using namespace cocos2d;
 
+// TODO: no...
 static std::set<unsigned long> cheatOpcodes = {
 	3041235
 };

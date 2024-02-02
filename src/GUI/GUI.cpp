@@ -17,14 +17,15 @@
 
 using namespace geode::prelude;
 
-class $modify(CCKeyboardDispatcher) {
+class $modify(CCKeyboardDispatcher)
+{
 	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)
 	{
-		if(!arr)
+		if (!arr)
 		{
 			int menuKey = Settings::get<int>("menu/togglekey", ImGuiKey_Tab);
 
-			if(menuKey == VK_TAB)
+			if (menuKey == VK_TAB)
 				menuKey = ImGuiKey_Tab;
 
 			if (down && (ConvertKeyEnum(key) == menuKey))
@@ -281,7 +282,7 @@ void GUI::load()
 {
 	std::ifstream f(Mod::get()->getSaveDir() / "windows.json");
 
-	if(!f)
+	if (!f)
 	{
 		f.close();
 
@@ -325,7 +326,7 @@ void GUI::saveStyle(const ghc::filesystem::path& name)
 {
 	ImGuiStyle style = ImGui::GetStyle();
 	std::ofstream styleFile(name, std::ios::binary);
-	if(styleFile)
+	if (styleFile)
 		styleFile.write((const char*)&style, sizeof(ImGuiStyle));
 	styleFile.close();
 }
@@ -333,7 +334,7 @@ void GUI::loadStyle(const ghc::filesystem::path& name)
 {
 	ImGuiStyle& style = ImGui::GetStyle();
 	std::ifstream styleFile(name, std::ios::binary);
-	if(styleFile)
+	if (styleFile)
 		styleFile.read((char*)&style, sizeof(ImGuiStyle));
 	
 	styleFile.close();
