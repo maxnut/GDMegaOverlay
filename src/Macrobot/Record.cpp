@@ -360,11 +360,11 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 
 void Record::renderWindow()
 {
-	bool disabled = Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
+	bool disabled = !GameManager::get()->getPlayLayer() || Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
 	if (disabled)
 		ImGui::BeginDisabled();
 
-	if (GUI::button("Start Recording") && GameManager::get()->getPlayLayer())
+	if (GUI::button("Start Recording"))
 	{
 		if (!ghc::filesystem::exists("ffmpeg.exe"))
 		{
@@ -381,7 +381,7 @@ void Record::renderWindow()
 		Record::recorder.start();
 	}
 
-	if (GUI::button("Stop Recording") && Record::recorder.m_recording && GameManager::get()->getPlayLayer())
+	if (GUI::button("Stop Recording") && Record::recorder.m_recording)
 		Record::recorder.stop();
 
 	if (disabled)
@@ -390,26 +390,33 @@ void Record::renderWindow()
 	if (disabled)
 		ImGui::BeginDisabled();
 
-	if (GUI::button("Start Audio") && GameManager::get()->getPlayLayer())
+	if (GUI::button("Start Audio"))
 	{
-		if (!ghc::filesystem::exists("ffmpeg.exe"))
+		bool hasVideo = ghc::filesystem::exists(Mod::get()->getSaveDir() / "renders" / std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()) / "rendered_video.mp4");
+
+		if(!hasVideo)
+			FLAlertLayer::create("Error", "The render for the level has not been found!", "Ok")->show();
+		else
 		{
-			auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
-			try
+			if (!ghc::filesystem::exists("ffmpeg.exe"))
 			{
-				process.close();
+				auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
+				try
+				{
+					process.close();
+				}
+				catch (const std::exception &e)
+				{
+					std::cout << e.what() << '\n';
+				}
 			}
-			catch (const std::exception &e)
-			{
-				std::cout << e.what() << '\n';
-			}
+			recorder.m_recording_audio = true;
+			Record::recorder.start();
+			recorder.m_recording = false;
 		}
-		recorder.m_recording_audio = true;
-		Record::recorder.start();
-		recorder.m_recording = false;
 	}
 
-	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio && GameManager::get()->getPlayLayer())
+	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio)
 	{
 		recorder.m_recording_audio = false;
 		AudioRecord::stop();

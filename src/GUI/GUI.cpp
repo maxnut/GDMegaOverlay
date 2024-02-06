@@ -293,7 +293,15 @@ void GUI::load()
 	{
 		std::stringstream buffer;
 		buffer << f.rdbuf();
-		windowPositions = json::parse(buffer.str());
+		try
+		{
+			windowPositions = json::parse(buffer.str());
+		}
+		catch(json::parse_error& ex)
+		{
+			log::error("{}", ex.what());
+			windowPositions = json::object();
+		}
 		buffer.clear();
 	}
 	f.close();
@@ -309,15 +317,23 @@ void GUI::load()
 	{
 		std::stringstream buffer;
 		buffer << f.rdbuf();
-		json shortcutArray = json::parse(buffer.str());
+		json shortcutArray = json::object();
+		try
+		{
+			shortcutArray = json::parse(buffer.str());
+		}
+		catch(json::parse_error& ex)
+		{
+			log::error("{}", ex.what());
+			shortcutArray = json::object();
+		}
+		buffer.clear();
 
 		for (json shortcutObject : shortcutArray)
 		{
 			Shortcut s(shortcutObject["key"], shortcutObject["name"]);
 			GUI::shortcuts.push_back(s);
 		}
-
-		buffer.clear();
 	}
 	f.close();
 }
