@@ -227,6 +227,18 @@
                     "on": "EB 52"
                 }
             ]
+        },
+        {
+            "description": "Enables Practice Music Sync without having to buy it from the shop.",
+            "name": "Practice Music Sync",
+            "opcodes": [
+                {
+                    "address": "0x2E5A79",
+                    "off": "00",
+                    "on": "01"
+                }
+            ],
+            "toggle": false
         }
     ]
 }
