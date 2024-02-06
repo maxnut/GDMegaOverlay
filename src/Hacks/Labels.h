@@ -33,6 +33,9 @@ inline size_t frames = 0;
 inline size_t deaths = 0;
 inline size_t realDeaths = 0;
 
+inline std::pair<float, float> bestRun = {0,0};
+inline std::pair<float, float> currentRun = {0,0};
+
 inline bool clickRegistered = false;
 inline bool labelsCreated = false;
 inline bool click = false;

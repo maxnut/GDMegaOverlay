@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "Macrobot.h"
+#include "Clickpacks.h"
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/GJBaseGameLayer.hpp>
@@ -80,7 +81,16 @@ class $modify(PlayLayer)
 			correctionIndex = 0;
 			gameTime = 9999999999;
 
+			downForKey1.clear();
+			downForKey2.clear();
+			timeForKey1.clear();
+			timeForKey2.clear();
+
 			PlayLayer::resetLevel();
+
+			GJGameLevel *level = GameManager::get()->getPlayLayer()->m_level;
+			macro.levelInfo.id = level->m_levelID.value();
+			macro.levelInfo.name = level->m_levelName;
 
 			if (gameTime == 9999999999)
 			{
@@ -159,6 +169,8 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool pr
 {
 	Action ac(frame, (int)key, !player1, press);
 
+	ac.frame = gdr::frameForTime(frame);
+
 	macro.inputs.push_back(ac);
 
 	return &macro.inputs[macro.inputs.size() - 1];
@@ -184,6 +196,58 @@ class $modify(CheckpointObject)
 	}
 };
 
+void Macrobot::handleAction(bool down, int button, bool player1, float timestamp)
+{
+	GameManager::get()->getPlayLayer()->handleButton(down, button, player1);
+
+	bool playClicks = Settings::get<bool>("macrobot/clicks/enabled", false);
+
+	if(!playClicks)
+		return;
+
+	std::unordered_map<int, bool> &downForKey = player1 ? downForKey1 : downForKey2;
+	std::unordered_map<int, float> &timeForKey = player1 ? timeForKey1 : timeForKey2;
+
+	if(downForKey.contains(button) && downForKey[button] == down)
+		return;
+
+	if(!timeForKey.contains(button))
+		timeForKey[button] = 0;
+
+	downForKey[button] = down;
+
+	float timeDifference = timestamp - timeForKey[button];
+	float softclickTime = Settings::get<float>("clickpacks/softclicks_at", 0.1f);
+
+	float minPitch = Settings::get<float>("clickpacks/click/min_pitch", 0.98f);
+	float maxPitch = Settings::get<float>("clickpacks/click/max_pitch", 1.02f);
+
+	float volume = Settings::get<float>("clickpacks/click/volume", 1.f);
+
+	float pitchVar = minPitch +
+					static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (maxPitch - minPitch)));
+
+	FMOD::Sound* soundToPlay = nullptr;
+	FMOD::System* system = FMODAudioEngine::sharedEngine()->m_system;
+
+	switch(button)
+	{
+		case 1:
+			soundToPlay = down ? (timeDifference <= softclickTime ? Clickpacks::currentClickpack.randomSoftClick() : Clickpacks::currentClickpack.randomClick()) : Clickpacks::currentClickpack.randomRelease();
+			break;
+		case 2:
+		case 3:
+			soundToPlay = down ? Clickpacks::currentClickpack.randomPlatClick() : Clickpacks::currentClickpack.randomPlatRelease();
+	}
+
+	timeForKey[button] = timestamp;
+
+	system->playSound(soundToPlay, nullptr, false, &clickChannel);
+
+	clickChannel->setPitch(pitchVar);
+	clickChannel->setVolume(volume);
+}
+
 void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 {
 	if (playerMode != -1 && GameManager::get()->getPlayLayer())
@@ -197,10 +261,8 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 			do
 			{
 				Action &ac = macro.inputs[actionIndex];
-				if (ac.down)
-					GameManager::get()->getPlayLayer()->handleButton(true, ac.button, !ac.player2);
-				else
-					GameManager::get()->getPlayLayer()->handleButton(false, ac.button, !ac.player2);
+
+				handleAction(ac.down, ac.button, !ac.player2, ac.time);
 
 				int correctionType = Settings::get<int>("macrobot/corrections");
 
@@ -226,10 +288,13 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 {
 	// playerObject + 2280 isplatformer
 	// playerObject + 2160 xVelPlatformer
+	if(!player)
+		return;
+
 	cocos2d::CCPoint position = player->m_position;
 	this->yVel = player->m_yVelocity;
 	this->rotation = player->getRotation();
-	this->xVel = player->m_platformerXVelocity;
+	this->xVel = MBO(double, player, 0x870);
 	this->xPos = position.x;
 	this->yPos = position.y;
 	this->nodeXPos = player->getPositionX();
@@ -269,7 +334,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	player->m_position =
 		cocos2d::CCPoint(this->xPos, this->yPos);
 
-	player->m_platformerXVelocity = this->xVel; // playerobject_updatemove
+	MBO(double, player, 0x870) = this->xVel; // playerobject_updatemove
 
 	player->m_rotationSpeed = this->rotationRate;
 
@@ -329,16 +394,12 @@ void Macrobot::save(const std::string& file)
 	}
 
 	std::string playerName = GJAccountManager::sharedState()->m_username;
-	GJGameLevel *level = GameManager::get()->getPlayLayer()->m_level;
 
 	macro.author = playerName;
 	macro.description = macroDescription;
 	macro.duration = macro.inputs[macro.inputs.size() - 1].time;
 	macro.gameVersion = 2.204f;
 	macro.version = 1.0f;
-
-	macro.levelInfo.id = level->m_levelID.value();
-	macro.levelInfo.name = level->m_levelName;
 
 	auto data = macro.exportData(false);
 	f.write(reinterpret_cast<const char *>(data.data()), data.size());
@@ -424,6 +485,9 @@ void Macrobot::drawWindow()
 					load(macroList[macroIndex]);
 					ImGui::CloseCurrentPopup();
 				}
+
+				if (GUI::button("Open Macros Folder"))
+					ShellExecute(0, NULL, string::wideToUtf8((Mod::get()->getSaveDir() / "macros").wstring()).c_str(), NULL, NULL, SW_SHOW);
 			}
 			else
 			{
@@ -435,6 +499,10 @@ void Macrobot::drawWindow()
 
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
 			Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);
+
+		GUI::checkbox("Click Sounds", "macrobot/clicks/enabled");
+		GUI::arrowButton("Clickpacks");
+		Clickpacks::drawGUI();
 
 		GUI::marker("[INFO]", "Corrections are recommended to be safe, but the bot also works decently without.");
 	}

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <sndfile.h>
 #include <fmod.hpp>
 
 namespace AudioRecord

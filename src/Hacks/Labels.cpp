@@ -122,9 +122,9 @@ class $modify(PlayLayer)
 				{
 					if (acc <= limit)
 					{
-						JsonPatches::togglePatch(JsonPatches::player, "patch/NoClip", false);
+						JsonPatches::togglePatch(JsonPatches::player, "NoClip", false);
 						this->destroyPlayer(nullptr, nullptr);
-						JsonPatches::togglePatch(JsonPatches::player, "patch/NoClip", true);
+						JsonPatches::togglePatch(JsonPatches::player, "NoClip", true);
 
 						noclipDead = true;
 					}
@@ -155,6 +155,22 @@ class $modify(PlayLayer)
 			this
 		);
 
+		setupLabel(
+			"Best Run",
+			[&](cocos2d::CCLabelBMFont* pointer) {
+			if(bestRun.first == 0)
+			{
+				if(bestRun.second == 0)
+					pointer->setString("Best Run: None");
+				else
+					pointer->setString(fmt::format("Best Run: {}%", (int)bestRun.second).c_str());
+			}
+			else
+				pointer->setString(fmt::format("Best Run: {} - {}", (int)bestRun.first, (int)bestRun.second).c_str());
+			},
+			this
+		);
+
 		calculatePositions();
 
 		labelsCreated = true;
@@ -168,7 +184,18 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::destroyPlayer(player, object);
 
-		if (frames > 60)
+		if(player->m_isDead)
+		{
+			currentRun.second = PlayLayer::getCurrentPercent();
+
+			float currentRunTotal = currentRun.second - currentRun.first;
+			float bestRunTotal = bestRun.second - bestRun.first;
+
+			if(currentRunTotal > bestRunTotal)
+				bestRun = currentRun;
+		}
+
+		if(frames > 60)
 			dead = true;
 	}
 
@@ -183,11 +210,18 @@ class $modify(PlayLayer)
 		deaths = 0;
 		realDeaths = 0;
 		clicks.clear();
+		currentRun.second = 0;
 		PlayLayer::resetLevel();
+
+		currentRun.first = PlayLayer::getCurrentPercent();
 	}
 
 	void onQuit()
 	{
+		bestRun.first = 0;
+		bestRun.second = 0;
+		currentRun.first = 0;
+		currentRun.second = 0;
 		labels.clear();
 		PlayLayer::onQuit();
 	}
@@ -197,6 +231,10 @@ class $modify(LevelEditorLayer)
 {
 	bool init(GJGameLevel* level, bool unk)
 	{
+		bestRun.first = 0;
+		bestRun.second = 0;
+		currentRun.first = 0;
+		currentRun.second = 0;
 		labels.clear();
 
 		return LevelEditorLayer::init(level, unk);
@@ -414,4 +452,6 @@ void Labels::renderWindow()
 		if (GUI::inputText("Message", &message))
 			Mod::get()->setSavedValue<std::string>("labels/Custom Message/message", message);
 	});
+
+	settingsForLabel("Best Run", [] { });
 }

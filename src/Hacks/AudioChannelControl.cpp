@@ -70,8 +70,8 @@ class $modify(PlayLayer)
 {
 	void resetLevel()
 	{
-		PlayLayer::resetLevel();
 		Common::onAudioPitchChange();
+		PlayLayer::resetLevel();
 	}
 };
 

@@ -186,6 +186,23 @@ void initGUI()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
+		GUI::checkbox("Auto Deafen", "level/auto_deafen/enabled");
+
+		GUI::arrowButton("Auto Deafen Settings");
+		GUI::modalPopup(
+			"Auto Deafen Settings",
+			[] {
+				int key = Settings::get<int>("level/auto_deafen/mute_key", ImGuiKey_None);
+				if (GUI::hotkey("Mute Key", &key))
+					Mod::get()->setSavedValue<int>("level/auto_deafen/mute_key", key);
+
+				float percent = Settings::get<float>("level/auto_deafen/percent", 50.f);
+
+				if (GUI::inputFloat("Mute %", &percent))
+					Mod::get()->setSavedValue<float>("level/auto_deafen/percent", percent);
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
+
 		GUI::checkbox("Replay Last Checkpoint", "level/replay_checkpoint");
 
 		GUI::checkbox("Auto Safe Mode", "level/safe_mode/auto");
@@ -257,9 +274,9 @@ void initGUI()
 			Mod::get()->setSavedValue<int>("menu/togglekey", togglekey);
 
 		if (GUI::button("Open Resources Folder"))
-			ShellExecute(0, NULL, Mod::get()->getResourcesDir().string().c_str(), NULL, NULL, SW_SHOW);
+			ShellExecute(0, NULL, string::wideToUtf8(Mod::get()->getResourcesDir().wstring()).c_str(), NULL, NULL, SW_SHOW);
 		if (GUI::button("Open Save Folder"))
-			ShellExecute(0, NULL, Mod::get()->getSaveDir().string().c_str(), NULL, NULL, SW_SHOW);
+			ShellExecute(0, NULL, string::wideToUtf8(Mod::get()->getSaveDir().wstring()).c_str(), NULL, NULL, SW_SHOW);
 	});
 	menuSettings.position = {1050, 250};
 	menuSettings.size.y = 300;

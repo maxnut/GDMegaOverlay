@@ -3,7 +3,7 @@ include(FetchContent)
 FetchContent_Declare(
     gdr
     GIT_REPOSITORY https://github.com/maxnut/GDReplayFormat.git
-    GIT_TAG        a95ffd2cde04f79056e95fb070ecf5e5bdeca80a
+    GIT_TAG        f717fd868f57a0e02c1bddad42009393bba99a4c
     GIT_PROGRESS TRUE
 )
 message("Fetching gdr")

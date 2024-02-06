@@ -121,7 +121,15 @@ namespace Macrobot
 	inline std::string macroName;
 	inline std::string macroDescription;
 
+	inline std::unordered_map<int, bool> downForKey1;
+	inline std::unordered_map<int, bool> downForKey2;
+	inline std::unordered_map<int, float> timeForKey1;
+	inline std::unordered_map<int, float> timeForKey2;
+
+	inline FMOD::Channel* clickChannel = nullptr;
+
 	void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self);
+	void handleAction(bool down, int button, bool player1, float timestamp);
 
 	Action* recordAction(PlayerButton key, double frame, bool press, bool player1);
 
