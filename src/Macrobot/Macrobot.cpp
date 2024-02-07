@@ -44,8 +44,6 @@ class $modify(PlayLayer)
 	void onQuit()
 	{
 		PlayLayer::onQuit();
-		this->m_player1 = nullptr;
-		this->m_player2 = nullptr;
 		gameTime = 0;
 		checkpoints.clear();
 	}
