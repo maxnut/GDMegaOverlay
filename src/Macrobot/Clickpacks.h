@@ -17,7 +17,7 @@ public:
 	FMOD::Sound* randomPlatClick();
 	FMOD::Sound* randomPlatRelease();
 
-	static Clickpack fromPath(const ghc::filesystem::path& path);
+	static std::optional<Clickpack> fromPath(const ghc::filesystem::path& path);
 };
 
 namespace Clickpacks

@@ -14,7 +14,7 @@ using namespace geode::prelude;
 
 namespace fs = ghc::filesystem;
 
-Clickpack Clickpack::fromPath(const fs::path& pathString)
+std::optional<Clickpack> Clickpack::fromPath(const fs::path& pathString)
 {
 	Clickpack pack;
 	fs::path path = pathString;
@@ -46,6 +46,9 @@ Clickpack Clickpack::fromPath(const fs::path& pathString)
 	addFromPath(pack.platClicks, platClickPath);
 	addFromPath(pack.platReleases, platReleasePath);
 
+	if(pack.clicks.size() <= 0 && pack.softclicks.size() <= 0 && pack.releases.size() <= 0 && pack.platClicks.size() <= 0 && pack.platReleases.size() <= 0)
+		return std::nullopt;
+
 	return pack;
 }
 
@@ -54,7 +57,7 @@ void Clickpacks::init()
 	std::string clickPath = Settings::get<std::string>("clickpacks/path");
 
 	if (clickPath != "")
-		currentClickpack = Clickpack::fromPath(clickPath);
+		currentClickpack = Clickpack::fromPath(clickPath).value();
 }
 
 void Clickpacks::drawGUI()
@@ -71,8 +74,14 @@ void Clickpacks::drawGUI()
 
 			if (!result.empty())
 			{
-				currentClickpack = Clickpack::fromPath(result);
-				Mod::get()->setSavedValue<std::string>("clickpacks/path", result);
+				auto res = Clickpack::fromPath(result);
+				if(res.has_value())
+				{
+					currentClickpack = res.value();
+					Mod::get()->setSavedValue<std::string>("clickpacks/path", result);
+				}
+				else
+					FLAlertLayer::create("Error", "The folder is not a valid clickpack!", "Ok")->show();
 			}
 		}
 
