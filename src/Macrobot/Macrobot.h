@@ -11,6 +11,13 @@ using namespace geode::prelude;
 
 namespace Macrobot
 {
+	enum PlayerMode
+	{
+		DISABLED = -1,
+		PLAYBACK = 0,
+		RECORDING = 1
+	};
+
 	class PlayerCheckpoint
 	{
 	public:
@@ -105,7 +112,7 @@ namespace Macrobot
 		Macro() : gdr::Replay<Macro, Action>("Macrobot", "1.0") {}
 	};
 
-	inline int playerMode = -1;
+	inline PlayerMode playerMode = DISABLED;
 
 	inline double gameTime = 0;
 	inline unsigned int actionIndex = 0;

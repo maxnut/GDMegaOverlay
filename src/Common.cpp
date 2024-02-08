@@ -24,7 +24,6 @@ using namespace geode::prelude;
 
 void Common::calculateFramerate()
 {
-	float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
 	float framerate = 60.f;
 	float interval = 60.f;
 
@@ -36,13 +35,26 @@ void Common::calculateFramerate()
 	if (framerate < 60.f)
 		framerate = 60.f;
 
-	/* if (Settings::get<bool>("general/speedhack/enabled") && Macrobot::playerMode != -1)
-		interval = framerate * speedhack;
-	else
-		interval = framerate; */
-
 	cocos2d::CCDirector::sharedDirector()->setAnimationInterval(1.f / framerate);
 	onAudioSpeedChange();
+}
+
+void Common::calculateTickrate()
+{
+	float tps = 240.f;
+
+	if (Settings::get<bool>("general/tps/enabled"))
+		tps = Settings::get<float>("general/tps/value", 240.f);
+	else
+		tps = 240.f;
+
+	if(Macrobot::playerMode == Macrobot::PLAYBACK)
+		tps = Macrobot::macro.framerate;
+
+	if(tps < 1.f)
+		tps = 1.f;
+
+	util::Write<float>(base::get() + 0x49D548, 1.f / tps);
 }
 
 void Common::saveIcons()

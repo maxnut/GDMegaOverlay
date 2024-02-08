@@ -123,8 +123,6 @@ class $modify(PlayLayer)
 					if (acc <= limit)
 					{
 						JsonPatches::togglePatch(JsonPatches::player, "NoClip", false);
-						this->destroyPlayer(nullptr, nullptr);
-						JsonPatches::togglePatch(JsonPatches::player, "NoClip", true);
 
 						noclipDead = true;
 					}
@@ -166,7 +164,7 @@ class $modify(PlayLayer)
 					pointer->setString(fmt::format("Best Run: {}%", (int)bestRun.second).c_str());
 			}
 			else
-				pointer->setString(fmt::format("Best Run: {} - {}", (int)bestRun.first, (int)bestRun.second).c_str());
+				pointer->setString(fmt::format("Best Run: {}-{}", (int)bestRun.first, (int)bestRun.second).c_str());
 			},
 			this
 		);
@@ -184,7 +182,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::destroyPlayer(player, object);
 
-		if(player->m_isDead)
+		if(player && player->m_isDead)
 		{
 			currentRun.second = PlayLayer::getCurrentPercent();
 
@@ -197,6 +195,20 @@ class $modify(PlayLayer)
 
 		if(frames > 60)
 			dead = true;
+
+		if(noclipDead)
+			JsonPatches::togglePatch(JsonPatches::player, "NoClip", true);
+	}
+
+	void levelComplete()
+	{
+		PlayLayer::levelComplete();
+		currentRun.second = PlayLayer::getCurrentPercent();
+
+		float currentRunTotal = currentRun.second - currentRun.first;
+		float bestRunTotal = bestRun.second - bestRun.first;
+		if(currentRunTotal > bestRunTotal)
+			bestRun = currentRun;
 	}
 
 	void resetLevel()

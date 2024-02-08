@@ -50,7 +50,7 @@ class $modify(PlayLayer)
 
 	void loadFromCheckpoint(CheckpointObject * checkpoint)
 	{
-		if (checkpoints.contains(checkpoint) && playerMode != -1 && GameManager::get()->getPlayLayer())
+		if (checkpoints.contains(checkpoint) && playerMode != DISABLED && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
 			const auto check = [&](const Action &action) -> bool { return action.time >= checkpointData.time; };
@@ -61,7 +61,7 @@ class $modify(PlayLayer)
 			gameTime = checkpointData.time;
 			checkpointData.p1.apply(this->m_player1, true);
 			checkpointData.p2.apply(this->m_player2, true);
-			if (playerMode == 1)
+			if (playerMode == RECORDING)
 			{
 				this->m_player1->releaseButton(PlayerButton::Jump);
 				this->m_player2->releaseButton(PlayerButton::Jump);
@@ -73,7 +73,7 @@ class $modify(PlayLayer)
 
 	void resetLevel()
 	{
-		if (playerMode != -1)
+		if (playerMode != DISABLED)
 		{
 			actionIndex = 0;
 			correctionIndex = 0;
@@ -94,7 +94,7 @@ class $modify(PlayLayer)
 			{
 				*((double *)GameManager::get()->getPlayLayer() + 1412) = 0.0;
 				gameTime = 0;
-				if (playerMode == 1)
+				if (playerMode == RECORDING)
 				{
 					checkpoints.clear();
 					macro.inputs.clear();
@@ -122,7 +122,7 @@ class $modify(PlayerObject)
 	{
 		PlayerObject::pushButton(btn);
 
-		if (GameManager::get()->getPlayLayer() && playerMode == 1 && gameTime != 9999999999)
+		if (GameManager::get()->getPlayLayer() && playerMode == RECORDING && gameTime != 9999999999)
 		{
 			Action *ac = recordAction(btn, gameTime, true, this == GameManager::get()->getPlayLayer()->m_player1);
 
@@ -141,7 +141,7 @@ class $modify(PlayerObject)
 	{
 		PlayerObject::releaseButton(btn);
 
-		if (GameManager::get()->getPlayLayer() && playerMode == 1 && gameTime != 9999999999)
+		if (GameManager::get()->getPlayLayer() && playerMode == RECORDING && gameTime != 9999999999)
 		{
 			if (btn == PlayerButton::Right && direction == 1)
 				return;
@@ -180,7 +180,7 @@ class $modify(CheckpointObject)
 	{
 		bool res = CheckpointObject::init();
 
-		if (playerMode != -1 && gameTime > 0 && GameManager::get()->getPlayLayer())
+		if (playerMode != DISABLED && gameTime > 0 && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData data;
 			data.time = gameTime;
@@ -246,14 +246,17 @@ void Macrobot::handleAction(bool down, int button, bool player1, float timestamp
 	clickChannel->setVolume(volume);
 }
 
+float delay = 1.f;
+int frames = 0;
+
 void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 {
-	if (playerMode != -1 && GameManager::get()->getPlayLayer())
+	if (playerMode != DISABLED && GameManager::get()->getPlayLayer())
 	{
 		double currentTime = *((double *)GameManager::get()->getPlayLayer() + 1412);
 		gameTime = currentTime;
 
-		if (playerMode == 0 && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
+		if (playerMode == PLAYBACK && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
 			gameTime >= macro.inputs[actionIndex].time)
 		{
 			do
@@ -399,6 +402,11 @@ void Macrobot::save(const std::string& file)
 	macro.gameVersion = 2.204f;
 	macro.version = 1.0f;
 
+	macro.framerate = 240.f;
+
+	if (Settings::get<bool>("general/tps/enabled"))
+		macro.framerate = Settings::get<float>("general/tps/value", 240.f);
+
 	auto data = macro.exportData(false);
 	f.write(reinterpret_cast<const char *>(data.data()), data.size());
 
@@ -433,22 +441,31 @@ void Macrobot::load(const std::string& file)
 	macro = Macro::importData(macroData);
 
 	FLAlertLayer::create("Info", fmt::format("{} loaded with {} inputs.", file, macro.inputs.size()), "Ok")->show();
+
+	Common::calculateTickrate();
 }
 
 void Macrobot::drawWindow()
 {
 	if (GUI::shouldRender())
 	{
-		if (ImGui::RadioButton("Disable", &Macrobot::playerMode, -1))
-			Common::calculateFramerate();
-		if (ImGui::RadioButton("Record", &Macrobot::playerMode, 1))
+		if (ImGui::RadioButton("Disable", (int*)&Macrobot::playerMode, (int)DISABLED))
 		{
 			Common::calculateFramerate();
+			Common::calculateTickrate();
+		}
+		if (ImGui::RadioButton("Record", (int*)&Macrobot::playerMode, (int)RECORDING))
+		{
+			Common::calculateFramerate();
+			Common::calculateTickrate();
 			if (GameManager::get()->getPlayLayer())
 				GameManager::get()->getPlayLayer()->resetLevelFromStart();
 		}
-		if (ImGui::RadioButton("Play", &Macrobot::playerMode, 0))
+		if (ImGui::RadioButton("Play", (int*)&Macrobot::playerMode, (int)PLAYBACK))
+		{
 			Common::calculateFramerate();
+			Common::calculateTickrate();
+		}
 
 		ImGui::PushItemWidth(80);
 		GUI::inputText("Macro Name", &macroName);

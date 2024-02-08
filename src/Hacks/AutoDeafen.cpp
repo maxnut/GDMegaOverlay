@@ -43,7 +43,7 @@ class $modify(PlayLayer)
     {
         PlayLayer::destroyPlayer(p0, p1);
 
-        if(p0->m_isDead && AutoDeafen::deafened)
+        if(p0 && p0->m_isDead && AutoDeafen::deafened)
         {
             AutoDeafen::toggleDeafen();
             AutoDeafen::deafened = false;

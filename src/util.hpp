@@ -63,6 +63,14 @@ namespace util
 		return distribution(generator);
 	}
 
+	template <class T>
+	inline bool Write(uint32_t vaddress, const T& value)
+	{
+		DWORD oldProtect = 0;
+		VirtualProtectEx(GetCurrentProcess(), reinterpret_cast<void*>(vaddress), 256, PAGE_EXECUTE_READWRITE, &oldProtect);
+		return WriteProcessMemory(GetCurrentProcess(), reinterpret_cast<void*>(vaddress), &value, sizeof(T), NULL);
+	}
+
 	template<typename T, std::size_t S>
 	inline std::size_t getElementCount(std::array<T, S> const& array, T elem)
 	{

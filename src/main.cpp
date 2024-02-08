@@ -40,6 +40,7 @@ void init()
 
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
+		Common::calculateTickrate();
 		Common::setPriority();
 		Common::onAudioSpeedChange();
 		Common::loadIcons();
@@ -64,8 +65,23 @@ void initGUI()
 			GUI::sameLine();
 		}
 
-		if (GUI::checkbox("FPS", "general/fps/enabled"))
+		if (GUI::checkbox("Framerate", "general/fps/enabled"))
 			Common::calculateFramerate();
+
+		float tps = Settings::get<float>("general/tps/value", 240.f);
+		if (GUI::inputFloat("##TPSValue", &tps))
+			Mod::get()->setSavedValue<float>("general/tps/value", tps);
+
+		if (GUI::shouldRender())
+		{
+			if (ImGui::IsItemDeactivatedAfterEdit())
+				Common::calculateTickrate();
+
+			GUI::sameLine();
+		}
+
+		if (GUI::checkbox("Physics Bypass", "general/tps/enabled"))
+			Common::calculateTickrate();
 
 		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
@@ -74,16 +90,9 @@ void initGUI()
 				Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
 		}
 
-		if (GUI::shouldRender())
-		{
-			if (ImGui::IsItemDeactivatedAfterEdit())
-				Common::calculateFramerate();
+		GUI::sameLine();
+		GUI::checkbox("Speedhack", "general/speedhack/enabled");
 
-			GUI::sameLine();
-		}
-
-		if (GUI::checkbox("Speedhack", "general/speedhack/enabled"))
-			Common::calculateFramerate();
 
 		float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
 		if (GUI::inputFloat("##PitchShiftValue", &pitch, 0.5f, 2.f))
