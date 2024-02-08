@@ -17,6 +17,7 @@ using namespace geode::prelude;
 #include "Hacks/Labels.h"
 #include "Hacks/StartposSwitcher.h"
 #include "Hacks/SafeMode.h"
+#include "Hacks/PhysicsBypass.h"
 #include "JsonPatches/JsonPatches.h"
 #include "Macrobot/Clickpacks.h"
 #include "Macrobot/Macrobot.h"
@@ -40,7 +41,7 @@ void init()
 
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
-		Common::calculateTickrate();
+		PhysicsBypass::calculateTickrate();
 		Common::setPriority();
 		Common::onAudioSpeedChange();
 		Common::loadIcons();
@@ -75,13 +76,13 @@ void initGUI()
 		if (GUI::shouldRender())
 		{
 			if (ImGui::IsItemDeactivatedAfterEdit())
-				Common::calculateTickrate();
+				PhysicsBypass::calculateTickrate();
 
 			GUI::sameLine();
 		}
 
 		if (GUI::checkbox("Physics Bypass", "general/tps/enabled"))
-			Common::calculateTickrate();
+			PhysicsBypass::calculateTickrate();
 
 		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))

@@ -15,6 +15,7 @@
 
 
 #include <Geode/modify/MenuLayer.hpp>
+#include <Geode/modify/PlayLayer.hpp>
 #include <Geode/cocos/platform/third_party/win32/curl/curl.h>
 
 #include <Geode/binding/GameManager.hpp>
@@ -37,24 +38,6 @@ void Common::calculateFramerate()
 
 	cocos2d::CCDirector::sharedDirector()->setAnimationInterval(1.f / framerate);
 	onAudioSpeedChange();
-}
-
-void Common::calculateTickrate()
-{
-	float tps = 240.f;
-
-	if (Settings::get<bool>("general/tps/enabled"))
-		tps = Settings::get<float>("general/tps/value", 240.f);
-	else
-		tps = 240.f;
-
-	if(Macrobot::playerMode == Macrobot::PLAYBACK)
-		tps = Macrobot::macro.framerate;
-
-	if(tps < 1.f)
-		tps = 1.f;
-
-	util::Write<float>(base::get() + 0x49D548, 1.f / tps);
 }
 
 void Common::saveIcons()

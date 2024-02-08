@@ -15,7 +15,6 @@ namespace Common
 	inline bool isCheating = false;
 
 	void calculateFramerate();
-	void calculateTickrate();
 	void setPriority();
 	void onAudioSpeedChange();
 	void onAudioPitchChange();

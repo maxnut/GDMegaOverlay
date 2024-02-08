@@ -12,6 +12,7 @@
 
 #include "Macrobot.h"
 #include "Clickpacks.h"
+#include "../Hacks/PhysicsBypass.h"
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/GJBaseGameLayer.hpp>
@@ -442,7 +443,7 @@ void Macrobot::load(const std::string& file)
 
 	FLAlertLayer::create("Info", fmt::format("{} loaded with {} inputs.", file, macro.inputs.size()), "Ok")->show();
 
-	Common::calculateTickrate();
+	PhysicsBypass::calculateTickrate();
 }
 
 void Macrobot::drawWindow()
@@ -452,19 +453,19 @@ void Macrobot::drawWindow()
 		if (ImGui::RadioButton("Disable", (int*)&Macrobot::playerMode, (int)DISABLED))
 		{
 			Common::calculateFramerate();
-			Common::calculateTickrate();
+			PhysicsBypass::calculateTickrate();
 		}
 		if (ImGui::RadioButton("Record", (int*)&Macrobot::playerMode, (int)RECORDING))
 		{
 			Common::calculateFramerate();
-			Common::calculateTickrate();
+			PhysicsBypass::calculateTickrate();
 			if (GameManager::get()->getPlayLayer())
 				GameManager::get()->getPlayLayer()->resetLevelFromStart();
 		}
 		if (ImGui::RadioButton("Play", (int*)&Macrobot::playerMode, (int)PLAYBACK))
 		{
 			Common::calculateFramerate();
-			Common::calculateTickrate();
+			PhysicsBypass::calculateTickrate();
 		}
 
 		ImGui::PushItemWidth(80);
