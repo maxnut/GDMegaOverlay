@@ -180,15 +180,21 @@ void Common::updateCheating()
 	if(tps < 1.f)
 		tps = 1.f;
 
-	if(GameManager::get()->getPlayLayer() && GameManager::get()->getPlayLayer()->m_level->m_levelID <= 97454394 && tps > 360)
+	PlayLayer* pl = GameManager::get()->getPlayLayer();
+
+	if(pl)
 	{
-		isCheating = true;
-		return;
-	}
-	else if(!GameManager::get()->getPlayLayer() || GameManager::get()->getPlayLayer() && GameManager::get()->getPlayLayer()->m_level->m_levelID > 97454394 && tps > 240)
-	{
-		isCheating = true;
-		return;
+		int levelID = pl->m_level->m_levelID;
+		if(levelID <= 97454394 && levelID != 0 && tps > 360)
+		{
+			isCheating = true;
+			return;
+		}
+		else if((levelID > 97454394 || levelID == 0 || pl->m_level->m_timestamp > 0) && tps > 240)
+		{
+			isCheating = true;
+			return;
+		}
 	}
 
 	isCheating = false;

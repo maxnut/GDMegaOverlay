@@ -57,7 +57,11 @@ void Clickpacks::init()
 	std::string clickPath = Settings::get<std::string>("clickpacks/path");
 
 	if (clickPath != "")
-		currentClickpack = Clickpack::fromPath(clickPath).value();
+	{
+		auto clickpackOpt = Clickpack::fromPath(clickPath);
+		if(clickpackOpt.has_value())
+			currentClickpack = clickpackOpt.value();
+	}
 }
 
 void Clickpacks::drawGUI()
