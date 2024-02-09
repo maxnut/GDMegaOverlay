@@ -121,6 +121,8 @@ class $modify(PlayerObject)
 {
 	void pushButton(PlayerButton btn)
 	{
+		if(playerMode == PLAYBACK && !botInput)
+			return;
 		PlayerObject::pushButton(btn);
 
 		if (GameManager::get()->getPlayLayer() && playerMode == RECORDING && gameTime != 9999999999)
@@ -140,6 +142,8 @@ class $modify(PlayerObject)
 
 	void releaseButton(PlayerButton btn)
 	{
+		if(playerMode == PLAYBACK && !botInput)
+			return;
 		PlayerObject::releaseButton(btn);
 
 		if (GameManager::get()->getPlayLayer() && playerMode == RECORDING && gameTime != 9999999999)
@@ -197,7 +201,9 @@ class $modify(CheckpointObject)
 
 void Macrobot::handleAction(bool down, int button, bool player1, float timestamp)
 {
+	botInput = true;
 	GameManager::get()->getPlayLayer()->handleButton(down, button, player1);
+	botInput = false;
 
 	bool playClicks = Settings::get<bool>("macrobot/clicks/enabled", false);
 

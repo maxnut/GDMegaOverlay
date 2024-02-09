@@ -112,6 +112,8 @@ namespace Macrobot
 		Macro() : gdr::Replay<Macro, Action>("Macrobot", "1.0") {}
 	};
 
+	inline bool botInput = false;
+
 	inline PlayerMode playerMode = DISABLED;
 
 	inline double gameTime = 0;
