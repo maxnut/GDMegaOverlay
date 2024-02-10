@@ -45,11 +45,8 @@ Manual Installations using Steam:
 
 ## Credits
 
-[adafcaefc/ProxyDllLoader](https://github.com/adafcaefc/ProxyDllLoader) for the mod loader
-
 [SpaghettDev](https://github.com/SpaghettDev) helped a ton with various features
 
-[TpdEA](https://github.com/TpdeaX) for help with patches
-
+[mat](https://github.com/matcool) for internal recorder
 
 [^1]: You can download source code using ``git clone https://github.com/maxnut/GDMegaOverlay.git``, or on [github.com/maxnut/GDMegaOverlay](https://github.com/maxnut/GDMegaOverlay) (the page you are likely on) you can press "Code" and then press "Download Zip", unzip the zip file and modify to your liking. Recommended you create a fork and save your changes there.
