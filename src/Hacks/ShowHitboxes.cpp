@@ -110,8 +110,9 @@ void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
     bool show = Settings::get<bool>("level/show_hitbox/enabled", false);
     bool trail = Settings::get<bool>("level/show_hitbox/queue_enabled", false);
+    bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
 
-    if(!show || !trail)
+    if(!show || !trail || onDeath)
         return;
 
     bool isDual = MBO(bool, self, 878);
@@ -149,10 +150,12 @@ class $modify(CCDrawNode)
     bool drawPolygon(CCPoint *verts, unsigned int count, const ccColor4F &colFill, float borderWidth, const ccColor4F& colBase)
     {
         ccColor4F colBaseNew = colBase;
-        ccColor4F colFillNew = colBase;
+        ccColor4F colFillNew = colFill;
 
         if(ShowHitboxes::debugDrawing)
         {
+            colBaseNew = colBase;
+            colFillNew = colBase;
             borderWidth = Settings::get<float>("level/show_hitbox/size", 0.25f);
             colBaseNew.a = Settings::get<int>("level/show_hitbox/border_alpha", 255) / 255.f;
             colFillNew.a = Settings::get<int>("level/show_hitbox/fill_alpha", 50) / 255.f;
