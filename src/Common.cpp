@@ -190,7 +190,7 @@ void Common::updateCheating()
 			isCheating = true;
 			return;
 		}
-		else if((levelID > 97454394 || levelID == 0 || pl->m_level->m_timestamp > 0) && tps > 240)
+		else if((levelID > 97454394 || levelID == 0) && tps > 240)
 		{
 			isCheating = true;
 			return;

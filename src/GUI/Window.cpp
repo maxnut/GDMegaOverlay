@@ -72,6 +72,6 @@ void Window::draw()
 	if (GUI::isVisible && visibleInScreen() || !GUI::isVisible)
 		windowFunction();
 
-	if (GUI::isVisible)
+	if (GUI::isVisible && visibleInScreen())
 		ImGui::End();
 }

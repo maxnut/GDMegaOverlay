@@ -51,6 +51,7 @@ void init()
 
 void initGUI()
 {
+	ImGui::GetCurrentContext()->PlatformLocaleDecimalPoint = *localeconv()->decimal_point;
 	GUI::windows.clear();
 	
 	GUI::Window generalWindow("General", [] {
@@ -193,6 +194,34 @@ void initGUI()
 				key = Settings::get<int>("level/startpos_switcher/right", ImGuiKey_RightArrow);
 				if (GUI::hotkey("Switch Right", &key))
 					Mod::get()->setSavedValue<int>("level/startpos_switcher/right", key);
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
+		
+		GUI::checkbox("Show Hitboxes", "level/show_hitbox/enabled");
+		GUI::arrowButton("Show Hitboxes Settings");
+		GUI::modalPopup(
+			"Show Hitboxes Settings",
+			[] {
+				float borderSize = Settings::get<float>("level/show_hitbox/size", 0.25f);
+				int borderAlpha = Settings::get<int>("level/show_hitbox/border_alpha", 255);
+    			int fillAlpha = Settings::get<int>("level/show_hitbox/fill_alpha", 50);
+
+				int maxQueue = Settings::get<int>("level/show_hitbox/max_queue", 240);
+
+				GUI::checkbox("Show Trail", "level/show_hitbox/queue_enabled");
+				GUI::checkbox("Only On Death", "level/show_hitbox/on_death");
+
+				if (GUI::inputFloat("Border Size", &borderSize, 0.f, 3.f))
+					Mod::get()->setSavedValue<float>("level/show_hitbox/size", borderSize);
+
+				if (GUI::inputInt("Border Opacity", &borderAlpha, 1, 255))
+					Mod::get()->setSavedValue<int>("level/show_hitbox/border_alpha", borderAlpha);
+
+				if (GUI::inputInt("Fill Opacity", &fillAlpha, 1, 255))
+					Mod::get()->setSavedValue<int>("level/show_hitbox/fill_alpha", fillAlpha);
+
+				if (GUI::inputInt("Max Queue Length", &maxQueue, 1, 99999999))
+					Mod::get()->setSavedValue<int>("level/show_hitbox/max_queue", maxQueue);
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 

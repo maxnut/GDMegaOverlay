@@ -29,14 +29,14 @@ void PhysicsBypass::calculateTickrate()
 
 	if(Macrobot::playerMode == Macrobot::PLAYBACK)
 		tps = Macrobot::macro.framerate;
+
+    if(tps < 1.f)
+		tps = 1.f;
+
+    util::Write<float>(base::get() + 0x49D548, 1.f / tps);
     
     if(tps == 240.f)
         return;
-
-	if(tps < 1.f)
-		tps = 1.f;
-
-	util::Write<float>(base::get() + 0x49D548, 1.f / tps);
     
     if(GameManager::get()->getPlayLayer() && GameManager::get()->getPlayLayer()->m_level->m_timestamp > 0)
     {

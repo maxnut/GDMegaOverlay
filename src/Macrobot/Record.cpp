@@ -381,6 +381,9 @@ void Record::renderWindow()
 		Record::recorder.start();
 	}
 
+	if(GUI::shouldRender() && disabled && ImGui::IsItemHovered())
+		ImGui::SetTooltip("You need to be playing a macro to record");
+
 	if (GUI::button("Stop Recording") && Record::recorder.m_recording)
 		Record::recorder.stop();
 
@@ -415,6 +418,9 @@ void Record::renderWindow()
 			recorder.m_recording = false;
 		}
 	}
+
+	if(GUI::shouldRender() && disabled && ImGui::IsItemHovered())
+		ImGui::SetTooltip("You need to be playing a macro to record");
 
 	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio)
 	{
@@ -479,6 +485,6 @@ void Record::renderWindow()
 
 	GUI::marker("[INFO]",
 				"Press start recording to get a smooth recording of the level. "
-				"To render music and sfx, press Start Music and wait for the level to finish again, then your "
-				"rendered video will have music and sfx.");
+				"To render music, clicks and sfx, press Start Music and wait for the level to finish again, then your "
+				"rendered video will have music, clicks and sfx.");
 }
