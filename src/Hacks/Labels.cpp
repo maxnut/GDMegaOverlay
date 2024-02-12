@@ -4,6 +4,7 @@
 #include "../JsonPatches/JsonPatches.h"
 #include "../Settings.hpp"
 #include "Hacks/SafeMode.h"
+#include "Macrobot/Macrobot.h"
 
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/PlayerObject.hpp>
@@ -165,6 +166,20 @@ class $modify(PlayLayer)
 			}
 			else
 				pointer->setString(fmt::format("Best Run: {}-{}", (int)bestRun.first, (int)bestRun.second).c_str());
+			},
+			this
+		);
+
+		//keep this at the bottom :)
+		setupLabel(
+			"Macro Info",
+			[&](cocos2d::CCLabelBMFont* pointer) {
+			if(Macrobot::playerMode == Macrobot::PLAYBACK)
+				pointer->setString(fmt::format("Playing {}/{}", Macrobot::actionIndex + 1, Macrobot::macro.inputs.size()).c_str());
+			else if(Macrobot::playerMode == Macrobot::RECORDING)
+				pointer->setString(fmt::format("Recording {}", Macrobot::macro.inputs.size()).c_str());
+			else
+				pointer->setString("");
 			},
 			this
 		);
@@ -466,4 +481,6 @@ void Labels::renderWindow()
 	});
 
 	settingsForLabel("Best Run", [] { });
+
+	settingsForLabel("Macro Info", [] { });
 }

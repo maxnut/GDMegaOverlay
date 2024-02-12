@@ -93,8 +93,8 @@ void initGUI()
 		}
 
 		GUI::sameLine();
-		GUI::checkbox("Speedhack", "general/speedhack/enabled");
-
+		if(GUI::checkbox("Speedhack", "general/speedhack/enabled"))
+			Common::onAudioSpeedChange();
 
 		float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
 		if (GUI::inputFloat("##PitchShiftValue", &pitch, 0.5f, 2.f))

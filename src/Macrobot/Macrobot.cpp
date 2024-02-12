@@ -124,16 +124,21 @@ class $modify(PlayerObject)
 		if(playerMode == PLAYBACK && !botInput)
 			return;
 		PlayerObject::pushButton(btn);
+		
+		auto pl = GameManager::get()->getPlayLayer();
 
-		if (GameManager::get()->getPlayLayer() && playerMode == RECORDING && gameTime != 9999999999)
+		if (pl && playerMode == RECORDING && gameTime != 9999999999)
 		{
-			Action *ac = recordAction(btn, gameTime, true, this == GameManager::get()->getPlayLayer()->m_player1);
+			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
+				return;
+
+			Action *ac = recordAction(btn, gameTime, true, this == pl->m_player1);
 
 			if (Settings::get<int>("macrobot/corrections") > 0)
 			{
 				Correction c;
 				c.time = gameTime;
-				c.player2 = this == GameManager::get()->getPlayLayer()->m_player2;
+				c.player2 = this == pl->m_player2;
 				c.checkpoint.fromPlayer(this, false);
 				ac->correction = c;
 			}
@@ -146,21 +151,26 @@ class $modify(PlayerObject)
 			return;
 		PlayerObject::releaseButton(btn);
 
-		if (GameManager::get()->getPlayLayer() && playerMode == RECORDING && gameTime != 9999999999)
+		auto pl = GameManager::get()->getPlayLayer();
+
+		if (pl && playerMode == RECORDING && gameTime != 9999999999)
 		{
+			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
+				return;
+
 			if (btn == PlayerButton::Right && direction == 1)
 				return;
 
 			if (btn == PlayerButton::Left && direction == -1)
 				return;
 
-			Action *ac = recordAction(btn, gameTime, false, this == GameManager::get()->getPlayLayer()->m_player1);
+			Action *ac = recordAction(btn, gameTime, false, this == pl->m_player1);
 
 			if (Settings::get<int>("macrobot/corrections") > 0)
 			{
 				Correction c;
 				c.time = gameTime;
-				c.player2 = this == GameManager::get()->getPlayLayer()->m_player2;
+				c.player2 = this == pl->m_player2;
 				c.checkpoint.fromPlayer(this, false);
 				ac->correction = c;
 			}
@@ -263,8 +273,10 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 		double currentTime = *((double *)GameManager::get()->getPlayLayer() + 1412);
 		gameTime = currentTime;
 
+		uint32_t frame = gdr::frameForTime(gameTime);
+
 		if (playerMode == PLAYBACK && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
-			gameTime >= macro.inputs[actionIndex].time)
+			frame >= macro.inputs[actionIndex].frame)
 		{
 			do
 			{
@@ -280,7 +292,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 					co.checkpoint.apply(co.player2 ? GameManager::get()->getPlayLayer()->m_player2 : GameManager::get()->getPlayLayer()->m_player1, false);
 				}
 				actionIndex++;
-			} while (actionIndex < macro.inputs.size() && gameTime >= macro.inputs[actionIndex].time);
+			} while (actionIndex < macro.inputs.size() && frame >= macro.inputs[actionIndex].frame);
 		}
 	}
 
@@ -302,12 +314,13 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 	cocos2d::CCPoint position = player->m_position;
 	this->yVel = player->m_yVelocity;
 	this->rotation = player->getRotation();
-	this->xVel = MBO(double, player, 0x870);
+	this->xVel = player->m_platformerXVelocity;
 	this->xPos = position.x;
 	this->yPos = position.y;
 	this->nodeXPos = player->getPositionX();
 	this->nodeYPos = player->getPositionY();
 	this->rotationRate = player->m_rotationSpeed;
+	this->lastSnappedTo = player->m_objectSnappedTo;
 
 	if (fullCapture)
 	{
@@ -331,6 +344,8 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 {
 	if (gameTime <= 0)
 		return;
+	
+	player->m_objectSnappedTo = this->lastSnappedTo;
 
 	player->m_yVelocity =
 		this->yVel; // get all these offsets from playerobject constructor
@@ -342,7 +357,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	player->m_position =
 		cocos2d::CCPoint(this->xPos, this->yPos);
 
-	MBO(double, player, 0x870) = this->xVel; // playerobject_updatemove
+	player->m_platformerXVelocity = this->xVel;
 
 	player->m_rotationSpeed = this->rotationRate;
 

@@ -52,7 +52,9 @@ void ShowHitboxes::drawForPlayer(CCDrawNode* node, PlayerObject* player)
 void ShowHitboxes::forceDraw(GJBaseGameLayer* self, bool editor)
 {
     bool show = Settings::get<bool>("level/show_hitbox/enabled", false);
-    getDrawNode()->setVisible(show);
+
+
+    getDrawNode()->setVisible(show || editor);
 
     GameManager::get()->setGameVariable("0045", show);
 
@@ -196,7 +198,7 @@ class $modify(PlayLayer)
     {
         PlayLayer::destroyPlayer(p0, p1);
 
-        if(p1 && p1->getPositionX() == 0 && p1->getPositionY() == 105)
+        if(p0 && !p0->m_isDead)
             return;
 
         dead = true;

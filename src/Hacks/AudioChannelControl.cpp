@@ -30,6 +30,7 @@ void AudioChannelControl::set(float frequency)
 
 	for(int i = 0; i < 2; i++)
 	{
+		
 		FMODAudioEngine::sharedEngine()->m_system->getChannel(126 + i, &audioChannel);
 		if (audioChannel)
 		{
@@ -70,7 +71,7 @@ class $modify(PlayLayer)
 {
 	void resetLevel()
 	{
-		Common::onAudioPitchChange();
+		Common::onAudioSpeedChange();
 		PlayLayer::resetLevel();
 	}
 };

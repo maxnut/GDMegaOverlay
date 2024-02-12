@@ -161,7 +161,11 @@ void Common::updateCheating()
 		return;
 	float speedhack =
 		Settings::get<bool>("general/speedhack/enabled") ? Settings::get<float>("general/speedhack/value") : 1.f;
-	if (speedhack != 1.f || Macrobot::playerMode == 0)
+
+	bool showHitbox = Settings::get<bool>("level/show_hitbox/enabled", false);
+	bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
+
+	if (speedhack != 1.f || Macrobot::playerMode == 0 || (showHitbox && !onDeath))
 	{
 		isCheating = true;
 		return;

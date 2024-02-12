@@ -29,6 +29,7 @@ namespace Macrobot
 		float nodeYPos;
 		float rotation;
 		float rotationRate;
+		GameObject* lastSnappedTo = nullptr;
 
 		std::vector<float> randomProperties;
 
