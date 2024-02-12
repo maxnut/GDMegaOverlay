@@ -276,7 +276,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 		uint32_t frame = gdr::frameForTime(gameTime);
 
 		if (playerMode == PLAYBACK && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
-			frame >= macro.inputs[actionIndex].frame)
+			(gameTime >= macro.inputs[actionIndex].time || frame >= macro.inputs[actionIndex].frame))
 		{
 			do
 			{
@@ -292,7 +292,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 					co.checkpoint.apply(co.player2 ? GameManager::get()->getPlayLayer()->m_player2 : GameManager::get()->getPlayLayer()->m_player1, false);
 				}
 				actionIndex++;
-			} while (actionIndex < macro.inputs.size() && frame >= macro.inputs[actionIndex].frame);
+			} while (actionIndex < macro.inputs.size() && (gameTime >= macro.inputs[actionIndex].time || frame >= macro.inputs[actionIndex].frame));
 		}
 	}
 
