@@ -17,6 +17,7 @@
 
 using namespace geode::prelude;
 
+
 class $modify(CCKeyboardDispatcher)
 {
 	bool dispatchKeyboardMSG(enumKeyCodes key, bool down, bool arr)

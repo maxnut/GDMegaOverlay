@@ -175,7 +175,7 @@ class $modify(PlayLayer)
 			"Macro Info",
 			[&](cocos2d::CCLabelBMFont* pointer) {
 			if(Macrobot::playerMode == Macrobot::PLAYBACK)
-				pointer->setString(fmt::format("Playing {}/{}", Macrobot::actionIndex + 1, Macrobot::macro.inputs.size()).c_str());
+				pointer->setString(fmt::format("Playing {}/{}", Macrobot::actionIndex, Macrobot::macro.inputs.size()).c_str());
 			else if(Macrobot::playerMode == Macrobot::RECORDING)
 				pointer->setString(fmt::format("Recording {}", Macrobot::macro.inputs.size()).c_str());
 			else

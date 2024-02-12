@@ -111,6 +111,22 @@ void Common::setPriority()
 	}
 }
 
+float Common::getTPS()
+{
+	float tps = 240.f;
+
+	if (Settings::get<bool>("general/tps/enabled"))
+		tps = Settings::get<float>("general/tps/value", 240.f);
+	else
+		tps = 240.f;
+	if(Macrobot::playerMode == Macrobot::PLAYBACK)
+		tps = Macrobot::macro.framerate;
+	if(tps < 1.f)
+		tps = 1.f;
+
+	return tps;
+}
+
 void Common::onAudioSpeedChange()
 {
 	float speed;

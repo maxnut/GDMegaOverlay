@@ -2,7 +2,7 @@
 #include "Settings.hpp"
 #include "Macrobot/Macrobot.h"
 #include <Geode/modify/PlayLayer.hpp>
-#include "util.hpp"
+#include "Common.h"
 
 class $modify(PlayLayer)
 {
@@ -22,17 +22,7 @@ class $modify(PlayLayer)
 
 void PhysicsBypass::calculateTickrate()
 {
-    float tps = 240.f;
-
-	if (Settings::get<bool>("general/tps/enabled"))
-		tps = Settings::get<float>("general/tps/value", 240.f);
-
-	if(Macrobot::playerMode == Macrobot::PLAYBACK)
-		tps = Macrobot::macro.framerate;
-
-    if(tps < 1.f)
-		tps = 1.f;
-
+    float tps = Common::getTPS();
     util::Write<float>(base::get() + 0x49D548, 1.f / tps);
     
     if(tps == 240.f)

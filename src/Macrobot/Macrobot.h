@@ -53,7 +53,7 @@ namespace Macrobot
 
 	struct Action : gdr::Input
 	{
-		double time = 0.0;
+		double time = -1.0;
 		std::optional<Correction> correction;
 
 		Action() = default;
@@ -114,6 +114,7 @@ namespace Macrobot
 	};
 
 	inline bool botInput = false;
+	inline bool resetFrame = false;
 
 	inline PlayerMode playerMode = DISABLED;
 

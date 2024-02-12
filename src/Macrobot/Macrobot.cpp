@@ -7,7 +7,7 @@
 #include "../Settings.hpp"
 
 #include <fstream>
-#include <imgui.h>
+#include <imgui-cocos.hpp>
 #include <iostream>
 
 #include "Macrobot.h"
@@ -58,15 +58,9 @@ class $modify(PlayLayer)
 			macro.inputs.erase(std::remove_if (macro.inputs.begin(), macro.inputs.end(), check), macro.inputs.end());
 			PlayLayer::loadFromCheckpoint(checkpoint);
 
-			*((double *)GameManager::get()->getPlayLayer() + 1412) = checkpointData.time;
 			gameTime = checkpointData.time;
 			checkpointData.p1.apply(this->m_player1, true);
 			checkpointData.p2.apply(this->m_player2, true);
-			if (playerMode == RECORDING)
-			{
-				this->m_player1->releaseButton(PlayerButton::Jump);
-				this->m_player2->releaseButton(PlayerButton::Jump);
-			}
 		}
 		else
 			PlayLayer::loadFromCheckpoint(checkpoint);
@@ -79,6 +73,8 @@ class $modify(PlayLayer)
 			actionIndex = 0;
 			correctionIndex = 0;
 			gameTime = 9999999999;
+
+			resetFrame = true;
 
 			downForKey1.clear();
 			downForKey2.clear();
@@ -93,7 +89,6 @@ class $modify(PlayLayer)
 
 			if (gameTime == 9999999999)
 			{
-				*((double *)GameManager::get()->getPlayLayer() + 1412) = 0.0;
 				gameTime = 0;
 				if (playerMode == RECORDING)
 				{
@@ -101,6 +96,8 @@ class $modify(PlayLayer)
 					macro.inputs.clear();
 				}
 			}
+
+			resetFrame = false;
 
 			if (this->m_player1->m_isPlatformer)
 			{
@@ -111,6 +108,10 @@ class $modify(PlayLayer)
 						(ImGui::IsKeyDown(ImGuiKey_LeftArrow) || ImGui::IsKeyDown(ImGuiKey_A)))
 					this->m_player1->pushButton(PlayerButton::Left);
 			}
+
+			gameTime += (1.0 / (double)Common::getTPS()) + 0.00000001;
+			this->handleButton(false, 1, true);
+			gameTime -= (1.0 / (double)Common::getTPS()) + 0.00000001;
 		}
 		else
 			PlayLayer::resetLevel();
@@ -121,7 +122,7 @@ class $modify(PlayerObject)
 {
 	void pushButton(PlayerButton btn)
 	{
-		if(playerMode == PLAYBACK && !botInput)
+		if((playerMode == PLAYBACK && !botInput) || resetFrame)
 			return;
 		PlayerObject::pushButton(btn);
 		
@@ -132,22 +133,13 @@ class $modify(PlayerObject)
 			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
 				return;
 
-			Action *ac = recordAction(btn, gameTime, true, this == pl->m_player1);
-
-			if (Settings::get<int>("macrobot/corrections") > 0)
-			{
-				Correction c;
-				c.time = gameTime;
-				c.player2 = this == pl->m_player2;
-				c.checkpoint.fromPlayer(this, false);
-				ac->correction = c;
-			}
+			recordAction(btn, gameTime, true, this == pl->m_player1);
 		}
 	}
 
 	void releaseButton(PlayerButton btn)
 	{
-		if(playerMode == PLAYBACK && !botInput)
+		if((playerMode == PLAYBACK && !botInput) || resetFrame)
 			return;
 		PlayerObject::releaseButton(btn);
 
@@ -164,16 +156,7 @@ class $modify(PlayerObject)
 			if (btn == PlayerButton::Left && direction == -1)
 				return;
 
-			Action *ac = recordAction(btn, gameTime, false, this == pl->m_player1);
-
-			if (Settings::get<int>("macrobot/corrections") > 0)
-			{
-				Correction c;
-				c.time = gameTime;
-				c.player2 = this == pl->m_player2;
-				c.checkpoint.fromPlayer(this, false);
-				ac->correction = c;
-			}
+			recordAction(btn, gameTime, false, this == pl->m_player1);
 		}
 	}
 };
@@ -182,7 +165,18 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool pr
 {
 	Action ac(frame, (int)key, !player1, press);
 
-	ac.frame = gdr::frameForTime(frame);
+	ac.frame = macro.frameForTime(frame);
+
+	PlayLayer* pl = GameManager::get()->getPlayLayer();
+
+	if (Settings::get<int>("macrobot/corrections") > 0)
+	{
+		Correction c;
+		c.time = gameTime;
+		c.player2 = !player1;
+		c.checkpoint.fromPlayer(player1 ? pl->m_player1 : pl->m_player2, false);
+		ac.correction = c;
+	}
 
 	macro.inputs.push_back(ac);
 
@@ -201,6 +195,8 @@ class $modify(CheckpointObject)
 			data.time = gameTime;
 			data.p1.fromPlayer(GameManager::get()->getPlayLayer()->m_player1, true);
 			data.p2.fromPlayer(GameManager::get()->getPlayLayer()->m_player2, true);
+
+			//log::debug("FROMPLAYER {} {} {}", data.p1.yVel, data.p1.xPos, gdr::frameForTime(data.time));
 
 			checkpoints[this] = data;
 		}
@@ -263,20 +259,18 @@ void Macrobot::handleAction(bool down, int button, bool player1, float timestamp
 	clickChannel->setVolume(volume);
 }
 
-float delay = 1.f;
-int frames = 0;
-
 void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 {
 	if (playerMode != DISABLED && GameManager::get()->getPlayLayer())
 	{
-		double currentTime = *((double *)GameManager::get()->getPlayLayer() + 1412);
-		gameTime = currentTime;
+		gameTime += (1.0 / (double)Common::getTPS()) + 0.00000001;
 
-		uint32_t frame = gdr::frameForTime(gameTime);
+		uint32_t gameFrame = macro.frameForTime(gameTime);
+
+		//log::debug("PROCESSCOMMANDS {} {} {}", MBO(double, GameManager::get()->getPlayLayer()->m_player1, 1936), GameManager::get()->getPlayLayer()->m_player1->m_position.x, gameFrame);
 
 		if (playerMode == PLAYBACK && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
-			((gameTime >= macro.inputs[actionIndex].time && macro.inputs[actionIndex].time > 0) || (frame >= macro.inputs[actionIndex].frame && macro.inputs[actionIndex].frame > 0)))
+			gameFrame >= macro.inputs[actionIndex].frame)
 		{
 			do
 			{
@@ -292,7 +286,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 					co.checkpoint.apply(co.player2 ? GameManager::get()->getPlayLayer()->m_player2 : GameManager::get()->getPlayLayer()->m_player1, false);
 				}
 				actionIndex++;
-			} while (actionIndex < macro.inputs.size() && ((gameTime >= macro.inputs[actionIndex].time && macro.inputs[actionIndex].time > 0) || (frame >= macro.inputs[actionIndex].frame && macro.inputs[actionIndex].frame > 0)));
+			} while (actionIndex < macro.inputs.size() && (gameFrame >= macro.inputs[actionIndex].frame));
 		}
 	}
 
@@ -312,7 +306,7 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 		return;
 
 	cocos2d::CCPoint position = player->m_position;
-	this->yVel = player->m_yVelocity;
+	this->yVel = MBO(double, player, 1936);
 	this->rotation = player->getRotation();
 	this->xVel = player->m_platformerXVelocity;
 	this->xPos = position.x;
@@ -344,22 +338,6 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 {
 	if (gameTime <= 0)
 		return;
-	
-	player->m_objectSnappedTo = this->lastSnappedTo;
-
-	player->m_yVelocity =
-		this->yVel; // get all these offsets from playerobject constructor
-	player->setRotation(this->rotation);
-
-	player->setPositionX(this->nodeXPos);
-	player->setPositionY(this->nodeYPos);
-
-	player->m_position =
-		cocos2d::CCPoint(this->xPos, this->yPos);
-
-	player->m_platformerXVelocity = this->xVel;
-
-	player->m_rotationSpeed = this->rotationRate;
 
 	if (fullRestore)
 	{
@@ -381,7 +359,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 			}
 		}
 
-		for (int i = 0; i < 1200; i++)
+		for (int i = 0; i < 1300; i++)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
@@ -391,6 +369,21 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	}
 
 	// 1350 - 1410
+	
+	player->m_objectSnappedTo = this->lastSnappedTo;
+
+	MBO(double, player, 1936) = this->yVel; //remove this when geode fixes the offset
+	player->setRotation(this->rotation);
+
+	player->setPositionX(this->nodeXPos);
+	player->setPositionY(this->nodeYPos);
+
+	player->m_position =
+		cocos2d::CCPoint(this->xPos, this->yPos);
+
+	player->m_platformerXVelocity = this->xVel;
+
+	player->m_rotationSpeed = this->rotationRate;
 }
 
 void Macrobot::save(const std::string& file)
