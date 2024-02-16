@@ -53,7 +53,6 @@ void ShowHitboxes::forceDraw(GJBaseGameLayer* self, bool editor)
 {
     bool show = Settings::get<bool>("level/show_hitbox/enabled", false);
 
-
     getDrawNode()->setVisible(show || editor);
 
     GameManager::get()->setGameVariable("0045", show);
@@ -62,9 +61,11 @@ void ShowHitboxes::forceDraw(GJBaseGameLayer* self, bool editor)
         return;
 
     bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
-
-    if(onDeath)
+     if(onDeath)
         getDrawNode()->setVisible(dead);
+
+    if(onDeath && !dead)
+        return;
 
     debugDrawing = true;
     reinterpret_cast<void(__thiscall*)(cocos2d::CCLayer*)>(base::get() + (editor ? 0x248420 : 0x1986f0))(
@@ -156,16 +157,13 @@ class $modify(CCDrawNode)
 
         if(ShowHitboxes::debugDrawing)
         {
-            colBaseNew = colBase;
-            colFillNew = colBase;
+            colFillNew = colBaseNew;
             borderWidth = Settings::get<float>("level/show_hitbox/size", 0.25f);
             colBaseNew.a = Settings::get<int>("level/show_hitbox/border_alpha", 255) / 255.f;
             colFillNew.a = Settings::get<int>("level/show_hitbox/fill_alpha", 50) / 255.f;
         }
         
-        bool res = CCDrawNode::drawPolygon(verts, count, colFillNew, borderWidth, colBaseNew);
-
-        return res;
+        return CCDrawNode::drawPolygon(verts, count, colFillNew, borderWidth, colBaseNew);
     }
 };
 

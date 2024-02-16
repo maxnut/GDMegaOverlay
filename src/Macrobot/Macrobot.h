@@ -40,6 +40,7 @@ namespace Macrobot
 	struct CheckpointData
 	{
 		double time;
+		uint32_t frame;
 		PlayerCheckpoint p1;
 		PlayerCheckpoint p2;
 	};
@@ -53,18 +54,19 @@ namespace Macrobot
 
 	struct Action : gdr::Input
 	{
-		double time = -1.0;
+		double time = -1;
 		std::optional<Correction> correction;
 
 		Action() = default;
 
-		Action(double time, int button, bool player2, bool down) : gdr::Input(0, button, player2, down), time(time)
+		Action(uint32_t frame, int button, bool player2, bool down) : gdr::Input(frame, button, player2, down)
 		{
 		}
 
 		void parseExtension(gdr::json::object_t obj) override
 		{
-			time = obj["time"];
+			if(obj.contains("time"))
+				time = obj["time"];
 
 			if (obj.contains("correction"))
 			{
@@ -86,8 +88,6 @@ namespace Macrobot
 		gdr::json::object_t saveExtension() const override
 		{
 			gdr::json::object_t obj = gdr::json::object();
-
-			obj["time"] = time;
 
 			if (correction.has_value())
 			{

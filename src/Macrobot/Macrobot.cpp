@@ -54,7 +54,7 @@ class $modify(PlayLayer)
 		if (checkpoints.contains(checkpoint) && playerMode != DISABLED && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
-			const auto check = [&](const Action &action) -> bool { return action.time >= checkpointData.time; };
+			const auto check = [&](const Action &action) -> bool { return action.frame >= checkpointData.frame; };
 			macro.inputs.erase(std::remove_if (macro.inputs.begin(), macro.inputs.end(), check), macro.inputs.end());
 			PlayLayer::loadFromCheckpoint(checkpoint);
 
@@ -109,8 +109,12 @@ class $modify(PlayLayer)
 					this->m_player1->pushButton(PlayerButton::Left);
 			}
 
+			bool isDual = MBO(bool, this, 878);
+
 			gameTime += (1.0 / (double)Common::getTPS()) + 0.00000001;
 			this->handleButton(false, 1, true);
+			if(isDual)
+				this->handleButton(false, 1, false);
 			gameTime -= (1.0 / (double)Common::getTPS()) + 0.00000001;
 		}
 		else
@@ -193,6 +197,7 @@ class $modify(CheckpointObject)
 		{
 			CheckpointData data;
 			data.time = gameTime;
+			data.frame = macro.frameForTime(gameTime);
 			data.p1.fromPlayer(GameManager::get()->getPlayLayer()->m_player1, true);
 			data.p2.fromPlayer(GameManager::get()->getPlayLayer()->m_player2, true);
 
@@ -267,6 +272,9 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
 		uint32_t gameFrame = macro.frameForTime(gameTime);
 
+		if(macro.inputs[actionIndex].time >= 0)
+			macro.inputs[actionIndex].frame = macro.frameForTime(macro.inputs[actionIndex].time);
+
 		//log::debug("PROCESSCOMMANDS {} {} {}", MBO(double, GameManager::get()->getPlayLayer()->m_player1, 1936), GameManager::get()->getPlayLayer()->m_player1->m_position.x, gameFrame);
 
 		if (playerMode == PLAYBACK && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&
@@ -276,7 +284,10 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 			{
 				Action &ac = macro.inputs[actionIndex];
 
-				handleAction(ac.down, ac.button, !ac.player2, ac.time);
+				if(ac.time >= 0)
+					ac.frame = macro.frameForTime(ac.time);
+
+				handleAction(ac.down, ac.button, !ac.player2, ac.frame / macro.framerate);
 
 				int correctionType = Settings::get<int>("macrobot/corrections");
 
@@ -413,7 +424,7 @@ void Macrobot::save(const std::string& file)
 
 	macro.author = playerName;
 	macro.description = macroDescription;
-	macro.duration = macro.inputs[macro.inputs.size() - 1].time;
+	macro.duration = macro.inputs[macro.inputs.size() - 1].frame / macro.framerate;
 	macro.gameVersion = 2.204f;
 	macro.version = 1.0f;
 
@@ -491,7 +502,10 @@ void Macrobot::drawWindow()
 			save(macroName);
 		GUI::sameLine();
 		if (GUI::button("Load##macropopup"))
+		{
+			getMacros();
 			ImGui::OpenPopup("Load Macro");
+		}
 
 		GUI::modalPopup("Load Macro", []{
 

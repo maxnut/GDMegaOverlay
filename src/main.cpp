@@ -38,7 +38,7 @@ void init()
 	Macrobot::getMacros();
 	Clickpacks::init();
 	Common::updateCheating();
-
+            
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
 		PhysicsBypass::calculateTickrate();

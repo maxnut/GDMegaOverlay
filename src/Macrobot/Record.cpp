@@ -9,12 +9,46 @@
 
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/PlayLayer.hpp>
+#include <Geode/modify/ShaderLayer.hpp>
+#include <Geode/modify/CCDirector.hpp>
 #include <Geode/Geode.hpp>
 
 using namespace geode::prelude;
 using namespace Record;
 
 bool levelDone = false;
+uintptr_t addr = 0;
+
+void glViewportHook(GLint a, GLint b, GLsizei c, GLsizei d)
+{
+	if(visiting && recorder.m_recording && inShader)
+	{
+		ImVec2 screenSize = ImGui::GetIO().DisplaySize;
+		if(c == screenSize.x && d == screenSize.y)
+		{
+			c = Settings::get<int>("recorder/resolution/x", 1920);
+			d = Settings::get<int>("recorder/resolution/y", 1080);
+		}
+	}
+	reinterpret_cast<void(__stdcall *)(GLint, GLint, GLsizei, GLsizei)>(addr)(a, b, c, d);
+}
+
+$execute
+{
+	void (__stdcall *glViewportFunc)(GLint, GLint, GLsizei, GLsizei) = glViewport;
+	addr = reinterpret_cast<uintptr_t>(glViewportFunc);
+	Mod::get()->hook(reinterpret_cast<void *>(addr), &glViewportHook, "glViewport", tulip::hook::TulipConvention::Stdcall);
+}
+
+class $modify(ShaderLayer)
+{
+	void visit()
+	{
+		inShader = true;
+		ShaderLayer::visit();
+		inShader = false;
+	}
+};
 
 class $modify(PlayLayer)
 {
@@ -57,6 +91,7 @@ Recorder::Recorder()
 void Recorder::start()
 {
 	levelDone = false;
+
 	int resolution[2];
 	resolution[0] = Settings::get<int>("recorder/resolution/x", 1920);
 	resolution[1] = Settings::get<int>("recorder/resolution/y", 1080);
@@ -203,13 +238,15 @@ void MyRenderTexture::begin()
 
 void MyRenderTexture::capture(std::mutex &lock, std::vector<u8> &data, volatile bool &lul)
 {
+	auto director = CCDirector::sharedDirector();
 	glViewport(0, 0, m_width, m_height);
 
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &m_old_fbo);
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
 
-	auto director = CCDirector::sharedDirector();
+	visiting = true;
 	GameManager::get()->getPlayLayer()->visit();
+	visiting = false;
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	lock.lock();

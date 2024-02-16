@@ -181,7 +181,7 @@ void Common::updateCheating()
 	bool showHitbox = Settings::get<bool>("level/show_hitbox/enabled", false);
 	bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
 
-	if (speedhack != 1.f || Macrobot::playerMode == 0 || (showHitbox && !onDeath))
+	if (speedhack != 1.f || Macrobot::playerMode == 0 || (showHitbox && !onDeath) || Settings::get<bool>("general/hide_pause/menu"))
 	{
 		isCheating = true;
 		return;

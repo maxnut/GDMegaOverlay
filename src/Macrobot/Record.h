@@ -67,6 +67,8 @@ public:
 namespace Record
 {
 	inline Recorder recorder;
+	inline bool visiting = false;
+	inline bool inShader = false;
 
 	void renderWindow();
 }
