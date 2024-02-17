@@ -30,6 +30,7 @@ namespace Macrobot
 		float rotation;
 		float rotationRate;
 		GameObject* lastSnappedTo = nullptr;
+		GameObject* lastSnappedTo2 = nullptr;
 
 		bool isOnSlope;
 		bool wasOnSlope;

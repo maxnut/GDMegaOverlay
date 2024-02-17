@@ -274,7 +274,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
 		uint32_t gameFrame = macro.frameForTime(gameTime);
 
-		if(macro.inputs[actionIndex].time >= 0)
+		if(macro.inputs.size() > 0 && macro.inputs[actionIndex].time >= 0)
 			macro.inputs[actionIndex].frame = macro.frameForTime(macro.inputs[actionIndex].time);
 
 		//log::debug("PROCESSCOMMANDS {} {} {}", MBO(double, GameManager::get()->getPlayLayer()->m_player1, 1936), GameManager::get()->getPlayLayer()->m_player1->m_position.x, gameFrame);
@@ -328,6 +328,7 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 	this->nodeYPos = player->getPositionY();
 	this->rotationRate = player->m_rotationSpeed;
 	this->lastSnappedTo = player->m_objectSnappedTo;
+	this->lastSnappedTo2 = MBO(GameObject*, player, 1724);
 	this->isOnSlope = player->m_isOnSlope;
 	this->wasOnSlope = player->m_wasOnSlope;
 
@@ -358,6 +359,9 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	{
 		// 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥
 		// no but seriously this has no right of working so well
+
+
+		//this range contains a value that makes orb y vel work, if it doesnt work on future gd updates change this
 		for (int i = 1410; i < 1700; i++)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
@@ -386,6 +390,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	// 1350 - 1410
 	
 	player->m_objectSnappedTo = this->lastSnappedTo;
+	MBO(GameObject*, player, 1724) = this->lastSnappedTo2; // get this in checkjumpsnaptoobject
 
 	player->m_yVelocity = this->yVel;//remove this when geode fixes the offset
 	player->setRotation(this->rotation);

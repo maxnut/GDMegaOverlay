@@ -67,7 +67,6 @@ class $modify(PlayLayer)
 
 	bool init(GJGameLevel* p0, bool p1, bool p2)
 	{
-		CC_SAFE_RELEASE_NULL(startPosLabel);
 		startposObjects.clear();
 		bool res = PlayLayer::init(p0, p1, p2);
 
@@ -85,18 +84,19 @@ class $modify(PlayLayer)
 
 void StartposSwitcher::showLabel()
 {
+	auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 	if (!startPosLabel)
 	{
-		auto size = cocos2d::CCDirector::sharedDirector()->getWinSize();
 		startPosLabel = cocos2d::CCLabelBMFont::create("", "bigFont.fnt");
-		startPosLabel->setPositionX(size.width / 2.f);
-		startPosLabel->setPositionY(25);
-
-		startPosLabel->setZOrder(1000);
-		startPosLabel->setScale(0.5f);
-		startPosLabel->setOpacity(0);
-		GameManager::get()->getPlayLayer()->addChild(startPosLabel);
+		startPosLabel->retain();
 	}
+
+	startPosLabel->setPositionX(size.width / 2.f);
+	startPosLabel->setPositionY(25);
+	startPosLabel->setZOrder(1000);
+	startPosLabel->setScale(0.5f);
+	startPosLabel->setOpacity(0);
+	GameManager::get()->getPlayLayer()->addChild(startPosLabel);
 
 	std::string labelStr = fmt::format("{}/{}", (index + 1), startposObjects.size());
 
