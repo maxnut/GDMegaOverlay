@@ -70,6 +70,9 @@ void initGUI()
 		if (GUI::checkbox("Framerate", "general/fps/enabled"))
 			Common::calculateFramerate();
 
+		if(Macrobot::playerMode == Macrobot::RECORDING || Macrobot::playerMode == Macrobot::PLAYBACK)
+			ImGui::BeginDisabled();
+
 		float tps = Settings::get<float>("general/tps/value", 240.f);
 		if (GUI::inputFloat("##TPSValue", &tps))
 			Mod::get()->setSavedValue<float>("general/tps/value", tps);
@@ -84,6 +87,9 @@ void initGUI()
 
 		if (GUI::checkbox("Physics Bypass", "general/tps/enabled"))
 			PhysicsBypass::calculateTickrate();
+
+		if(Macrobot::playerMode == Macrobot::RECORDING || Macrobot::playerMode == Macrobot::PLAYBACK)
+			ImGui::EndDisabled();
 
 		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
 		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
@@ -348,14 +354,6 @@ void initGUI()
 	recorder.position = {800, 280};
 	recorder.size.y = 450;
 	GUI::addWindow(recorder);
-
-	GUI::Window credits("Credits", [] {
-		GUI::textURL("SpaghettDev", "https://github.com/SpaghettDev");
-		GUI::textURL("TpdEA", "https://github.com/TpdeaX");
-	});
-	credits.position = {1550, 480};
-	credits.size.y = 120;
-	GUI::addWindow(credits);
 }
 
 void render()

@@ -55,14 +55,15 @@ void ShowHitboxes::forceDraw(GJBaseGameLayer* self, bool editor)
 
     getDrawNode()->setVisible(show || editor);
 
-    GameManager::get()->setGameVariable("0045", show);
+    bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
+
+    GameManager::get()->setGameVariable("0045", show && !onDeath);
 
     if(!show)
         return;
-
-    bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
+    
      if(onDeath)
-        getDrawNode()->setVisible(dead);
+        getDrawNode()->setVisible(dead || editor);
 
     if(onDeath && !dead)
         return;

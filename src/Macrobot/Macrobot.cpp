@@ -54,13 +54,14 @@ class $modify(PlayLayer)
 		if (checkpoints.contains(checkpoint) && playerMode != DISABLED && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
-			const auto check = [&](const Action &action) -> bool { return action.frame >= checkpointData.frame; };
+			const auto check = [&](const Action &action) -> bool { return action.frame > checkpointData.frame; };
 			macro.inputs.erase(std::remove_if (macro.inputs.begin(), macro.inputs.end(), check), macro.inputs.end());
 			PlayLayer::loadFromCheckpoint(checkpoint);
 
 			gameTime = checkpointData.time;
 			checkpointData.p1.apply(this->m_player1, true);
-			checkpointData.p2.apply(this->m_player2, true);
+			if(MBO(bool, this, 878))
+				checkpointData.p2.apply(this->m_player2, true);
 		}
 		else
 			PlayLayer::loadFromCheckpoint(checkpoint);
@@ -109,12 +110,13 @@ class $modify(PlayLayer)
 					this->m_player1->pushButton(PlayerButton::Left);
 			}
 
+			//TODO only do this when necessary
 			bool isDual = MBO(bool, this, 878);
 
 			gameTime += (1.0 / (double)Common::getTPS()) + 0.00000001;
-			this->handleButton(false, 1, true);
+			Macrobot::recordAction(PlayerButton::Jump, gameTime, false, true);
 			if(isDual)
-				this->handleButton(false, 1, false);
+				Macrobot::recordAction(PlayerButton::Jump, gameTime, false, false);
 			gameTime -= (1.0 / (double)Common::getTPS()) + 0.00000001;
 		}
 		else
@@ -317,7 +319,7 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 		return;
 
 	cocos2d::CCPoint position = player->m_position;
-	this->yVel = MBO(double, player, 1936);
+	this->yVel = player->m_yVelocity;
 	this->rotation = player->getRotation();
 	this->xVel = player->m_platformerXVelocity;
 	this->xPos = position.x;
@@ -326,6 +328,8 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 	this->nodeYPos = player->getPositionY();
 	this->rotationRate = player->m_rotationSpeed;
 	this->lastSnappedTo = player->m_objectSnappedTo;
+	this->isOnSlope = player->m_isOnSlope;
+	this->wasOnSlope = player->m_wasOnSlope;
 
 	if (fullCapture)
 	{
@@ -354,7 +358,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	{
 		// 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥 🗣️ 🔥
 		// no but seriously this has no right of working so well
-		for (int i = 1410; i < 1600; i++)
+		for (int i = 1410; i < 1700; i++)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
@@ -362,7 +366,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 			}
 		}
 
-		for (int i = 1800; i < 2265; i++)
+		for (int i = 1794; i < 2265; i++)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
@@ -383,7 +387,7 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	
 	player->m_objectSnappedTo = this->lastSnappedTo;
 
-	MBO(double, player, 1936) = this->yVel; //remove this when geode fixes the offset
+	player->m_yVelocity = this->yVel;//remove this when geode fixes the offset
 	player->setRotation(this->rotation);
 
 	player->setPositionX(this->nodeXPos);
@@ -395,6 +399,14 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 	player->m_platformerXVelocity = this->xVel;
 
 	player->m_rotationSpeed = this->rotationRate;
+
+	player->m_isOnSlope = this->isOnSlope;
+	player->m_wasOnSlope = this->wasOnSlope;
+
+	//TODO: spamming checkpoints on slopes changes slope start time
+
+	/* double slopeTime = MBO(double, self->m_player1, 2144);
+	double slopeStartTime = MBO(double, self->m_player1, 1240);*/
 }
 
 void Macrobot::save(const std::string& file)
@@ -486,6 +498,11 @@ void Macrobot::drawWindow()
 			PhysicsBypass::calculateTickrate();
 			if (GameManager::get()->getPlayLayer())
 				GameManager::get()->getPlayLayer()->resetLevelFromStart();
+
+			macro.framerate = 240.f;
+
+			if (Settings::get<bool>("general/tps/enabled"))
+				macro.framerate = Settings::get<float>("general/tps/value", 240.f);
 		}
 		if (ImGui::RadioButton("Play", (int*)&Macrobot::playerMode, (int)PLAYBACK))
 		{

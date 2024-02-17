@@ -31,6 +31,9 @@ namespace Macrobot
 		float rotationRate;
 		GameObject* lastSnappedTo = nullptr;
 
+		bool isOnSlope;
+		bool wasOnSlope;
+
 		std::vector<float> randomProperties;
 
 		void apply(PlayerObject* player, bool fullRestore);

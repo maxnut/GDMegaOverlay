@@ -170,6 +170,14 @@ class $modify(PlayLayer)
 			this
 		);
 
+		setupLabel(
+			"Attempts",
+			[&](cocos2d::CCLabelBMFont* pointer) {
+				pointer->setString(fmt::format("{} Attempts", this->m_level->m_attempts.value()).c_str());
+			},
+			this
+		);
+
 		//keep this at the bottom :)
 		setupLabel(
 			"Macro Info",
@@ -481,6 +489,8 @@ void Labels::renderWindow()
 	});
 
 	settingsForLabel("Best Run", [] { });
+
+	settingsForLabel("Attempts", [] { });
 
 	settingsForLabel("Macro Info", [] { });
 }

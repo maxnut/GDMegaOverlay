@@ -187,18 +187,7 @@ void Common::updateCheating()
 		return;
 	}
 
-	float tps = 240.f;
-
-	if (Settings::get<bool>("general/tps/enabled"))
-		tps = Settings::get<float>("general/tps/value", 240.f);
-	else
-		tps = 240.f;
-
-	if(Macrobot::playerMode == Macrobot::PLAYBACK)
-		tps = Macrobot::macro.framerate;
-
-	if(tps < 1.f)
-		tps = 1.f;
+	float tps = getTPS();
 
 	PlayLayer* pl = GameManager::get()->getPlayLayer();
 

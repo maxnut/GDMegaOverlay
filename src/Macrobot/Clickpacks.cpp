@@ -6,6 +6,8 @@
 #include "../Settings.hpp"
 #include <portable-file-dialogs.h>
 #include <filesystem>
+#include <algorithm>
+#include <cctype>
 
 #include <Geode/Geode.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
@@ -32,12 +34,17 @@ std::optional<Clickpack> Clickpack::fromPath(const fs::path& pathString)
 			return;
 
 		for (const auto& entry : fs::directory_iterator(folder))
-			if (entry.is_regular_file() && (entry.path().extension() == ".wav"))
+		{
+			std::string ext = entry.path().extension().string();
+			 std::transform(ext.begin(), ext.end(), ext.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+			if (entry.is_regular_file() && ext == ".wav")
 			{
 				FMOD::Sound* s = nullptr;
 				FMODAudioEngine::sharedEngine()->m_system->createSound(string::wideToUtf8(entry.path().wstring()).c_str(), FMOD_LOOP_OFF, 0, &s);
 				vector.push_back(s);
 			}
+		}
 	};
 
 	addFromPath(pack.clicks, clickPath);
