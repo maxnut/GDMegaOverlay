@@ -3,16 +3,25 @@
 #include "Settings.hpp"
 
 #include <Geode/modify/CCDirector.hpp>
+#include <Geode/modify/CCEGLView.hpp>
 
 using namespace geode::prelude;
 using namespace Blur;
+
+class $modify(CCEGLView) {
+
+	void toggleFullScreen(bool value, bool borderless) {
+		gdRenderTexture = nullptr;
+		CCEGLView::toggleFullScreen(value, borderless);
+	}
+};
 
 class $modify(CCDirector) {
     void drawScene() {
 
 		bool blur = Settings::get<bool>("menu/blur/enabled", false);
 
-		if(!GUI::isVisible && !blur)
+		if(!GUI::shouldRender() || !blur)
 		{
 			CCDirector::drawScene();
 			return;
@@ -23,6 +32,11 @@ class $modify(CCDirector) {
 		auto winSize = this->getOpenGLView()->getViewPortRect();
 		if(!gdRenderTexture)
 			gdRenderTexture = RenderTexture::create({winSize.size.width, winSize.size.height});
+
+		if(gdRenderTexture->resolution.x != winSize.size.width || gdRenderTexture->resolution.y != winSize.size.height)
+		{
+			gdRenderTexture->resize({winSize.size.width, winSize.size.height});
+		}
 
 		gdRenderTexture->bind();
 		gdRenderTexture->clear();
@@ -106,7 +120,7 @@ void Blur::blurWindowBackground()
 	ImVec2 window_pos = ImGui::GetWindowPos();
 	
 	//dont blur window titles
-	window_pos.y += screen_size.y / 45.f;
+	window_pos.y += 24.f;
     ImVec2 window_size = ImGui::GetWindowSize();
     ImVec2 rect_min = ImVec2(window_pos.x, window_pos.y);
     ImVec2 rect_max = ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y);

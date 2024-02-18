@@ -89,7 +89,12 @@ ImVec2 GUI::getJsonPosition(const std::string& name)
 		windowPositions[name]["y"] = .0f;
 	}
 
-	return {windowPositions[name]["x"].get<float>(), windowPositions[name]["y"].get<float>()};
+	ImVec2 screenSize = ImGui::GetIO().DisplaySize;
+
+	if(windowPositions[name]["x"] > 1 || windowPositions[name]["y"] > 1)
+		screenSize = {1, 1};
+
+	return {windowPositions[name]["x"].get<float>() * screenSize.x, windowPositions[name]["y"].get<float>() * screenSize.y};
 }
 
 void GUI::setJsonPosition(const std::string& name, ImVec2 pos)
@@ -184,9 +189,7 @@ void GUI::toggle()
 
 		if (screenSize.x != jsonScreenSize.x || screenSize.y != jsonScreenSize.y)
 		{
-			ImVec2 scaleFactor = {screenSize.x / jsonScreenSize.x, screenSize.y / jsonScreenSize.y};
-			if (scaleFactor.x >= 0.5f)
-				w.position = {w.position.x * scaleFactor.x, w.position.y * scaleFactor.y};
+			w.position = getJsonPosition(w.name);
 		}
 
 		uint8_t animationType = (w.name.length() + direction) % 4;
@@ -252,8 +255,8 @@ void GUI::save()
 {
 	for (Window& w : windows)
 	{
-		windowPositions[w.name]["x"] = w.position.x;
-		windowPositions[w.name]["y"] = w.position.y;
+		windowPositions[w.name]["x"] = (float)w.position.x / (float)ImGui::GetIO().DisplaySize.x;
+		windowPositions[w.name]["y"] = (float)w.position.y / (float)ImGui::GetIO().DisplaySize.y;
 	}
 
 	windowPositions["res"]["x"] = ImGui::GetIO().DisplaySize.x;
