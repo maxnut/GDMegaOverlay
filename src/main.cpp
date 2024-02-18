@@ -301,11 +301,26 @@ void initGUI()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
+
+		GUI::checkbox("Blur Background", "menu/blur/enabled");
+		
+		if(ImGui::IsItemHovered())
+			ImGui::SetTooltip("WARNING: this option is very performance heavy!");
+
+		GUI::arrowButton("Blur Settings");
+		GUI::modalPopup(
+			"Blur Settings",
+			[] {
+				GUI::inputFloat("Blur Darkness", "menu/blur/darkness", 1.f, 0.1f, 1.f);
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
+
 		float windowColor[3]{
 			Settings::get<float>("menu/window/color/r", 1.f),
 			Settings::get<float>("menu/window/color/g", .0f),
 			Settings::get<float>("menu/window/color/b", .0f)
 		};
+
 
 		if (GUI::colorEdit("Window Color", windowColor))
 		{

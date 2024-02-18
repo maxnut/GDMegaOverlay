@@ -1,7 +1,7 @@
 #include "Window.h"
 #include "GUI.h"
 #include "Settings.hpp"
-
+#include "Blur.h"
 #include <Geode/Geode.hpp>
 using namespace geode::prelude;
 
@@ -41,11 +41,15 @@ void Window::draw()
 		if (maxSize.x != 0 && maxSize.y != 0)
 			ImGui::SetNextWindowSizeConstraints(minSize, maxSize);
 
+		bool blurEnabled = Settings::get<bool>("menu/blur/enabled", false);
 		float windowTransparency = Settings::get<float>("menu/window/opacity", 0.98f);
 
-		ImGui::SetNextWindowBgAlpha(windowTransparency);
+		ImGui::SetNextWindowBgAlpha(blurEnabled ? 1 : windowTransparency);
 
 		ImGui::Begin(name.c_str(), (bool*)0, flags);
+
+		if(blurEnabled)
+			Blur::blurWindowBackground();
 
 		if (ImGui::IsMouseDragging(0, 0.1f) && ImGui::IsWindowFocused())
 		{

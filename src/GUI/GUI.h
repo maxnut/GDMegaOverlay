@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Widgets.h"
 #include "Shortcut.h"
+#include "RenderTexture.h"
 
 #include <nlohmann/json.hpp>
 #include <vector>

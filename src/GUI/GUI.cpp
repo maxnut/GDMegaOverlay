@@ -15,8 +15,9 @@
 #include "Common.h"
 #include "Hacks/SafeMode.h"
 
-using namespace geode::prelude;
+#include "Blur.h"
 
+using namespace geode::prelude;
 
 class $modify(CCKeyboardDispatcher)
 {
@@ -73,6 +74,8 @@ class $modify(MenuLayer)
 			GUI::canToggle = true;
 		}
 		GUI::hasLateInit = true;
+
+		Blur::compileBlurShader();
 
 		return MenuLayer::init();
 	}
