@@ -287,7 +287,11 @@ void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 	if (labelsCreated)
 	{
 		for (Label& l : labels)
+		{
+			int opacity = Settings::get<int>("labels/" + l.settingName + "/opacity", 150);
+			l.pointer->setOpacity(opacity);
 			l.process();
+		}
 	}
 
 	clickRegistered = false;
