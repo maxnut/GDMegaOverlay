@@ -75,19 +75,19 @@ precision lowp float;
 varying vec4 v_fragmentColor;				
 varying vec2 v_texCoord;					
 uniform sampler2D CC_Texture0;
-uniform float blurDarkness;			
+uniform float blurDarkness;		
+uniform float blurSize;		
+uniform int blurSteps;	
 											
 void main()									
 {
-	float blurSize = 0.0015;			
-	int radius = 10;
 	float pi = 3.1415926;
 	float sigma = 5.;
 
 	vec4 sum = vec4(0.);
 
-	for(int x = -radius; x <= radius; x++){
-        for(int y = -radius; y <= radius; y++){
+	for(int x = -blurSteps; x <= blurSteps; x++){
+        for(int y = -blurSteps; y <= blurSteps; y++){
             vec2 newUV = v_texCoord + vec2(float(x) * blurSize, float(y) * blurSize);
             sum += texture(CC_Texture0, newUV) * (exp(-(pow(float(x), 2.) + pow(float(y), 2.)) / (2. * pow(sigma, 2.))) / (2. * pi * pow(sigma, 2.)));
         }   
@@ -103,7 +103,6 @@ void main()
 void Blur::compileBlurShader()
 {
     blurProgram = new cocos2d::CCGLProgram();
-	blurProgram->retain();
 	blurProgram->initWithVertexShaderByteArray(vertexShaderCode, fragmentShaderCode);
 	blurProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
     blurProgram->addAttribute(kCCAttributeNameColor, kCCVertexAttrib_Color);
@@ -112,11 +111,44 @@ void Blur::compileBlurShader()
 	blurProgram->updateUniforms();
 }
 
-GLint oldTexture = -1;
+void Blur::blurCallback(const ImDrawList*, const ImDrawCmd*)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture);
+	blurProgram->use();
+	glBindTexture(GL_TEXTURE_2D, gdRenderTexture->getTexture());
+	blurProgram->setUniformsForBuiltins();
+	float blurDarkness = Settings::get<float>("menu/blur/darkness", 1.f);
+	float blurSize = Settings::get<float>("menu/blur/size", 0.0015f);
+	int blurSteps = Settings::get<int>("menu/blur/steps", 10);
+
+	if(darknessUniform == -1)
+		darknessUniform = blurProgram->getUniformLocationForName("blurDarkness");
+	else
+		blurProgram->setUniformLocationWith1f(darknessUniform, blurDarkness);
+
+	if(stepsUniform == -1)
+		stepsUniform = blurProgram->getUniformLocationForName("blurSteps");
+	else
+		blurProgram->setUniformLocationWith1i(stepsUniform, blurSteps);
+
+	if(sizeUniform == -1)
+		sizeUniform = blurProgram->getUniformLocationForName("blurSize");
+	else
+		blurProgram->setUniformLocationWith1f(sizeUniform, blurSize);
+}
+
+void Blur::resetCallback(const ImDrawList*, const ImDrawCmd*)
+{
+	glBindTexture(GL_TEXTURE_2D, oldTexture);
+	auto* shader = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor);
+	shader->use();
+	shader->setUniformsForBuiltins();
+}
 
 void Blur::blurWindowBackground()
 {
-	if(!blurProgram)
+	if(!blurProgram || !gdRenderTexture)
 		return;
 	
     ImVec2 screen_size = ImGui::GetIO().DisplaySize;
@@ -130,25 +162,15 @@ void Blur::blurWindowBackground()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	draw_list->PushClipRectFullScreen();
-	draw_list->AddCallback([](const ImDrawList*, const ImDrawCmd*)
-		{
-			glActiveTexture(GL_TEXTURE0);
-			glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture);
-			blurProgram->use();
-			glBindTexture(GL_TEXTURE_2D, gdRenderTexture->getTexture());
-			blurProgram->setUniformsForBuiltins();
-
-			float blurDarkness = Settings::get<float>("menu/blur/darkness", 1.f);
-			blurProgram->setUniformLocationWith1f(blurProgram->getUniformLocationForName("blurDarkness"), blurDarkness);
-		}, nullptr);
+	draw_list->AddCallback(blurCallback, nullptr);
 
 	//add rect filled doesnt have tex coords so i add them manually
 	float l = window_pos.x / screen_size.x;
 	float r = (window_pos.x + window_size.x) / screen_size.x;
 	float t = window_pos.y / screen_size.y;
-	t = fabs(t - 1);
+	t = 1 - t;
 	float b = (window_pos.y + window_size.y) / screen_size.y;
-	b = fabs(b - 1);
+	b = 1 - b;
 	
 	draw_list->AddRectFilled(rect_min, rect_max, IM_COL32_BLACK);
 	draw_list->VtxBuffer[draw_list->VtxBuffer.size() - 4].uv = {l, t};
@@ -156,13 +178,7 @@ void Blur::blurWindowBackground()
 	draw_list->VtxBuffer[draw_list->VtxBuffer.size() - 2].uv = {r, b};
 	draw_list->VtxBuffer[draw_list->VtxBuffer.size() - 1].uv = {l, b};
 	
-	draw_list->AddCallback([](const ImDrawList*, const ImDrawCmd*)
-	{
-		glBindTexture(GL_TEXTURE_2D, oldTexture);
-		auto* shader = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor);
-		shader->use();
-		shader->setUniformsForBuiltins();
-	}, nullptr);
+	draw_list->AddCallback(resetCallback, nullptr);
 
 	draw_list->PopClipRect();
 }

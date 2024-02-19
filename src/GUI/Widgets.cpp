@@ -327,6 +327,19 @@ bool GUI::inputFloat(const std::string& name, float* value, float min, float max
 	return result;
 }
 
+bool GUI::inputInt(const std::string& name, const std::string& setting, int defaultValue, int min, int max)
+{
+	int value = Settings::get<int>(setting, defaultValue);
+	bool result = false;
+	if (GUI::inputInt(name, &value, min, max))
+	{
+		Mod::get()->setSavedValue<int>(setting, value);
+		result = true;
+	}
+
+	return result;
+}	
+
 bool GUI::inputFloat(const std::string& name, const std::string& setting, float defaultValue, float min, float max)
 {
 	float value = Settings::get<float>(setting, defaultValue);

@@ -312,6 +312,8 @@ void initGUI()
 			"Blur Settings",
 			[] {
 				GUI::inputFloat("Blur Darkness", "menu/blur/darkness", 1.f, 0.1f, 1.f);
+				GUI::inputFloat("Blur Size", "menu/blur/size", 0.0015f, 0.0001f, 0.01f);
+				GUI::inputInt("Blur Steps", "menu/blur/steps", 10, 5, 20);
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
