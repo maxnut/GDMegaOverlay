@@ -398,10 +398,12 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Audio"))
 	{
-		bool hasVideo = ghc::filesystem::exists(Mod::get()->getSaveDir() / "renders" / std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()) / "rendered_video.mp4");
+		std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelName.c_str() + ("_" + std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()));
+		auto path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
+		bool hasVideo = ghc::filesystem::exists(path);
 
 		if(!hasVideo)
-			FLAlertLayer::create("Error", "The render for the level has not been found!", "Ok")->show();
+			FLAlertLayer::create("Error", ("The render for the level has not been found!\n" + string::wideToUtf8(path.wstring())).c_str(), "Ok")->show();
 		else
 		{
 			if (!ghc::filesystem::exists("ffmpeg.exe"))

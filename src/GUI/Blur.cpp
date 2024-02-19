@@ -21,7 +21,7 @@ class $modify(CCDirector) {
 
 		bool blur = Settings::get<bool>("menu/blur/enabled", false);
 
-		if(!GUI::shouldRender() || !blur)
+		if(!GUI::shouldRender() || !blur || !blurProgram)
 		{
 			CCDirector::drawScene();
 			return;
@@ -79,8 +79,8 @@ uniform float blurDarkness;
 											
 void main()									
 {
-	float blurSize = 0.001;			
-	int radius = 12;
+	float blurSize = 0.0015;			
+	int radius = 10;
 	float pi = 3.1415926;
 	float sigma = 5.;
 
@@ -116,6 +116,9 @@ GLint oldTexture = -1;
 
 void Blur::blurWindowBackground()
 {
+	if(!blurProgram)
+		return;
+	
     ImVec2 screen_size = ImGui::GetIO().DisplaySize;
 	ImVec2 window_pos = ImGui::GetWindowPos();
 	
