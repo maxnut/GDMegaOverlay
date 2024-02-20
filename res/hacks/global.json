@@ -39,20 +39,6 @@
             ]
         },
         {
-            "description": "Enables the mod button.",
-            "name": "Become Moderator",
-            "opcodes": [
-                {
-                    "address": "0x252890",
-                    "on": "90 90"
-                },
-                {
-                    "address": "0x252895",
-                    "on": "90 90"
-                }
-            ]
-        },
-        {
             "description": "Removed snapping to 0.00 setting volume to 0.03",
             "name": "Enable Low Volume",
             "opcodes": [

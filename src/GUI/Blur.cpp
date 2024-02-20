@@ -2,11 +2,19 @@
 #include "GUI.h"
 #include "Settings.hpp"
 
-#include <Geode/modify/CCDirector.hpp>
 #include <Geode/modify/CCEGLView.hpp>
+#include <Geode/modify/CCNode.hpp>
 
 using namespace geode::prelude;
 using namespace Blur;
+
+struct Vertex {
+    float position[3];  // 12 bytes
+    unsigned char color[4];     // 4 bytes
+    float texCoords[2];  // 8 bytes
+};
+
+GLuint VAO, VBO;
 
 class $modify(CCEGLView) {
 
@@ -14,35 +22,64 @@ class $modify(CCEGLView) {
 		gdRenderTexture = nullptr;
 		CCEGLView::toggleFullScreen(value, borderless);
 	}
+
+	void resizeWindow(int width, int height)
+	{
+		CCEGLView::resizeWindow(width, height);
+
+		if(gdRenderTexture)
+			gdRenderTexture->resize({(float)width, (float)height});
+	}
 };
 
-class $modify(CCDirector) {
-    void drawScene() {
+class $modify(CCNode) {
+    void visit() {
 
-		bool blur = Settings::get<bool>("menu/blur/enabled", false);
+		bool blur = Settings::get<bool>("menu/blur/enabled", false) || Settings::get<bool>("menu/blur/gd", false);
 
-		if(!GUI::shouldRender() || !blur || !blurProgram)
+		if(this != (CCNode*)CCDirector::sharedDirector()->getRunningScene() || !GUI::shouldRender() || !blur || !blurProgram)
 		{
-			CCDirector::drawScene();
+			CCNode::visit();
 			return;
 		}
 
-		CCDirector::drawScene();
-
-		auto winSize = this->getOpenGLView()->getViewPortRect();
 		if(!gdRenderTexture)
-			gdRenderTexture = RenderTexture::create({winSize.size.width, winSize.size.height});
-
-		if(gdRenderTexture->resolution.x != winSize.size.width || gdRenderTexture->resolution.y != winSize.size.height)
 		{
-			gdRenderTexture->resize({winSize.size.width, winSize.size.height});
+			auto winSize = CCDirector::sharedDirector()->getOpenGLView()->getViewPortRect();
+			gdRenderTexture = RenderTexture::create({winSize.size.width, winSize.size.height});
 		}
 
 		gdRenderTexture->bind();
 		gdRenderTexture->clear();
-		this->getRunningScene()->visit();
-       	gdRenderTexture->unbind();
+		CCNode::visit();
+		gdRenderTexture->unbind();
 
+		bool blurGD = Settings::get<bool>("menu/blur/gd", false);
+
+		glActiveTexture(GL_TEXTURE0);
+		glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture); 
+		glBindTexture(GL_TEXTURE_2D, gdRenderTexture->getTexture());
+
+		if(blurGD)
+		{
+			blurProgram->use();
+			setBlurUniforms();
+		}
+		else
+		{
+			auto* shader = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor);
+			shader->use();
+			shader->setUniformsForBuiltins();
+		}
+
+		glBindVertexArray(VAO);
+    	glDrawArrays(GL_QUADS, 0, 4);
+    	glBindVertexArray(0);
+
+		glBindTexture(GL_TEXTURE_2D, oldTexture);
+		auto *shader = CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor);
+		shader->use();
+		shader->setUniformsForBuiltins();
 	}
 };
 
@@ -77,6 +114,7 @@ varying vec2 v_texCoord;
 uniform sampler2D CC_Texture0;
 uniform float blurDarkness;		
 uniform float blurSize;		
+uniform float blurAmount;		
 uniform int blurSteps;	
 											
 void main()									
@@ -86,9 +124,11 @@ void main()
 
 	vec4 sum = vec4(0.);
 
+	float scaledBlurSize = blurAmount * blurSize * 0.001;
+
 	for(int x = -blurSteps; x <= blurSteps; x++){
         for(int y = -blurSteps; y <= blurSteps; y++){
-            vec2 newUV = v_texCoord + vec2(float(x) * blurSize, float(y) * blurSize);
+            vec2 newUV = v_texCoord + vec2(float(x) * scaledBlurSize, float(y) * scaledBlurSize);
             sum += texture(CC_Texture0, newUV) * (exp(-(pow(float(x), 2.) + pow(float(y), 2.)) / (2. * pow(sigma, 2.))) / (2. * pi * pow(sigma, 2.)));
         }   
     }
@@ -109,17 +149,42 @@ void Blur::compileBlurShader()
     blurProgram->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
 	blurProgram->link();
 	blurProgram->updateUniforms();
+
+	auto screenSize = CCDirector::sharedDirector()->getWinSize();
+
+	Vertex vertices[] = {
+        { 0.f, 0, 0.0f, 255, 255, 255, 255, 0.0f, 0.0f },
+        { screenSize.width + 0.1, 0.f, 0.0f, 255, 255, 255, 255, 1.0f, 0.0f },
+        { screenSize.width + 0.1, screenSize.height, 0.0f, 255, 255, 255, 255, 1.0f, 1.0f },
+        { 0,  screenSize.height + 0, 0.0f, 255, 255, 255, 255, 0.0f, 1.0f },
+    };
+
+	glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Vertex), (GLvoid*)12);
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)16);
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
-void Blur::blurCallback(const ImDrawList*, const ImDrawCmd*)
+void Blur::setBlurUniforms()
 {
-	glActiveTexture(GL_TEXTURE0);
-	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture);
-	blurProgram->use();
-	glBindTexture(GL_TEXTURE_2D, gdRenderTexture->getTexture());
 	blurProgram->setUniformsForBuiltins();
 	float blurDarkness = Settings::get<float>("menu/blur/darkness", 1.f);
-	float blurSize = Settings::get<float>("menu/blur/size", 0.0015f);
+	float blurSize = Settings::get<float>("menu/blur/size", 1.f);
 	int blurSteps = Settings::get<int>("menu/blur/steps", 10);
 
 	if(darknessUniform == -1)
@@ -136,6 +201,20 @@ void Blur::blurCallback(const ImDrawList*, const ImDrawCmd*)
 		sizeUniform = blurProgram->getUniformLocationForName("blurSize");
 	else
 		blurProgram->setUniformLocationWith1f(sizeUniform, blurSize);
+
+	if(amountUniform == -1)
+		amountUniform = blurProgram->getUniformLocationForName("blurAmount");
+	else
+		blurProgram->setUniformLocationWith1f(amountUniform, blurAmount);
+}
+
+void Blur::blurCallback(const ImDrawList*, const ImDrawCmd*)
+{
+	glActiveTexture(GL_TEXTURE0);
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture);
+	blurProgram->use();
+	glBindTexture(GL_TEXTURE_2D, gdRenderTexture->getTexture());
+	setBlurUniforms();
 }
 
 void Blur::resetCallback(const ImDrawList*, const ImDrawCmd*)

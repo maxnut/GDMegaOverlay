@@ -1,4 +1,7 @@
 #include "WindowAction.h"
+#include "Blur.h"
+#include "GUI/GUI.h"
+
 #include <algorithm>
 
 WindowAction* WindowAction::create(float duration, GUI::Window* window, ImVec2 targetPosition)
@@ -62,6 +65,9 @@ void WindowAction::update(float time)
 {
 	ImVec2 moveCurrent = { m_totalMovement.x * time, m_totalMovement.y * time };
 	m_window->renderPosition = { m_initialPosition.x + moveCurrent.x, m_initialPosition.y + moveCurrent.y };
+
+	//lul
+	Blur::blurAmount = GUI::toggled ? time : 1 - time;
 
 	if (isDone())
 		m_window->renderPosition = m_finalPosition;

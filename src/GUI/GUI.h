@@ -23,6 +23,7 @@ namespace GUI
 
 	inline bool isVisible = false;
 	inline bool shortcutLoop = false;
+	inline bool toggled = false;
 
 	inline bool hasLateInit = false;
 
@@ -52,6 +53,8 @@ namespace GUI
 
 	void save();
 	void load();
+
+	void resetDefault();
 
 	void saveStyle(const ghc::filesystem::path& name);
 	void loadStyle(const ghc::filesystem::path& name);

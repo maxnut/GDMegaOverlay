@@ -163,13 +163,12 @@ void GUI::toggle()
 	SafeMode::updateAuto();
 
 	isVisible = true;
-	static bool toggle = false;
-	toggle = !toggle;
+	toggled = !toggled;
 
 	// 🔥🔥🔥🔥
-	hideTimer = toggle ? -FLT_MAX : 0;
+	hideTimer = toggled ? -FLT_MAX : 0;
 
-	if (!toggle)
+	if (!toggled)
 		save();
 
 	for (WindowAction* ac : windowActions)
@@ -204,7 +203,7 @@ void GUI::toggle()
 		float transitionDuration = Settings::get<float>("menu/transition_duration", 0.35f);
 
 		WindowAction* action = WindowAction::create(
-			transitionDuration, &w, toggle ? w.position : ImVec2(w.position.x + dir.x, w.position.y + dir.y));
+			transitionDuration, &w, toggled ? w.position : ImVec2(w.position.x + dir.x, w.position.y + dir.y));
 		windowActions.push_back(action);
 	}
 }
@@ -323,6 +322,35 @@ void GUI::load()
 		}
 	}
 	f.close();
+}
+
+void GUI::resetDefault()
+{
+	std::ifstream f(Mod::get()->getResourcesDir() / "default_windows.json");
+
+	if (f)
+	{
+		std::stringstream buffer;
+		buffer << f.rdbuf();
+		try
+		{
+			windowPositions = json::parse(buffer.str());
+		}
+		catch(json::parse_error& ex)
+		{
+			log::error("{}", ex.what());
+			windowPositions = json::object();
+		}
+		buffer.clear();
+	}
+	f.close();
+
+	for(Window& window : windows)
+	{
+		window.position = getJsonPosition(window.name);
+		window.renderPosition = window.position;
+		window.size = getJsonSize(window.name, window.size);
+	}
 }
 
 void GUI::saveStyle(const ghc::filesystem::path& name)

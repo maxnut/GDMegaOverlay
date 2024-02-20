@@ -13,10 +13,15 @@ namespace Blur
     inline GLint darknessUniform = -1;
     inline GLint stepsUniform = -1;
     inline GLint sizeUniform = -1;
+    inline GLint amountUniform = -1;
+
+    inline float blurAmount = 1.f;
 
     void compileBlurShader();
 
     void blurWindowBackground();
+
+    void setBlurUniforms();
 
     void blurCallback(const ImDrawList*, const ImDrawCmd*);
     void resetCallback(const ImDrawList*, const ImDrawCmd*);

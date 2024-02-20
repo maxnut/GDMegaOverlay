@@ -301,20 +301,33 @@ void initGUI()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
+		auto blurSettings = [] {
+				GUI::inputFloat("Blur Darkness", "menu/blur/darkness", 1.f, 0.1f, 1.f);
+				GUI::inputFloat("Blur Size", "menu/blur/size", 1.f, 0.1f, 10.f);
+				GUI::inputInt("Blur Steps", "menu/blur/steps", 10, 5, 20);
+			};
+
 
 		GUI::checkbox("Blur Background", "menu/blur/enabled");
 		
 		if(ImGui::IsItemHovered())
 			ImGui::SetTooltip("WARNING: this option is very performance heavy!");
-
-		GUI::arrowButton("Blur Settings");
+		
+		GUI::arrowButton("Blur Settings##0");
 		GUI::modalPopup(
-			"Blur Settings",
-			[] {
-				GUI::inputFloat("Blur Darkness", "menu/blur/darkness", 1.f, 0.1f, 1.f);
-				GUI::inputFloat("Blur Size", "menu/blur/size", 0.0015f, 0.0001f, 0.01f);
-				GUI::inputInt("Blur Steps", "menu/blur/steps", 10, 5, 20);
-			},
+			"Blur Settings##0",
+			blurSettings,
+			ImGuiWindowFlags_AlwaysAutoResize);
+
+		GUI::checkbox("Blur GD", "menu/blur/gd");
+
+		if(ImGui::IsItemHovered())
+			ImGui::SetTooltip("WARNING: this option is very performance heavy!");
+
+		GUI::arrowButton("Blur Settings##1");
+		GUI::modalPopup(
+			"Blur Settings##1",
+			blurSettings,
 			ImGuiWindowFlags_AlwaysAutoResize);
 
 		float windowColor[3]{
@@ -339,12 +352,41 @@ void initGUI()
 			ShellExecute(0, NULL, string::wideToUtf8(Mod::get()->getResourcesDir().wstring()).c_str(), NULL, NULL, SW_SHOW);
 		if (GUI::button("Open Save Folder"))
 			ShellExecute(0, NULL, string::wideToUtf8(Mod::get()->getSaveDir().wstring()).c_str(), NULL, NULL, SW_SHOW);
+		if (GUI::button("Reset Windows"))
+			GUI::resetDefault();
 	});
 	menuSettings.position = {1050, 250};
 	menuSettings.size.y = 300;
 	GUI::addWindow(menuSettings);
 
-	GUI::Window playerWindow("Player", [] { JsonPatches::drawFromPatches(JsonPatches::player); });
+	GUI::Window playerWindow("Player", [] { 
+		JsonPatches::drawFromPatches(JsonPatches::player);
+		
+		GUI::checkbox("Custom Wave Trail", "player/trail/enabled");
+
+		GUI::arrowButton("Wave Customization");
+		GUI::modalPopup(
+			"Wave Customization",
+			[]{
+				GUI::inputFloat("Wave Trail Size", "player/trail/size", 1.f, 0.f, 100.f);
+
+				float trailColor[3]{
+					Settings::get<float>("player/trail/color/r", 1.f),
+					Settings::get<float>("player/trail/color/g", 1.0f),
+					Settings::get<float>("player/trail/color/b", 1.0f)
+				};
+
+				GUI::checkbox("Wave Trail Color", "player/trail/color/enabled");
+
+				if (GUI::colorEdit("Trail Color", trailColor))
+				{
+					Mod::get()->setSavedValue<float>("player/trail/color/r", trailColor[0]);
+					Mod::get()->setSavedValue<float>("player/trail/color/g", trailColor[1]);
+					Mod::get()->setSavedValue<float>("player/trail/color/b", trailColor[2]);
+				}
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
+	});
 	playerWindow.position = {800, 50};
 	playerWindow.size.y = 180;
 	GUI::addWindow(playerWindow);
