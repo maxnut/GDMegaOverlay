@@ -21,6 +21,8 @@ namespace Common
 	void saveIcons();
 	void loadIcons();
 
+	void uncompleteLevel();
+
 	float getTPS();
 
 	void updateCheating();

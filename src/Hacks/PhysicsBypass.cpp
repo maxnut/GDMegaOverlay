@@ -25,8 +25,8 @@ void PhysicsBypass::calculateTickrate()
     float tps = Common::getTPS();
     util::Write<float>(base::get() + 0x49D548, 1.f / tps);
     
-    if(tps == 240.f)
-        return;
+    /* if(tps == 240.f)
+        return; */
     
     if(GameManager::get()->getPlayLayer() && GameManager::get()->getPlayLayer()->m_level->m_timestamp > 0)
     {

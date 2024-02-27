@@ -119,17 +119,15 @@ class $modify(PlayLayer)
 				float acc = p * 100.f;
 				float limit = Settings::get<float>("labels/Noclip Accuracy/limit", 0.f);
 
+				pointer->setColor(dead ? ccColor3B(0, 255, 0) : ccColor3B(255, 255, 255));
+
 				if (!noclipDead)
 				{
 					if (acc <= limit)
-					{
-						JsonPatches::togglePatch(JsonPatches::player, "NoClip", false);
-
 						noclipDead = true;
-					}
 					pointer->setString(
 						frames == 0
-							? "Accuracy: 100%"
+							? "Accuracy: 100.00%"
 							: cocos2d::CCString::createWithFormat("Accuracy: %.2f%%", acc)->getCString()
 					);
 				}
@@ -140,6 +138,7 @@ class $modify(PlayLayer)
 		setupLabel(
 			"Noclip Deaths",
 			[&](cocos2d::CCLabelBMFont* pointer) {
+				pointer->setColor(dead ? ccColor3B(0, 255, 0) : ccColor3B(255, 255, 255));
 				pointer->setString(cocos2d::CCString::createWithFormat("Deaths: %i", realDeaths)->getCString());
 			},
 			this
@@ -203,11 +202,23 @@ class $modify(PlayLayer)
 
 	void destroyPlayer(PlayerObject* player, GameObject* object)
 	{
+		if(!anticheatSpike)
+			anticheatSpike = object;
+
+		if(object == anticheatSpike)
+			return PlayLayer::destroyPlayer(player, object);
+
+		if(noclipDead)
+			JsonPatches::togglePatch(JsonPatches::player, "NoClip", false);
+
 		PlayLayer::destroyPlayer(player, object);
+
+		if(noclipDead)
+			JsonPatches::togglePatch(JsonPatches::player, "NoClip", true);
 
 		if(player && player->m_isDead)
 		{
-			currentRun.second = PlayLayer::getCurrentPercent();
+			currentRun.second = this->getCurrentPercent();
 
 			float currentRunTotal = currentRun.second - currentRun.first;
 			float bestRunTotal = bestRun.second - bestRun.first;
@@ -216,11 +227,7 @@ class $modify(PlayLayer)
 				bestRun = currentRun;
 		}
 
-		if(frames > 60)
-			dead = true;
-
-		if(noclipDead)
-			JsonPatches::togglePatch(JsonPatches::player, "NoClip", true);
+		dead = true;
 	}
 
 	void levelComplete()
@@ -247,6 +254,8 @@ class $modify(PlayLayer)
 		clicks.clear();
 		currentRun.second = 0;
 		PlayLayer::resetLevel();
+
+		anticheatSpike = nullptr;
 
 		currentRun.first = PlayLayer::getCurrentPercent();
 	}

@@ -32,6 +32,7 @@ namespace GUI
 	bool inputInt(const std::string&, int*, int = -INT_MAX, int = INT_MAX);
 	bool inputInt(const std::string&, const std::string&, int, int = -INT_MAX, int = INT_MAX);
 	bool inputInt2(const std::string&, int*, int = -INT_MAX, int = INT_MAX, int = -INT_MAX, int = INT_MAX);
+	bool inputFloat2(const std::string&, float*, float = -FLT_MAX, float = FLT_MAX, float = -FLT_MAX, float = FLT_MAX);
 	bool inputFloat(const std::string&, float*, float = -FLT_MAX, float = FLT_MAX);
 	bool inputFloat(const std::string&, const std::string&, float, float = -FLT_MAX, float = FLT_MAX);
 	bool dragInt(const std::string&, int*, int = -INT_MAX, int = INT_MAX);

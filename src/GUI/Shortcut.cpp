@@ -95,6 +95,17 @@ void GUI::Shortcut::renderWindow()
 		}
 	}
 
+	bool vsync = GameManager::get()->getGameVariable("0030");
+
+	if(GUI::checkbox("Vsync", &vsync))
+	{
+		GameManager::get()->setGameVariable("0030", vsync);
+		Common::calculateFramerate();
+	}
+
+	if(GUI::button("Uncomplete Level"))
+		Common::uncompleteLevel();
+
 	if (GUI::button("Toggle Practice") && GameManager::get()->getPlayLayer())
 		GameManager::get()->getPlayLayer()->togglePracticeMode(!GameManager::get()->getPlayLayer()->m_isPracticeMode);
 

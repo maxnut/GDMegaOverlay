@@ -44,6 +44,8 @@ inline bool dead = false;
 inline bool noclipDead = false;
 inline bool lastFrameDead = false;
 
+inline GameObject* anticheatSpike = nullptr;
+
 Label setupLabel(const std::string& labelSettingName, const std::function<void(cocos2d::CCLabelBMFont*)> &function, cocos2d::CCLayer* playLayer);
 
 void calculatePositions();

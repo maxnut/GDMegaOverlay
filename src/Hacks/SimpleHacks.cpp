@@ -1,8 +1,9 @@
-#include "SimpleHacks.h"
 #include "Common.h"
 #include "Settings.hpp"
 
 #include <Geode/modify/HardStreak.hpp>
+#include <Geode/modify/ShaderLayer.hpp>
+#include <Geode/modify/PlayLayer.hpp>
 
 using namespace geode::prelude;
 
@@ -33,4 +34,32 @@ class $modify(HardStreak)
 
         HardStreak::updateStroke(dt);
     }
+};
+
+class $modify(PlayLayer)
+{
+    void resetLevel()
+    {
+        PlayLayer::resetLevel();
+
+        if(!Settings::get<bool>("level/instant_complete", false))
+            return;
+
+        this->playPlatformerEndAnimationToPos({0, 105}, true);
+    }
+};
+
+class $modify(ShaderLayer)
+{
+	void visit()
+	{
+        bool enabled = Settings::get<bool>("level/no_shaders", false);
+        if(enabled)
+        {
+		    CCNode::visit();
+            return;
+        }
+
+        ShaderLayer::visit();
+	}
 };
