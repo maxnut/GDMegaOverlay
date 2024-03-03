@@ -41,6 +41,7 @@ Manual Installations using Steam:
 * Startpos Switcher
 * Macro Bot
 * Internal Recorder
+* Layout Mode
 * and much more!
 
 ## Credits
