@@ -23,6 +23,7 @@ using namespace geode::prelude;
 #include "Macrobot/Macrobot.h"
 #include "Macrobot/Record.h"
 #include "Settings.hpp"
+#include "GUI/Blur.h"
 
 void init()
 {
@@ -74,7 +75,7 @@ void initGUI()
 			ImGui::BeginDisabled();
 
 		float tps = Settings::get<float>("general/tps/value", 240.f);
-		if (GUI::inputFloat("##TPSValue", &tps))
+		if (GUI::inputFloat("##TPSValue", &tps, 1.f, 10000.f))
 			Mod::get()->setSavedValue<float>("general/tps/value", tps);
 
 		if (GUI::shouldRender())
@@ -92,7 +93,7 @@ void initGUI()
 			ImGui::EndDisabled();
 
 		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
-		if (GUI::inputFloat("##SpeedhackValue", &speedhack))
+		if (GUI::inputFloat("##SpeedhackValue", &speedhack), 0.0000001f, 1000.f)
 		{
 			if (speedhack > 0)
 				Mod::get()->setSavedValue<float>("general/speedhack/value", speedhack);
@@ -264,6 +265,7 @@ void initGUI()
 		GUI::checkbox("No Shaders", "level/no_shaders");
 		GUI::checkbox("Instant Complete", "level/instant_complete");
 
+		GUI::checkbox("Layout Mode", "level/layout_mode");
 		GUI::checkbox("Hitbox Multiplier", "level/hitbox_multiplier");
 
 		GUI::arrowButton("Hitbox Multiplier Settings");

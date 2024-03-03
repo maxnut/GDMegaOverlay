@@ -202,7 +202,7 @@ class $modify(PlayLayer)
 
 	void destroyPlayer(PlayerObject* player, GameObject* object)
 	{
-		if(!anticheatSpike)
+		if(!anticheatSpike && frames < 5)
 			anticheatSpike = object;
 
 		if(object == anticheatSpike)

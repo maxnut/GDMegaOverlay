@@ -75,8 +75,6 @@ class $modify(MenuLayer)
 		}
 		GUI::hasLateInit = true;
 
-		Blur::compileBlurShader();
-
 		return MenuLayer::init();
 	}
 };
@@ -161,6 +159,7 @@ void GUI::toggle()
 
 	Common::updateCheating();
 	SafeMode::updateAuto();
+	Blur::compileBlurShader();
 
 	isVisible = true;
 	toggled = !toggled;

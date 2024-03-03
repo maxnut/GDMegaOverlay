@@ -17,6 +17,8 @@ namespace Blur
 
     inline float blurAmount = 1.f;
 
+    inline bool compiled = false;
+
     void compileBlurShader();
 
     void blurWindowBackground();

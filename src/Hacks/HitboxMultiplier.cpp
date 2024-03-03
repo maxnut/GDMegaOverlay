@@ -2,14 +2,61 @@
 
 #include "Settings.hpp"
 
+#include <Geode/modify/PlayLayer.hpp>
+
+#include "../Common.h"
+
+class $modify(PlayLayer)
+{
+    bool init(GJGameLevel* level, bool unk1, bool unk2)
+    {
+        bool res = PlayLayer::init(level, unk1, unk2);
+        HitboxMultiplier::rectForObject.clear();
+        HitboxMultiplier::memberRectForObject.clear();
+        return res;
+    }
+
+    void resetLevel()
+    {
+        for(auto&pair : HitboxMultiplier::memberRectForObject)
+            MBO(cocos2d::CCRect, pair.first, 728) = pair.second;
+
+        HitboxMultiplier::memberRectForObject.clear();
+        
+        PlayLayer::resetLevel();
+    }
+};
+
 void scaleRect(cocos2d::CCRect* r, float a, float b)
 {
-	r->origin.x += r->size.width / 2;
-	r->origin.y += r->size.height / 2;
+	r->origin.x += r->size.width / 2.f;
+	r->origin.y += r->size.height / 2.f;
 	r->size.width *= a;
 	r->size.height *= b;
-	r->origin.x -= r->size.width / 2;
-	r->origin.y -= r->size.height / 2;
+	r->origin.x -= r->size.width / 2.f;
+	r->origin.y -= r->size.height / 2.f;
+}
+
+void HitboxMultiplier::scaleHazard(GameObject* hazard)
+{
+    if(hazard->m_objectType != GameObjectType::Hazard && hazard->m_objectType != GameObjectType::AnimatedHazard) 
+        return;
+    
+    float scaleHazards[2] = {Settings::get<float>("level/hitbox_multiplier/scale_hazards/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_hazards/y", 1.f)};
+
+    cocos2d::CCRect rect = (MBO(cocos2d::CCRect, hazard, 728));
+
+    if(rect.origin.x == 0 && rect.origin.y == 0 || rect.size.width == 0 && rect.size.height == 0)
+        return;
+
+    if(!memberRectForObject.contains(hazard))
+        memberRectForObject[hazard] = rect;
+    else
+        rect = memberRectForObject[hazard];
+
+    scaleRect(&rect, scaleHazards[0], scaleHazards[1]);
+
+    MBO(cocos2d::CCRect, hazard, 728) = rect;
 }
 
 cocos2d::CCRect* HitboxMultiplier::GameObjectGetObjectRect(GameObject* obj)
@@ -24,7 +71,6 @@ cocos2d::CCRect* HitboxMultiplier::GameObjectGetObjectRect(GameObject* obj)
     float x = 1, y = 1;
     
     float scaleSlopes[2] = {Settings::get<float>("level/hitbox_multiplier/scale_slopes/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_slopes/y", 1.f)};
-	float scaleHazards[2] = {Settings::get<float>("level/hitbox_multiplier/scale_hazards/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_hazards/y", 1.f)};
 	float scalePlayer[2] = {Settings::get<float>("level/hitbox_multiplier/scale_player/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_player/y", 1.f)};
 
     if(obj == GameManager::get()->getGameLayer()->m_player1 || obj == GameManager::get()->getGameLayer()->m_player2)
@@ -38,11 +84,6 @@ cocos2d::CCRect* HitboxMultiplier::GameObjectGetObjectRect(GameObject* obj)
         {
             default:
                 return reinterpret_cast<cocos2d::CCRect*(__thiscall*)(GameObject*)>(base::get() + 0x13a570)(obj);
-            case GameObjectType::Hazard:
-            case GameObjectType::AnimatedHazard:
-                x = scaleHazards[0];
-                y = scaleHazards[1];
-                break;
             case GameObjectType::Slope:
                 x = scaleSlopes[0];
                 y = scaleSlopes[1];
@@ -59,4 +100,6 @@ cocos2d::CCRect* HitboxMultiplier::GameObjectGetObjectRect(GameObject* obj)
 $execute
 {
 	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x13a570), &HitboxMultiplier::GameObjectGetObjectRect, "GameObject::getObjectRect", tulip::hook::TulipConvention::Thiscall);
+
+    Common::sectionLoopFunctions.push_back({HitboxMultiplier::scaleHazard, "level/hitbox_multiplier"});
 }

@@ -95,6 +95,32 @@
                     "on": "C3"
                 }
             ]
+        },
+        {
+            "description": "Disables the particles from the ship and the ufo.",
+            "name": "No Vehicle Particles",
+            "opcodes": [
+                {
+                    "address": "0x2D4810",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x2C2DF1",
+                    "on": "90 90"
+                },
+                {
+                    "address": "0x49E5A0",
+                    "on": "00 00 80 3F 00 00 00 00 00 00 00 00 00 00 00 00"
+                },
+                {
+                    "address": "0x49E5D0",
+                    "on": "00 00 80 3F 00 00 00 00 00 00 00 00 00 00 00 00"
+                },
+                {
+                    "address": "0x49E600",
+                    "on": "00 00 80 3F BF BE 3E 3F 00 00 00 00 00 00 00 00"
+                }
+            ]
         }
     ]
 }

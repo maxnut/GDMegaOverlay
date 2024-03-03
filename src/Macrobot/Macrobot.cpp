@@ -280,7 +280,7 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
 		if(macro.inputs.size() > 0 && macro.inputs[actionIndex].time >= 0)
 			macro.inputs[actionIndex].frame = macro.frameForTime(macro.inputs[actionIndex].time);
-
+			
 		//log::debug("PROCESSCOMMANDS {} {} {}", MBO(double, GameManager::get()->getPlayLayer()->m_player1, 1936), GameManager::get()->getPlayLayer()->m_player1->m_position.x, gameFrame);
 
 		if (playerMode == PLAYBACK && macro.inputs.size() > 0 && actionIndex < macro.inputs.size() &&

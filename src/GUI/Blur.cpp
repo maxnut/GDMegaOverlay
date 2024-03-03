@@ -43,6 +43,9 @@ class $modify(CCNode) {
 			return;
 		}
 
+		if(!compiled)
+			Blur::compileBlurShader();
+
 		if(!gdRenderTexture)
 		{
 			auto winSize = CCDirector::sharedDirector()->getOpenGLView()->getViewPortRect();
@@ -142,6 +145,11 @@ void main()
 
 void Blur::compileBlurShader()
 {
+	bool blur = Settings::get<bool>("menu/blur/enabled", false) || Settings::get<bool>("menu/blur/gd", false);
+
+	if(compiled || !blur)
+		return;
+
     blurProgram = new cocos2d::CCGLProgram();
 	blurProgram->initWithVertexShaderByteArray(vertexShaderCode, fragmentShaderCode);
 	blurProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
@@ -178,6 +186,8 @@ void Blur::compileBlurShader()
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+	compiled = true;
 }
 
 void Blur::setBlurUniforms()

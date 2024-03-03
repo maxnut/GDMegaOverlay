@@ -220,6 +220,49 @@ void Common::updateCheating()
 	isCheating = false;
 }
 
+class $modify(PlayLayer)
+{
+	void updateVisibility(float dt)
+	{
+		PlayLayer::updateVisibility(dt);
+
+		bool doLoop = false;
+
+		for(auto &pair : Common::sectionLoopFunctions)
+		{
+			bool setting = Settings::get<bool>(pair.second, false);
+			doLoop |= setting;
+		}
+
+		if(!doLoop)
+			return;
+
+		int cameraSection = MBO(int, this, 10676);
+		int cameraSectionLast = MBO(int, this, 10680);
+
+		gd::vector<gd::vector<gd::vector<GameObject*>*>*> sections = MBO(std::vector<std::vector<std::vector<GameObject*>*>*>, this, 11336);
+
+		for(int i = cameraSection; i < cameraSectionLast; i++)
+		{
+			if(!sections.at(i))
+				continue;
+
+			for(int j = 0; j < sections.at(i)->size(); j++)
+			{
+				if(!sections.at(i)->at(j))
+					continue;
+
+				for(int k = 0; k < sections.at(i)->at(j)->size(); k++)
+				{
+					auto obj = sections.at(i)->at(j)->at(k);
+					for(auto &pair : Common::sectionLoopFunctions)
+						pair.first(obj);
+				}
+			}
+		}
+	}
+};
+
 class $modify(MenuLayer)
 {
 	bool init()

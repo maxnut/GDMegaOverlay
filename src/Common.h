@@ -2,7 +2,10 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 #include "util.hpp"
+
+class GameObject;
 
 namespace cocos2d
 {
@@ -11,6 +14,8 @@ namespace cocos2d
 
 namespace Common
 {
+	inline std::vector<std::pair<std::function<void(GameObject*)>, std::string>> sectionLoopFunctions;
+
 	inline bool iconsLoaded = false;
 	inline bool isCheating = false;
 
