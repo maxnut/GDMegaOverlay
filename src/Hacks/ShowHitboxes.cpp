@@ -145,7 +145,7 @@ void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
 $execute
 {
-	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x23f720), &LevelEditorLayerUpdateEditor, "LevelEditorLayer::UpdateEditor", tulip::hook::TulipConvention::Thiscall);
+	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x23f720), &LevelEditorLayerUpdateEditor, "LevelEditorLayer::updateEditor", tulip::hook::TulipConvention::Thiscall);
     Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
 }
 

@@ -33,9 +33,6 @@ namespace GUI
 
 	inline std::function<void()> lateInit;
 
-	inline bool(__thiscall* menuLayerInit)(int* self);
-	bool __fastcall menuLayerInitHook(int* self, void*);
-
 	ImVec2 getJsonPosition(const std::string&);
 	void setJsonPosition(const std::string&, ImVec2);
 

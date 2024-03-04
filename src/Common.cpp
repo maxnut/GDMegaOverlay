@@ -240,7 +240,7 @@ class $modify(PlayLayer)
 		int cameraSection = MBO(int, this, 10676);
 		int cameraSectionLast = MBO(int, this, 10680);
 
-		gd::vector<gd::vector<gd::vector<GameObject*>*>*> sections = MBO(std::vector<std::vector<std::vector<GameObject*>*>*>, this, 11336);
+		gd::vector<gd::vector<gd::vector<GameObject*>*>*> sections = MBO(gd::vector<gd::vector<gd::vector<GameObject*>*>*>, this, 11336);
 
 		for(int i = cameraSection; i < cameraSectionLast; i++)
 		{
@@ -256,7 +256,10 @@ class $modify(PlayLayer)
 				{
 					auto obj = sections.at(i)->at(j)->at(k);
 					for(auto &pair : Common::sectionLoopFunctions)
-						pair.first(obj);
+					{
+						if(Settings::get<bool>(pair.second, false))
+							pair.first(obj);
+					}
 				}
 			}
 		}

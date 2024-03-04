@@ -8,4 +8,5 @@ Open Source, feature-rich, gui-integrated Geometry Dash mod menu.
 * Startpos Switcher
 * Macro Bot
 * Internal Recorder
+* Layout Mode
 * and much more!
