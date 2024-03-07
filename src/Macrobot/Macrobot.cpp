@@ -45,12 +45,12 @@ class $modify(PlayLayer)
 	void onQuit()
 	{
 		PlayLayer::onQuit();
-		gameTime = 0;
 		checkpoints.clear();
 	}
 
 	void loadFromCheckpoint(CheckpointObject * checkpoint)
 	{
+		resetFromStart = false;
 		if (checkpoints.contains(checkpoint) && playerMode != DISABLED && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData checkpointData = checkpoints[checkpoint];
@@ -58,7 +58,6 @@ class $modify(PlayLayer)
 			macro.inputs.erase(std::remove_if (macro.inputs.begin(), macro.inputs.end(), check), macro.inputs.end());
 			PlayLayer::loadFromCheckpoint(checkpoint);
 
-			gameTime = checkpointData.time;
 			checkpointData.p1.apply(this->m_player1, true);
 			if(MBO(bool, this, 878))
 				checkpointData.p2.apply(this->m_player2, true);
@@ -73,8 +72,8 @@ class $modify(PlayLayer)
 		{
 			actionIndex = 0;
 			correctionIndex = 0;
-			gameTime = 9999999999;
 
+			resetFromStart = true;
 			resetFrame = true;
 
 			downForKey1.clear();
@@ -88,9 +87,8 @@ class $modify(PlayLayer)
 			macro.levelInfo.id = level->m_levelID.value();
 			macro.levelInfo.name = level->m_levelName;
 
-			if (gameTime == 9999999999)
+			if (resetFromStart)
 			{
-				gameTime = 0;
 				if (playerMode == RECORDING)
 				{
 					checkpoints.clear();
@@ -115,11 +113,9 @@ class $modify(PlayLayer)
 				//TODO only do this when necessary
 				bool isDual = MBO(bool, this, 878);
 
-				gameTime += (1.0 / (double)Common::getTPS()) + 0.00000001;
-				Macrobot::recordAction(PlayerButton::Jump, gameTime, false, true);
+				Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8/*  + 1 */, false, true);
 				if(isDual)
-					Macrobot::recordAction(PlayerButton::Jump, gameTime, false, false);
-				gameTime -= (1.0 / (double)Common::getTPS()) + 0.00000001;
+					Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8/*  + 1 */, false, false);
 			}
 		}
 		else
@@ -137,12 +133,12 @@ class $modify(PlayerObject)
 		
 		auto pl = GameManager::get()->getPlayLayer();
 
-		if (pl && playerMode == RECORDING && gameTime != 9999999999)
+		if (pl && playerMode == RECORDING && !resetFrame)
 		{
 			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
 				return;
 
-			recordAction(btn, gameTime, true, this == pl->m_player1);
+			recordAction(btn, pl->m_gameState.m_unk1f8 - 1, true, this == pl->m_player1);
 		}
 	}
 
@@ -154,7 +150,7 @@ class $modify(PlayerObject)
 
 		auto pl = GameManager::get()->getPlayLayer();
 
-		if (pl && playerMode == RECORDING && gameTime != 9999999999)
+		if (pl && playerMode == RECORDING && !resetFrame)
 		{
 			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
 				return;
@@ -165,16 +161,14 @@ class $modify(PlayerObject)
 			if (btn == PlayerButton::Left && direction == -1)
 				return;
 
-			recordAction(btn, gameTime, false, this == pl->m_player1);
+			recordAction(btn, pl->m_gameState.m_unk1f8 - 1, false, this == pl->m_player1);
 		}
 	}
 };
 
-Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool press, bool player1)
+Macrobot::Action* Macrobot::recordAction(PlayerButton key, uint32_t frame, bool press, bool player1)
 {
 	Action ac(frame, (int)key, !player1, press);
-
-	ac.frame = macro.frameForTime(frame);
 
 	PlayLayer* pl = GameManager::get()->getPlayLayer();
 	PlayerObject* player = player1 ? pl->m_player1 : pl->m_player2;
@@ -182,7 +176,7 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, double frame, bool pr
 	if (Settings::get<int>("macrobot/corrections") > 0 && (player->m_position.x != 0 && player->m_position.y != 0))
 	{
 		Correction c;
-		c.time = gameTime;
+		c.frame = frame;
 		c.player2 = !player1;
 		c.checkpoint.fromPlayer(player, false);
 		ac.correction = c;
@@ -199,14 +193,12 @@ class $modify(CheckpointObject)
 	{
 		bool res = CheckpointObject::init();
 
-		if (playerMode != DISABLED && gameTime > 0 && GameManager::get()->getPlayLayer())
+		if (playerMode != DISABLED && PlayLayer::get()->m_gameState.m_unk1f8 > 0 && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData data;
-			data.time = gameTime;
-			data.frame = macro.frameForTime(gameTime);
+			data.frame = PlayLayer::get()->m_gameState.m_unk1f8 - 1;
 			data.p1.fromPlayer(GameManager::get()->getPlayLayer()->m_player1, true);
 			data.p2.fromPlayer(GameManager::get()->getPlayLayer()->m_player2, true);
-
 			//log::debug("FROMPLAYER {} {} {}", data.p1.yVel, data.p1.xPos, gdr::frameForTime(data.time));
 
 			checkpoints[this] = data;
@@ -274,12 +266,10 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 {
 	if (playerMode != DISABLED && GameManager::get()->getPlayLayer())
 	{
-		gameTime += (1.0 / (double)Common::getTPS()) + 0.00000001;
+		uint32_t gameFrame = self->m_gameState.m_unk1f8;
 
-		uint32_t gameFrame = macro.frameForTime(gameTime);
-
-		if(macro.inputs.size() > 0 && macro.inputs[actionIndex].time >= 0)
-			macro.inputs[actionIndex].frame = macro.frameForTime(macro.inputs[actionIndex].time);
+		/* if(macro.inputs.size() > 0 && macro.inputs[actionIndex].time >= 0)
+			macro.inputs[actionIndex].frame = macro.frameForTime(macro.inputs[actionIndex].time); */
 			
 		//log::debug("PROCESSCOMMANDS {} {} {}", MBO(double, GameManager::get()->getPlayLayer()->m_player1, 1936), GameManager::get()->getPlayLayer()->m_player1->m_position.x, gameFrame);
 
@@ -290,8 +280,8 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 			{
 				Action &ac = macro.inputs[actionIndex];
 
-				if(ac.time >= 0)
-					ac.frame = macro.frameForTime(ac.time);
+				/* if(ac.time >= 0)
+					ac.frame = macro.frameForTime(ac.time); */
 
 				handleAction(ac.down, ac.button, !ac.player2, ac.frame / macro.framerate);
 
@@ -356,7 +346,7 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 
 void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 {
-	if (gameTime <= 0)
+	if (PlayLayer::get()->m_gameState.m_unk1f8 <= 0)
 		return;
 
 	if (fullRestore)
@@ -382,21 +372,22 @@ void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 			}
 		}
 
-		for (int i = 0; i < 1300; i++)
+		//this first range contains a value that makes the player turn big if its < 100? tf
+		for (int i = 100; i < 1300; i++)
 		{
 			if (this->randomProperties[i] < 10000 && this->randomProperties[i] > -10000)
 			{
 				*reinterpret_cast<float *>(reinterpret_cast<uintptr_t>(player) + 160 + i) = this->randomProperties[i];
 			}
 		}
+
+		player->m_objectSnappedTo = this->lastSnappedTo;
+		MBO(GameObject*, player, 1724) = this->lastSnappedTo2; // get this in checkjumpsnaptoobject
 	}
 
 	// 1350 - 1410
-	
-	player->m_objectSnappedTo = this->lastSnappedTo;
-	MBO(GameObject*, player, 1724) = this->lastSnappedTo2; // get this in checkjumpsnaptoobject
 
-	player->m_yVelocity = this->yVel;//remove this when geode fixes the offset
+	player->m_yVelocity = this->yVel;
 	player->setRotation(this->rotation);
 
 	player->setPositionX(this->nodeXPos);

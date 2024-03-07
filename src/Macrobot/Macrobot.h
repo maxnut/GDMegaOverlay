@@ -43,7 +43,6 @@ namespace Macrobot
 
 	struct CheckpointData
 	{
-		double time;
 		uint32_t frame;
 		PlayerCheckpoint p1;
 		PlayerCheckpoint p2;
@@ -51,14 +50,13 @@ namespace Macrobot
 
 	struct Correction
 	{
-		double time;
+		uint32_t frame;
 		bool player2;
 		PlayerCheckpoint checkpoint;
 	};
 
 	struct Action : gdr::Input
 	{
-		double time = -1;
 		std::optional<Correction> correction;
 
 		Action() = default;
@@ -69,13 +67,10 @@ namespace Macrobot
 
 		void parseExtension(gdr::json::object_t obj) override
 		{
-			if(obj.contains("time"))
-				time = obj["time"];
-
 			if (obj.contains("correction"))
 			{
 				Correction c;
-				c.time = obj["correction"]["time"];
+				c.frame = obj["correction"]["frame"];
 				c.player2 = obj["correction"]["player2"];
 				c.checkpoint.xVel = obj["correction"]["xVel"];
 				c.checkpoint.yVel = obj["correction"]["yVel"];
@@ -96,7 +91,7 @@ namespace Macrobot
 			if (correction.has_value())
 			{
 				Correction c = correction.value();
-				obj["correction"]["time"] = c.time;
+				obj["correction"]["frame"] = c.frame;
 				obj["correction"]["player2"] = c.player2;
 				obj["correction"]["xVel"] = c.checkpoint.xVel;
 				obj["correction"]["yVel"] = c.checkpoint.yVel;
@@ -119,10 +114,10 @@ namespace Macrobot
 
 	inline bool botInput = false;
 	inline bool resetFrame = false;
+	inline bool resetFromStart = true;
 
 	inline PlayerMode playerMode = DISABLED;
 
-	inline double gameTime = 0;
 	inline unsigned int actionIndex = 0;
 	inline unsigned int correctionIndex = 0;
 
@@ -146,7 +141,7 @@ namespace Macrobot
 	void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self);
 	void handleAction(bool down, int button, bool player1, float timestamp);
 
-	Action* recordAction(PlayerButton key, double frame, bool press, bool player1);
+	Action* recordAction(PlayerButton key, uint32_t frame, bool press, bool player1);
 
 	void save(const std::string& file);
 	void load(const std::string& file);
