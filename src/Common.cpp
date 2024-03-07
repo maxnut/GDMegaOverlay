@@ -244,17 +244,19 @@ class $modify(PlayLayer)
 
 		for(int i = cameraSection; i < cameraSectionLast; i++)
 		{
-			if(!sections.at(i))
+			auto s0 = sections.at(i);
+			if(sections.size() <= i || !s0)
 				continue;
 
-			for(int j = 0; j < sections.at(i)->size(); j++)
+			for(int j = 0; j < s0->size(); j++)
 			{
-				if(!sections.at(i)->at(j))
+				auto s1 = s0->at(j);
+				if(!s1)
 					continue;
 
-				for(int k = 0; k < sections.at(i)->at(j)->size(); k++)
+				for(int k = 0; k < s1->size(); k++)
 				{
-					auto obj = sections.at(i)->at(j)->at(k);
+					auto obj = s1->at(k);
 					for(auto &pair : Common::sectionLoopFunctions)
 					{
 						if(Settings::get<bool>(pair.second, false))

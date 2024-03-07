@@ -13,7 +13,7 @@ using namespace geode::prelude;
 
 void hideObject(GameObject* obj)
 {
-    if(obj->m_objectID == 44 || obj->m_objectID == 749 || obj->m_objectID == 12 || obj->m_objectID == 38 ||
+    if((obj->getParent() && !obj->isVisible()) || obj->m_objectID == 44 || obj->m_objectID == 749 || obj->m_objectID == 12 || obj->m_objectID == 38 ||
 					 obj->m_objectID == 47 || obj->m_objectID == 111 || obj->m_objectID == 8 || obj->m_objectID == 13 ||
 					 obj->m_objectID == 660 || obj->m_objectID == 745 || obj->m_objectID == 101 || obj->m_objectID == 99 ||
 					 obj->m_objectID == 1331)
@@ -36,10 +36,11 @@ void hideObject(GameObject* obj)
             obj->setVisible(false);
             break;
         case GameObjectType::Solid:
+        case GameObjectType::Hazard:
+        case GameObjectType::AnimatedHazard:
+        case GameObjectType::Slope:
             obj->setOpacity(255);
             obj->setVisible(true);
-            obj->m_isHide = false;
-            obj->setDontDraw(false);
 
             if(!obj->getParent())
             {
