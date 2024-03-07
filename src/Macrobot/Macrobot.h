@@ -109,7 +109,7 @@ namespace Macrobot
 
 	struct Macro : gdr::Replay<Macro, Action>
 	{
-		Macro() : gdr::Replay<Macro, Action>("Macrobot", "1.0") {}
+		Macro() : gdr::Replay<Macro, Action>("Macrobot", "1.1") {}
 	};
 
 	inline bool botInput = false;
