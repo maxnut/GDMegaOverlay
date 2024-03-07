@@ -113,9 +113,9 @@ class $modify(PlayLayer)
 				//TODO only do this when necessary
 				bool isDual = MBO(bool, this, 878);
 
-				Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8/*  + 1 */, false, true);
+				Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8 + 1, false, true);
 				if(isDual)
-					Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8/*  + 1 */, false, false);
+					Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8 + 1, false, false);
 			}
 		}
 		else
@@ -138,7 +138,7 @@ class $modify(PlayerObject)
 			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
 				return;
 
-			recordAction(btn, pl->m_gameState.m_unk1f8 - 1, true, this == pl->m_player1);
+			recordAction(btn, pl->m_gameState.m_unk1f8, true, this == pl->m_player1);
 		}
 	}
 
@@ -161,7 +161,7 @@ class $modify(PlayerObject)
 			if (btn == PlayerButton::Left && direction == -1)
 				return;
 
-			recordAction(btn, pl->m_gameState.m_unk1f8 - 1, false, this == pl->m_player1);
+			recordAction(btn, pl->m_gameState.m_unk1f8, false, this == pl->m_player1);
 		}
 	}
 };
@@ -196,7 +196,7 @@ class $modify(CheckpointObject)
 		if (playerMode != DISABLED && PlayLayer::get()->m_gameState.m_unk1f8 > 0 && GameManager::get()->getPlayLayer())
 		{
 			CheckpointData data;
-			data.frame = PlayLayer::get()->m_gameState.m_unk1f8 - 1;
+			data.frame = PlayLayer::get()->m_gameState.m_unk1f8;
 			data.p1.fromPlayer(GameManager::get()->getPlayLayer()->m_player1, true);
 			data.p2.fromPlayer(GameManager::get()->getPlayLayer()->m_player2, true);
 			//log::debug("FROMPLAYER {} {} {}", data.p1.yVel, data.p1.xPos, gdr::frameForTime(data.time));
@@ -264,6 +264,8 @@ void Macrobot::handleAction(bool down, int button, bool player1, float timestamp
 
 void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 {
+	reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *)>(base::get() + 0x1BD240)(self);
+
 	if (playerMode != DISABLED && GameManager::get()->getPlayLayer())
 	{
 		uint32_t gameFrame = self->m_gameState.m_unk1f8;
@@ -296,8 +298,6 @@ void Macrobot::GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 			} while (actionIndex < macro.inputs.size() && (gameFrame >= macro.inputs[actionIndex].frame));
 		}
 	}
-
-	reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *)>(base::get() + 0x1BD240)(self);
 }
 
 $execute
