@@ -2,6 +2,6 @@
 
 namespace AutoDeafen
 {
-    void toggleDeafen();
-    inline bool deafened = false;
+	void toggleDeafen();
+	inline bool deafened = false;
 };

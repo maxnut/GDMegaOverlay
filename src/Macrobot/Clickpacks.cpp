@@ -37,7 +37,7 @@ std::optional<Clickpack> Clickpack::fromPath(const fs::path& pathString)
 		{
 			std::string ext = entry.path().extension().string();
 			 std::transform(ext.begin(), ext.end(), ext.begin(),
-                   [](unsigned char c) { return std::tolower(c); });
+				   [](unsigned char c) { return std::tolower(c); });
 			if (entry.is_regular_file() && ext == ".wav")
 			{
 				FMOD::Sound* s = nullptr;

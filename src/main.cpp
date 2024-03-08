@@ -39,7 +39,7 @@ void init()
 	Macrobot::getMacros();
 	Clickpacks::init();
 	Common::updateCheating();
-            
+
 	GUI::setLateInit([] {
 		Common::calculateFramerate();
 		PhysicsBypass::calculateTickrate();
@@ -211,7 +211,7 @@ void initGUI()
 			[] {
 				float borderSize = Settings::get<float>("level/show_hitbox/size", 0.25f);
 				int borderAlpha = Settings::get<int>("level/show_hitbox/border_alpha", 255);
-    			int fillAlpha = Settings::get<int>("level/show_hitbox/fill_alpha", 50);
+				int fillAlpha = Settings::get<int>("level/show_hitbox/fill_alpha", 50);
 
 				int maxQueue = Settings::get<int>("level/show_hitbox/max_queue", 240);
 
@@ -264,6 +264,8 @@ void initGUI()
 
 		GUI::checkbox("No Shaders", "level/no_shaders");
 		GUI::checkbox("Instant Complete", "level/instant_complete");
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip("Using Instant Complete can and will ban you from the game! Use with caution.");
 
 		GUI::checkbox("Layout Mode", "level/layout_mode");
 		GUI::checkbox("Hitbox Multiplier", "level/hitbox_multiplier");
@@ -272,9 +274,18 @@ void initGUI()
 		GUI::modalPopup(
 			"Hitbox Multiplier Settings",
 			[] {
-				float scaleSlopes[2] = {Settings::get<float>("level/hitbox_multiplier/scale_slopes/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_slopes/y", 1.f)};
-				float scaleHazards[2] = {Settings::get<float>("level/hitbox_multiplier/scale_hazards/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_hazards/y", 1.f)};
-				float scalePlayer[2] = {Settings::get<float>("level/hitbox_multiplier/scale_player/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_player/y", 1.f)};
+				float scaleSlopes[2] = {
+					Settings::get<float>("level/hitbox_multiplier/scale_slopes/x", 1.f),
+					Settings::get<float>("level/hitbox_multiplier/scale_slopes/y", 1.f)
+				};
+				float scaleHazards[2] = {
+					Settings::get<float>("level/hitbox_multiplier/scale_hazards/x", 1.f),
+					Settings::get<float>("level/hitbox_multiplier/scale_hazards/y", 1.f)
+				};
+				float scalePlayer[2] = {
+					Settings::get<float>("level/hitbox_multiplier/scale_player/x", 1.f),
+					Settings::get<float>("level/hitbox_multiplier/scale_player/y", 1.f)
+				};
 
 				if(GUI::inputFloat2("Slope Scale", scaleSlopes, 0.1f, 4.f, 0.1f, 4.f))
 				{

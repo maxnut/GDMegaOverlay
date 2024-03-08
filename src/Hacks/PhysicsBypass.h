@@ -2,6 +2,6 @@
 
 namespace PhysicsBypass
 {
-    inline int timestamp = 0;
-    void calculateTickrate();
+	inline int timestamp = 0;
+	void calculateTickrate();
 }

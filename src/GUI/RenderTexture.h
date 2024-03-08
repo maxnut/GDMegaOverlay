@@ -11,19 +11,19 @@ class RenderTexture
 	GLuint textureID = 0;
 
   public:
-    ImVec2 resolution = {0, 0};
+	ImVec2 resolution = {0, 0};
 
   public:
 
-    static std::shared_ptr<RenderTexture> create(ImVec2 resolution);
-    bool init(ImVec2 resolution);
+	static std::shared_ptr<RenderTexture> create(ImVec2 resolution);
+	bool init(ImVec2 resolution);
 
-    void resize(ImVec2 resolution);
+	void resize(ImVec2 resolution);
 
-    void bind();
-    void unbind();
+	void bind();
+	void unbind();
 
-    void clear();
+	void clear();
 
 	GLuint getTexture()
 	{
