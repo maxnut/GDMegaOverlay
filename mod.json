@@ -6,7 +6,7 @@
 	"version": "v2.7.5",
 	"id": "maxnu.gd_mega_overlay",
 	"name": "GD Mega Overlay",
-	"developer": "maxnu & SpaghettDev",
+	"developers": ["maxnu", "SpaghettDev"],
 	"description": "Free, feature-rich, gui-integrated geometry dash mod menu",
 	"repository": "https://github.com/maxnut/GDMegaOverlay",
 	"resources": {
