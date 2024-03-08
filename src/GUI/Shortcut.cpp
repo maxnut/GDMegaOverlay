@@ -107,9 +107,9 @@ void GUI::Shortcut::renderWindow()
 	if(GUI::button("Uncomplete Level"))
 		Common::uncompleteLevel();
 
-	if (GUI::button("Toggle Practice") && GameManager::get()->getPlayLayer())
-		GameManager::get()->getPlayLayer()->togglePracticeMode(!GameManager::get()->getPlayLayer()->m_isPracticeMode);
+	if (GUI::button("Toggle Practice") && PlayLayer::get())
+		PlayLayer::get()->togglePracticeMode(!PlayLayer::get()->m_isPracticeMode);
 
-	if (GUI::button("Reset Level") && GameManager::get()->getPlayLayer())
-		GameManager::get()->getPlayLayer()->resetLevel();
+	if (GUI::button("Reset Level") && PlayLayer::get())
+		PlayLayer::get()->resetLevel();
 }

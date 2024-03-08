@@ -18,6 +18,12 @@ namespace Macrobot
 		RECORDING = 1
 	};
 
+	enum CorrectionType
+	{
+		NONE = 0,
+		ACTION = 1
+	};
+
 	class PlayerCheckpoint
 	{
 	public:
@@ -53,6 +59,9 @@ namespace Macrobot
 		uint32_t frame;
 		bool player2;
 		PlayerCheckpoint checkpoint;
+
+		Correction() {}
+		Correction(uint32_t frame, bool player2) : frame(frame), player2(player2) {}
 	};
 
 	struct Action : gdr::Input
@@ -70,7 +79,8 @@ namespace Macrobot
 			if (obj.contains("correction"))
 			{
 				Correction c;
-				c.frame = obj["correction"]["frame"];
+				if(obj["correction"].contains("frame"))
+					c.frame = obj["correction"]["frame"];
 				c.player2 = obj["correction"]["player2"];
 				c.checkpoint.xVel = obj["correction"]["xVel"];
 				c.checkpoint.yVel = obj["correction"]["yVel"];
@@ -126,7 +136,7 @@ namespace Macrobot
 	inline Macro macro;
 
 	inline std::unordered_map<void*, Macrobot::CheckpointData> checkpoints;
-	inline std::vector<std::string> macroList;
+	inline std::unordered_map<std::string, Macro> macroList;
 
 	inline std::string macroName;
 	inline std::string macroDescription;
@@ -139,14 +149,18 @@ namespace Macrobot
 	inline FMOD::Channel* clickChannel = nullptr;
 
 	void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self);
-	void handleAction(bool down, int button, bool player1, float timestamp);
+	void handleAction(Action& action);
 
 	Action* recordAction(PlayerButton key, uint32_t frame, bool press, bool player1);
 
 	void save(const std::string& file);
-	void load(const std::string& file);
+	bool load(const std::string& file);
+	void remove(const std::string& file);
+
+	std::optional<Macro> loadMacro(const std::string& file, bool inputs = true);
 
 	void getMacros();
 
 	void drawWindow();
+	void drawMacroTable();
 };

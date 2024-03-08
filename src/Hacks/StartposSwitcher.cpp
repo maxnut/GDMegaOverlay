@@ -96,7 +96,7 @@ void StartposSwitcher::showLabel()
 	startPosLabel->setZOrder(1000);
 	startPosLabel->setScale(0.5f);
 	startPosLabel->setOpacity(0);
-	GameManager::get()->getPlayLayer()->addChild(startPosLabel);
+	PlayLayer::get()->addChild(startPosLabel);
 
 	std::string labelStr = fmt::format("{}/{}", (index + 1), startposObjects.size());
 
@@ -117,7 +117,7 @@ void StartposSwitcher::showLabel()
 
 void StartposSwitcher::change(bool right)
 {
-	if (!GameManager::get()->getPlayLayer() || !Settings::get<bool>("level/startpos_switcher") || startposObjects.size() <= 0)
+	if (!PlayLayer::get() || !Settings::get<bool>("level/startpos_switcher") || startposObjects.size() <= 0)
 		return;
 
 	if (right)
@@ -133,19 +133,19 @@ void StartposSwitcher::change(bool right)
 	StartPosObject* startPosObject = index == -1 ? nullptr : startposObjects[index];
 
 	// delete the startposcheckpoint (see playlayer_resetlevel line 148 in ida)
-	int* startPosCheckpoint = (int*)GameManager::get()->getPlayLayer() + 2949;
+	int* startPosCheckpoint = (int*)PlayLayer::get() + 2949;
 	*startPosCheckpoint = 0;
 
 	if (!startPosObject && index != -1)
 		return;
 
-	GameManager::get()->getPlayLayer()->setStartPosObject(startPosObject);
+	PlayLayer::get()->setStartPosObject(startPosObject);
 
-	GameManager::get()->getPlayLayer()->resetLevel();
+	PlayLayer::get()->resetLevel();
 
 	// apparently you have to start music manually since gd only does it if you dont have a startpos???? (see
 	// playlayer_resetlevel line 272 in ida)
-	GameManager::get()->getPlayLayer()->startMusic();
+	PlayLayer::get()->startMusic();
 
 	showLabel();
 }

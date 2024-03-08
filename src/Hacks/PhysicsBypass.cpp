@@ -28,11 +28,11 @@ void PhysicsBypass::calculateTickrate()
     /* if(tps == 240.f)
         return; */
     
-    if(GameManager::get()->getPlayLayer() && GameManager::get()->getPlayLayer()->m_level->m_timestamp > 0)
+    if(PlayLayer::get() && PlayLayer::get()->m_level->m_timestamp > 0)
     {
         float timestampMultiplier = (tps / 240.f);
-        float stepsMultiplier = (timestamp * timestampMultiplier) / GameManager::get()->getPlayLayer()->m_level->m_timestamp;
-        GameManager::get()->getPlayLayer()->m_level->m_timestamp = timestamp * timestampMultiplier;
-        GameManager::get()->getPlayLayer()->m_gameState.m_unk1f8 *= stepsMultiplier;
+        float stepsMultiplier = (timestamp * timestampMultiplier) / PlayLayer::get()->m_level->m_timestamp;
+        PlayLayer::get()->m_level->m_timestamp = timestamp * timestampMultiplier;
+        PlayLayer::get()->m_gameState.m_unk1f8 *= stepsMultiplier;
     }
 }

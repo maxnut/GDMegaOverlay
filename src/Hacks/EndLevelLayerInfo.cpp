@@ -191,7 +191,7 @@ class $modify(EndLevelLayer)
 		if (!Settings::get<bool>("level/endlevellayerinfo/enabled")) return;
 
 		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
-		auto playLayer = GameManager::get()->getPlayLayer();
+		auto playLayer = PlayLayer::get();
 
 
 		CCPoint textPosition{ 0.f, 171.f }; // Y pos is that of Jumps label

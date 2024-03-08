@@ -131,11 +131,11 @@ void Recorder::start()
 	m_renderer.begin();
 	tfx = 0;
 
-	m_song_start_offset = GameManager::get()->getPlayLayer()->m_levelSettings->m_songOffset;
+	m_song_start_offset = PlayLayer::get()->m_levelSettings->m_songOffset;
 
-	GameManager::get()->getPlayLayer()->resetLevel();
+	PlayLayer::get()->resetLevel();
 
-	std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelName.c_str() + ("_" + std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()));
+	std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
 	auto bg_volume = 1;
 	auto sfx_volume = 1;
 
@@ -245,7 +245,7 @@ void MyRenderTexture::capture(std::mutex &lock, std::vector<u8> &data, volatile 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
 
 	visiting = true;
-	GameManager::get()->getPlayLayer()->visit();
+	PlayLayer::get()->visit();
 	visiting = false;
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -281,9 +281,9 @@ void Recorder::stop_audio()
 	GJGameLevel *level =
 		GameManager::get()
 			->getPlayLayer()
-			->m_level; // MBO(gd::GJGameLevel*, GameManager::get()->getPlayLayer(), 1504); // found in playlayer_init
+			->m_level; // MBO(gd::GJGameLevel*, PlayLayer::get(), 1504); // found in playlayer_init
 
-	std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelName.c_str() + ("_" + std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()));
+	std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
 
 	ghc::filesystem::path video_path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
 
@@ -344,7 +344,7 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 			tfx = play_layer->timeForXPos(play_layer->m_pPlayer1->getPositionX());
 		else */
 		tfx += dt;
-		float timewarp = MBO(float, GameManager::get()->getPlayLayer(), 724);
+		float timewarp = MBO(float, PlayLayer::get(), 724);
 
 		auto frame_dt = 1. / static_cast<double>(m_fps) * timewarp;
 		auto time = tfx + m_extra_t - m_last_frame_t;
@@ -363,7 +363,7 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 
 void Record::renderWindow()
 {
-	bool disabled = !GameManager::get()->getPlayLayer() || Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
+	bool disabled = !PlayLayer::get() || Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
 	if (disabled)
 		ImGui::BeginDisabled();
 
@@ -398,7 +398,7 @@ void Record::renderWindow()
 
 	if (GUI::button("Start Audio"))
 	{
-		std::string level_id = GameManager::get()->getPlayLayer()->m_level->m_levelName.c_str() + ("_" + std::to_string(GameManager::get()->getPlayLayer()->m_level->m_levelID.value()));
+		std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
 		auto path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
 		bool hasVideo = ghc::filesystem::exists(path);
 

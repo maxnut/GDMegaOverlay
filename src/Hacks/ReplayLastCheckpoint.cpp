@@ -37,14 +37,14 @@ class $modify(ButtonsClass, EndLevelLayer)
 		// use m_fields to remove this amazing chain
 		this->getParent()->getParent()->removeFromParent();
 
-		GameManager::get()->getPlayLayer()->resetLevel();
+		PlayLayer::get()->resetLevel();
 	}
 
 	void customSetup()
 	{
 		EndLevelLayer::customSetup();
 
-		if (!Settings::get<bool>("level/replay_checkpoint") || !GameManager::get()->getPlayLayer()->m_isPracticeMode) return;
+		if (!Settings::get<bool>("level/replay_checkpoint") || !PlayLayer::get()->m_isPracticeMode) return;
 
 		auto layer = reinterpret_cast<CCLayer*>(this->getChildren()->objectAtIndex(0));
 		CCMenu* buttonsMenu = nullptr;
