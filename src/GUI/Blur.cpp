@@ -162,9 +162,9 @@ void Blur::compileBlurShader()
 
 	Vertex vertices[] = {
 		{ 0.f, 0, 0.0f, 255, 255, 255, 255, 0.0f, 0.0f },
-		{ screenSize.width + 0.1, 0.f, 0.0f, 255, 255, 255, 255, 1.0f, 0.0f },
-		{ screenSize.width + 0.1, screenSize.height, 0.0f, 255, 255, 255, 255, 1.0f, 1.0f },
-		{ 0,  screenSize.height + 0, 0.0f, 255, 255, 255, 255, 0.0f, 1.0f },
+		{ screenSize.width + 0.1f, 0.f, 0.0f, 255, 255, 255, 255, 1.0f, 0.0f },
+		{ screenSize.width + 0.1f, screenSize.height, 0.0f, 255, 255, 255, 255, 1.0f, 1.0f },
+		{ 0, screenSize.height, 0.0f, 255, 255, 255, 255, 0.0f, 1.0f }
 	};
 
 	glGenVertexArrays(1, &VAO);
