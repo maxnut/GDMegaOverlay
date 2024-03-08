@@ -2,7 +2,7 @@
 	"geode": "2.0.0",
 	"gd": {
 		"win": "2.204"
-    },
+	},
 	"version": "v2.7.5",
 	"id": "maxnu.gd_mega_overlay",
 	"name": "GD Mega Overlay",
