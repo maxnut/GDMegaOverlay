@@ -189,7 +189,7 @@ class $modify(CheckpointObject)
 	{
 		bool res = CheckpointObject::init();
 
-		if (playerMode != DISABLED && PlayLayer::get()->m_gameState.m_unk1f8 > 0 && PlayLayer::get())
+		if (playerMode != DISABLED && PlayLayer::get() && PlayLayer::get()->m_gameState.m_unk1f8 > 0)
 		{
 			CheckpointData data;
 			data.frame = PlayLayer::get()->m_gameState.m_unk1f8;
