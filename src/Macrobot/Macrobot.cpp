@@ -283,7 +283,7 @@ $execute
 	Mod::get()->hook(reinterpret_cast<void *>(base::get() + 0x1BD240), &GJBaseGameLayerProcessCommands, "GJBaseGameLayer::processCommands", tulip::hook::TulipConvention::Thiscall);
 }
 
-void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCapture)
+void Macrobot::MPlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCapture)
 {
 	// playerObject + 2280 isplatformer
 	// playerObject + 2160 xVelPlatformer
@@ -312,7 +312,7 @@ void Macrobot::PlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCaptu
 	}
 }
 
-void Macrobot::PlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
+void Macrobot::MPlayerCheckpoint::apply(PlayerObject* player, bool fullRestore)
 {
 	if (PlayLayer::get()->m_gameState.m_unk1f8 <= 0)
 		return;

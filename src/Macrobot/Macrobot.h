@@ -24,7 +24,7 @@ namespace Macrobot
 		ACTION = 1
 	};
 
-	class PlayerCheckpoint
+	class MPlayerCheckpoint
 	{
 	public:
 		double yVel;
@@ -50,15 +50,15 @@ namespace Macrobot
 	struct CheckpointData
 	{
 		uint32_t frame;
-		PlayerCheckpoint p1;
-		PlayerCheckpoint p2;
+		MPlayerCheckpoint p1;
+		MPlayerCheckpoint p2;
 	};
 
 	struct Correction
 	{
 		uint32_t frame;
 		bool player2;
-		PlayerCheckpoint checkpoint;
+		MPlayerCheckpoint checkpoint;
 
 		Correction() {}
 		Correction(uint32_t frame, bool player2) : frame(frame), player2(player2) {}
