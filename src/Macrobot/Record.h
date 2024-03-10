@@ -9,6 +9,7 @@
 #include <subprocess.hpp>
 #include <string>
 #include <Geode/modify/GJBaseGameLayer.hpp>
+#include <Geode/modify/EndLevelLayer.hpp>
 
 using namespace cocos2d;
 
@@ -57,6 +58,7 @@ public:
 
 	void start();
 	void stop();
+	void start_audio();
 	void stop_audio();
 	void capture_frame();
 	void handle_recording(GJBaseGameLayer*, float dt);
@@ -69,6 +71,8 @@ namespace Record
 	inline Recorder recorder;
 	inline bool visiting = false;
 	inline bool inShader = false;
+
+	inline EndLevelLayer* endLevelLayer = nullptr;
 
 	void renderWindow();
 }

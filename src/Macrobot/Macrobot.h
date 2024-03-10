@@ -129,7 +129,7 @@ namespace Macrobot
 	inline PlayerMode playerMode = DISABLED;
 
 	inline unsigned int actionIndex = 0;
-	inline unsigned int correctionIndex = 0;
+	inline unsigned int targetSteps = 0;
 
 	inline int8_t direction = 0;
 

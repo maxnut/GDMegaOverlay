@@ -26,9 +26,12 @@ class $modify(CCKeyboardDispatcher) {
 		
 		int leftKey = Settings::get<int>("level/startpos_switcher/left", ImGuiKey_LeftArrow);
 		int rightKey = Settings::get<int>("level/startpos_switcher/right", ImGuiKey_RightArrow);
-		if (ConvertKeyEnum(key) == leftKey)
+
+		int convertedKey = ConvertKeyEnum(key);
+
+		if (convertedKey == leftKey)
 			change(false);
-		else if (ConvertKeyEnum(key) == rightKey)
+		else if (convertedKey == rightKey)
 			change(true);
 
 		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);

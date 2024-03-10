@@ -244,20 +244,30 @@ class $modify(PlayLayer)
 
 		for(int i = cameraSection; i < cameraSectionLast; i++)
 		{
+			if(sections.size() <= i)
+				continue;
+
 			auto s0 = sections.at(i);
-			if(sections.size() <= i || !s0)
+
+			if(!s0)
 				continue;
 
 			bool hasObjects = false;
 
 			for(int j = 0; j < s0->size(); j++)
 			{
+				if(s0->size() <= j)
+					continue;
+				
 				auto s1 = s0->at(j);
 				if(!s1)
 					continue;
 
 				for(int k = 0; k < s1->size(); k++)
 				{
+					if(s1->size() <= k)
+						continue;
+					
 					hasObjects = true;
 					auto obj = s1->at(k);
 					for(auto &pair : Common::sectionLoopFunctions)

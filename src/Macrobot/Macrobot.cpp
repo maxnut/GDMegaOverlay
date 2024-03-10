@@ -36,6 +36,16 @@ class $modify(CCKeyboardDispatcher)
 		if (key == enumKeyCodes::KEY_A || key == enumKeyCodes::KEY_ArrowLeft)
 			direction = down ? -1 : 0;
 
+		if (!down || arr)
+			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
+		
+		int advanceKey = Settings::get<int>("macrobot/frame_step/key", ImGuiKey_G);
+
+		int convertedKey = ConvertKeyEnum(key);
+
+		if (convertedKey == advanceKey)
+			targetSteps = PlayLayer::get()->m_gameState.m_unk1f8 + Settings::get<int>("macrobot/frame_step/steps", 1);
+
 		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
 	}
 };
@@ -68,10 +78,11 @@ class $modify(PlayLayer)
 
 	void resetLevel()
 	{
+		targetSteps = 0;
+		
 		if (playerMode != DISABLED)
 		{
 			actionIndex = 0;
-			correctionIndex = 0;
 
 			resetFromStart = true;
 			resetFrame = true;
@@ -182,6 +193,21 @@ Macrobot::Action* Macrobot::recordAction(PlayerButton key, uint32_t frame, bool 
 
 	return &macro.inputs[macro.inputs.size() - 1];
 }
+
+class $modify(GJBaseGameLayer)
+{
+	void update(float dt)
+	{
+		if(Settings::get<bool>("macrobot/frame_step/enabled", false))
+		{
+			if(PlayLayer::get()->m_gameState.m_unk1f8 < targetSteps)
+				GJBaseGameLayer::update(dt);
+			return;
+		}
+
+		GJBaseGameLayer::update(dt);
+	}
+};
 
 class $modify(CheckpointObject)
 {
@@ -605,6 +631,20 @@ void Macrobot::drawWindow()
 	GUI::checkbox("Click Sounds", "macrobot/clicks/enabled");
 	GUI::arrowButton("Clickpacks");
 	Clickpacks::drawGUI();
+
+	GUI::checkbox("Frame Step", "macrobot/frame_step/enabled");
+
+	GUI::arrowButton("Frame Step Settings");
+	GUI::modalPopup(
+		"Frame Step Settings",
+		[] {
+			int key = Settings::get<int>("macrobot/frame_step/key", ImGuiKey_G);
+			if (GUI::hotkey("Advance", &key))
+				Mod::get()->setSavedValue<int>("macrobot/frame_step/key", key);
+
+			GUI::inputInt("Advance Steps", "macrobot/frame_step/steps", 1);
+		},
+		ImGuiWindowFlags_AlwaysAutoResize);
 
 	GUI::marker("[INFO]", "Corrections are recommended to be safe, but the bot also works decently without.");
 }
