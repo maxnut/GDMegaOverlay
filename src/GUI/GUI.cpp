@@ -89,7 +89,7 @@ ImVec2 GUI::getJsonPosition(const std::string& name)
 
 	auto winSize = CCDirector::sharedDirector()->getOpenGLView()->getViewPortRect();
 
-	if(windowPositions[name]["x"] > 1 || windowPositions[name]["y"] > 1)
+	if (windowPositions[name]["x"] > 1 || windowPositions[name]["y"] > 1)
 		winSize.size = cocos2d::CCSize(1.f, 1.f);
 
 	return {windowPositions[name]["x"].get<float>() * winSize.size.width, windowPositions[name]["y"].get<float>() * winSize.size.height};

@@ -40,7 +40,7 @@ void ShowHitboxes::drawRectangleHitbox(CCDrawNode* node, cocos2d::CCRect const& 
 
 void ShowHitboxes::drawForPlayer(CCDrawNode* node, PlayerObject* player)
 {
-	if(!player)
+	if (!player)
 		return;
 
 	CCRect* rect1 = reinterpret_cast<CCRect*(__thiscall*)(GameObject*)>(base::get() + 0x13a570)(player);
@@ -59,13 +59,13 @@ void ShowHitboxes::forceDraw(GJBaseGameLayer* self, bool editor)
 
 	GameManager::get()->setGameVariable("0045", show && !onDeath);
 
-	if(!show)
+	if (!show)
 		return;
 	
-	 if(onDeath)
+	 if (onDeath)
 		getDrawNode()->setVisible(dead || editor);
 
-	if(onDeath && !dead)
+	if (onDeath && !dead)
 		return;
 
 	debugDrawing = true;
@@ -76,10 +76,10 @@ void ShowHitboxes::forceDraw(GJBaseGameLayer* self, bool editor)
 	bool trail = Settings::get<bool>("level/show_hitbox/queue_enabled", false);
 
 	drawForPlayer(getDrawNode(), self->m_player1);
-	if(isDual)
+	if (isDual)
 		drawForPlayer(getDrawNode(), self->m_player2);
 
-	if(!trail)
+	if (!trail)
 	{
 		debugDrawing = false;
 		return;
@@ -116,7 +116,7 @@ void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 	bool trail = Settings::get<bool>("level/show_hitbox/queue_enabled", false);
 	bool onDeath = Settings::get<bool>("level/show_hitbox/on_death", false);
 
-	if(!show || !trail || onDeath)
+	if (!show || !trail || onDeath)
 		return;
 
 	bool isDual = MBO(bool, self, 878);
@@ -128,10 +128,10 @@ void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
 	int maxQueue = Settings::get<int>("level/show_hitbox/max_queue", 240);
 
-	if(player1Queue.size() > maxQueue)
+	if (player1Queue.size() > maxQueue)
 		player1Queue.pop_front();
 
-	if(!isDual)
+	if (!isDual)
 		return;
 
 	rect1 = reinterpret_cast<CCRect*(__thiscall*)(GameObject*)>(base::get() + 0x13a570)(self->m_player2);
@@ -139,7 +139,7 @@ void GJBaseGameLayerProcessCommands(GJBaseGameLayer* self)
 
 	player2Queue.push_back({*rect1, rect2});
 
-	if(player2Queue.size() > maxQueue)
+	if (player2Queue.size() > maxQueue)
 		player2Queue.pop_front();
 }
 
@@ -156,7 +156,7 @@ class $modify(CCDrawNode)
 		ccColor4F colBaseNew = colBase;
 		ccColor4F colFillNew = colFill;
 
-		if(ShowHitboxes::debugDrawing)
+		if (ShowHitboxes::debugDrawing)
 		{
 			colFillNew = colBaseNew;
 			borderWidth = Settings::get<float>("level/show_hitbox/size", 0.25f);
@@ -197,7 +197,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::destroyPlayer(p0, p1);
 
-		if(p0 && !p0->m_isDead)
+		if (p0 && !p0->m_isDead)
 			return;
 
 		dead = true;

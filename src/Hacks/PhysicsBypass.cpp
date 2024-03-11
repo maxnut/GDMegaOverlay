@@ -25,10 +25,10 @@ void PhysicsBypass::calculateTickrate()
 	float tps = Common::getTPS();
 	util::Write<float>(base::get() + 0x49D548, 1.f / tps);
 	
-	/* if(tps == 240.f)
+	/* if (tps == 240.f)
 		return; */
 	
-	if(PlayLayer::get() && PlayLayer::get()->m_level->m_timestamp > 0)
+	if (PlayLayer::get() && PlayLayer::get()->m_level->m_timestamp > 0)
 	{
 		float timestampMultiplier = (tps / 240.f);
 		float stepsMultiplier = (timestamp * timestampMultiplier) / PlayLayer::get()->m_level->m_timestamp;

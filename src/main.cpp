@@ -71,7 +71,7 @@ void initGUI()
 		if (GUI::checkbox("Framerate", "general/fps/enabled"))
 			Common::calculateFramerate();
 
-		if(Macrobot::playerMode == Macrobot::RECORDING || Macrobot::playerMode == Macrobot::PLAYBACK)
+		if (Macrobot::playerMode == Macrobot::RECORDING || Macrobot::playerMode == Macrobot::PLAYBACK)
 			ImGui::BeginDisabled();
 
 		float tps = Settings::get<float>("general/tps/value", 240.f);
@@ -89,7 +89,7 @@ void initGUI()
 		if (GUI::checkbox("Physics Bypass", "general/tps/enabled"))
 			PhysicsBypass::calculateTickrate();
 
-		if(Macrobot::playerMode == Macrobot::RECORDING || Macrobot::playerMode == Macrobot::PLAYBACK)
+		if (Macrobot::playerMode == Macrobot::RECORDING || Macrobot::playerMode == Macrobot::PLAYBACK)
 			ImGui::EndDisabled();
 
 		float speedhack = Settings::get<float>("general/speedhack/value", 1.f);
@@ -100,7 +100,7 @@ void initGUI()
 		}
 
 		GUI::sameLine();
-		if(GUI::checkbox("Speedhack", "general/speedhack/enabled"))
+		if (GUI::checkbox("Speedhack", "general/speedhack/enabled"))
 			Common::onAudioSpeedChange();
 
 		float pitch = Settings::get<float>("general/music/pitch/value", 1.f);
@@ -287,19 +287,19 @@ void initGUI()
 					Settings::get<float>("level/hitbox_multiplier/scale_player/y", 1.f)
 				};
 
-				if(GUI::inputFloat2("Slope Scale", scaleSlopes, 0.1f, 4.f, 0.1f, 4.f))
+				if (GUI::inputFloat2("Slope Scale", scaleSlopes, 0.1f, 4.f, 0.1f, 4.f))
 				{
 					Mod::get()->setSavedValue<float>("level/hitbox_multiplier/scale_slopes/x", scaleSlopes[0]);
 					Mod::get()->setSavedValue<float>("level/hitbox_multiplier/scale_slopes/y", scaleSlopes[1]);
 				}
 
-				if(GUI::inputFloat2("Hazard Scale", scaleHazards, 0.1f, 4.f, 0.1f, 4.f))
+				if (GUI::inputFloat2("Hazard Scale", scaleHazards, 0.1f, 4.f, 0.1f, 4.f))
 				{
 					Mod::get()->setSavedValue<float>("level/hitbox_multiplier/scale_hazards/x", scaleHazards[0]);
 					Mod::get()->setSavedValue<float>("level/hitbox_multiplier/scale_hazards/y", scaleHazards[1]);
 				}
 
-				if(GUI::inputFloat2("Player Scale", scalePlayer, 0.1f, 4.f, 0.1f, 4.f))
+				if (GUI::inputFloat2("Player Scale", scalePlayer, 0.1f, 4.f, 0.1f, 4.f))
 				{
 					Mod::get()->setSavedValue<float>("level/hitbox_multiplier/scale_player/x", scalePlayer[0]);
 					Mod::get()->setSavedValue<float>("level/hitbox_multiplier/scale_player/y", scalePlayer[1]);
@@ -355,7 +355,7 @@ void initGUI()
 
 		GUI::checkbox("Blur Background", "menu/blur/enabled");
 		
-		if(ImGui::IsItemHovered())
+		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("WARNING: this option is very performance heavy!");
 		
 		GUI::arrowButton("Blur Settings##0");
@@ -366,7 +366,7 @@ void initGUI()
 
 		GUI::checkbox("Blur GD", "menu/blur/gd");
 
-		if(ImGui::IsItemHovered())
+		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("WARNING: this option is very performance heavy!");
 
 		GUI::arrowButton("Blur Settings##1");

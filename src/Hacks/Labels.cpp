@@ -156,9 +156,9 @@ class $modify(PlayLayer)
 		setupLabel(
 			"Best Run",
 			[&](cocos2d::CCLabelBMFont* pointer) {
-			if(bestRun.first == 0)
+			if (bestRun.first == 0)
 			{
-				if(bestRun.second == 0)
+				if (bestRun.second == 0)
 					pointer->setString("Best Run: None");
 				else
 					pointer->setString(fmt::format("Best Run: {}%", (int)bestRun.second).c_str());
@@ -181,9 +181,9 @@ class $modify(PlayLayer)
 		setupLabel(
 			"Macro Info",
 			[&](cocos2d::CCLabelBMFont* pointer) {
-			if(Macrobot::playerMode == Macrobot::PLAYBACK)
+			if (Macrobot::playerMode == Macrobot::PLAYBACK)
 				pointer->setString(fmt::format("Playing {}/{}", Macrobot::actionIndex, Macrobot::macro.inputs.size()).c_str());
-			else if(Macrobot::playerMode == Macrobot::RECORDING)
+			else if (Macrobot::playerMode == Macrobot::RECORDING)
 				pointer->setString(fmt::format("Recording {}", Macrobot::macro.inputs.size()).c_str());
 			else
 				pointer->setString("");
@@ -202,28 +202,28 @@ class $modify(PlayLayer)
 
 	void destroyPlayer(PlayerObject* player, GameObject* object)
 	{
-		if(!anticheatSpike && frames < 5)
+		if (!anticheatSpike && frames < 5)
 			anticheatSpike = object;
 
-		if(object == anticheatSpike)
+		if (object == anticheatSpike)
 			return PlayLayer::destroyPlayer(player, object);
 
-		if(noclipDead)
+		if (noclipDead)
 			JsonPatches::togglePatch(JsonPatches::player, "NoClip", false);
 
 		PlayLayer::destroyPlayer(player, object);
 
-		if(noclipDead)
+		if (noclipDead)
 			JsonPatches::togglePatch(JsonPatches::player, "NoClip", true);
 
-		if(player && player->m_isDead)
+		if (player && player->m_isDead)
 		{
 			currentRun.second = this->getCurrentPercent();
 
 			float currentRunTotal = currentRun.second - currentRun.first;
 			float bestRunTotal = bestRun.second - bestRun.first;
 
-			if(currentRunTotal > bestRunTotal)
+			if (currentRunTotal > bestRunTotal)
 				bestRun = currentRun;
 		}
 
@@ -237,7 +237,7 @@ class $modify(PlayLayer)
 
 		float currentRunTotal = currentRun.second - currentRun.first;
 		float bestRunTotal = bestRun.second - bestRun.first;
-		if(currentRunTotal > bestRunTotal)
+		if (currentRunTotal > bestRunTotal)
 			bestRun = currentRun;
 	}
 

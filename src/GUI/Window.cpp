@@ -46,14 +46,14 @@ void Window::draw()
 		float windowTransparency = Settings::get<float>("menu/window/opacity", 0.98f);
 		float blurDarkness = Settings::get<float>("menu/blur/darkness", 1.f);
 
-		if(blurEnabled)
+		if (blurEnabled)
 			ImGui::SetNextWindowBgAlpha(blurGD ? (blurDarkness - 0.1f) : 1);
 		else
 			ImGui::SetNextWindowBgAlpha(windowTransparency);
 
 		ImGui::Begin(name.c_str(), (bool*)0, flags);
 
-		if(blurEnabled && !blurGD)
+		if (blurEnabled && !blurGD)
 			Blur::blurWindowBackground();
 
 		if (ImGui::IsMouseDragging(0, 0.1f) && ImGui::IsWindowFocused())

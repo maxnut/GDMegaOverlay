@@ -39,17 +39,17 @@ void scaleRect(cocos2d::CCRect* r, float a, float b)
 
 void HitboxMultiplier::scaleHazard(GameObject* hazard)
 {
-	if(hazard->m_objectType != GameObjectType::Hazard && hazard->m_objectType != GameObjectType::AnimatedHazard) 
+	if (hazard->m_objectType != GameObjectType::Hazard && hazard->m_objectType != GameObjectType::AnimatedHazard) 
 		return;
 	
 	float scaleHazards[2] = {Settings::get<float>("level/hitbox_multiplier/scale_hazards/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_hazards/y", 1.f)};
 
 	cocos2d::CCRect rect = (MBO(cocos2d::CCRect, hazard, 728));
 
-	if(rect.origin.x == 0 && rect.origin.y == 0 || rect.size.width == 0 && rect.size.height == 0)
+	if (rect.origin.x == 0 && rect.origin.y == 0 || rect.size.width == 0 && rect.size.height == 0)
 		return;
 
-	if(!memberRectForObject.contains(hazard))
+	if (!memberRectForObject.contains(hazard))
 		memberRectForObject[hazard] = rect;
 	else
 		rect = memberRectForObject[hazard];
@@ -67,7 +67,7 @@ class $modify(GameObject)
 	{
 		bool enabled = Settings::get<bool>("level/hitbox_multiplier", false);
 		
-		if(!enabled)
+		if (!enabled)
 			return reinterpret_cast<cocos2d::CCRect const& (__thiscall*)(GameObject*)>(base::get() + 0x13a570)(this);
 
 		bool all = Settings::get<bool>("level/hitbox_multiplier/scale_all", false);
@@ -77,7 +77,7 @@ class $modify(GameObject)
 		float scaleSlopes[2] = {Settings::get<float>("level/hitbox_multiplier/scale_slopes/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_slopes/y", 1.f)};
 		float scalePlayer[2] = {Settings::get<float>("level/hitbox_multiplier/scale_player/x", 1.f), Settings::get<float>("level/hitbox_multiplier/scale_player/y", 1.f)};
 
-		if((PlayerObject*)this == GameManager::get()->getGameLayer()->m_player1 || (PlayerObject*)this == GameManager::get()->getGameLayer()->m_player2)
+		if ((PlayerObject*)this == GameManager::get()->getGameLayer()->m_player1 || (PlayerObject*)this == GameManager::get()->getGameLayer()->m_player2)
 		{
 			x = scalePlayer[0];
 			y = scalePlayer[1];

@@ -27,7 +27,7 @@ class $modify(CCEGLView) {
 	{
 		CCEGLView::resizeWindow(width, height);
 
-		if(gdRenderTexture)
+		if (gdRenderTexture)
 			gdRenderTexture->resize({(float)width, (float)height});
 	}
 };
@@ -37,16 +37,16 @@ class $modify(CCNode) {
 
 		bool blur = Settings::get<bool>("menu/blur/enabled", false) || Settings::get<bool>("menu/blur/gd", false);
 
-		if(this != (CCNode*)CCDirector::sharedDirector()->getRunningScene() || !GUI::shouldRender() || !blur || !blurProgram)
+		if (this != (CCNode*)CCDirector::sharedDirector()->getRunningScene() || !GUI::shouldRender() || !blur || !blurProgram)
 		{
 			CCNode::visit();
 			return;
 		}
 
-		if(!compiled)
+		if (!compiled)
 			Blur::compileBlurShader();
 
-		if(!gdRenderTexture)
+		if (!gdRenderTexture)
 		{
 			auto winSize = CCDirector::sharedDirector()->getOpenGLView()->getViewPortRect();
 			gdRenderTexture = RenderTexture::create({winSize.size.width, winSize.size.height});
@@ -63,7 +63,7 @@ class $modify(CCNode) {
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &oldTexture); 
 		glBindTexture(GL_TEXTURE_2D, gdRenderTexture->getTexture());
 
-		if(blurGD)
+		if (blurGD)
 		{
 			blurProgram->use();
 			setBlurUniforms();
@@ -147,7 +147,7 @@ void Blur::compileBlurShader()
 {
 	bool blur = Settings::get<bool>("menu/blur/enabled", false) || Settings::get<bool>("menu/blur/gd", false);
 
-	if(compiled || !blur)
+	if (compiled || !blur)
 		return;
 
 	blurProgram = new cocos2d::CCGLProgram();
@@ -197,22 +197,22 @@ void Blur::setBlurUniforms()
 	float blurSize = Settings::get<float>("menu/blur/size", 1.f);
 	int blurSteps = Settings::get<int>("menu/blur/steps", 10);
 
-	if(darknessUniform == -1)
+	if (darknessUniform == -1)
 		darknessUniform = blurProgram->getUniformLocationForName("blurDarkness");
 	else
 		blurProgram->setUniformLocationWith1f(darknessUniform, blurDarkness);
 
-	if(stepsUniform == -1)
+	if (stepsUniform == -1)
 		stepsUniform = blurProgram->getUniformLocationForName("blurSteps");
 	else
 		blurProgram->setUniformLocationWith1i(stepsUniform, blurSteps);
 
-	if(sizeUniform == -1)
+	if (sizeUniform == -1)
 		sizeUniform = blurProgram->getUniformLocationForName("blurSize");
 	else
 		blurProgram->setUniformLocationWith1f(sizeUniform, blurSize);
 
-	if(amountUniform == -1)
+	if (amountUniform == -1)
 		amountUniform = blurProgram->getUniformLocationForName("blurAmount");
 	else
 		blurProgram->setUniformLocationWith1f(amountUniform, blurAmount);
@@ -237,7 +237,7 @@ void Blur::resetCallback(const ImDrawList*, const ImDrawCmd*)
 
 void Blur::blurWindowBackground()
 {
-	if(!blurProgram || !gdRenderTexture)
+	if (!blurProgram || !gdRenderTexture)
 		return;
 	
 	ImVec2 screen_size = ImGui::GetIO().DisplaySize;

@@ -53,7 +53,7 @@ std::optional<Clickpack> Clickpack::fromPath(const fs::path& pathString)
 	addFromPath(pack.platClicks, platClickPath);
 	addFromPath(pack.platReleases, platReleasePath);
 
-	if(pack.clicks.size() <= 0 && pack.softclicks.size() <= 0 && pack.releases.size() <= 0 && pack.platClicks.size() <= 0 && pack.platReleases.size() <= 0)
+	if (pack.clicks.size() <= 0 && pack.softclicks.size() <= 0 && pack.releases.size() <= 0 && pack.platClicks.size() <= 0 && pack.platReleases.size() <= 0)
 		return std::nullopt;
 
 	return pack;
@@ -66,7 +66,7 @@ void Clickpacks::init()
 	if (clickPath != "")
 	{
 		auto clickpackOpt = Clickpack::fromPath(clickPath);
-		if(clickpackOpt.has_value())
+		if (clickpackOpt.has_value())
 			currentClickpack = clickpackOpt.value();
 	}
 }
@@ -86,7 +86,7 @@ void Clickpacks::drawGUI()
 			if (!result.empty())
 			{
 				auto res = Clickpack::fromPath(result);
-				if(res.has_value())
+				if (res.has_value())
 				{
 					currentClickpack = res.value();
 					Mod::get()->setSavedValue<std::string>("clickpacks/path", result);
@@ -124,35 +124,35 @@ void Clickpacks::drawGUI()
 
 FMOD::Sound* Clickpack::randomClick()
 {
-	if(clicks.size() <= 0)
+	if (clicks.size() <= 0)
 		return nullptr;
 
 	return clicks[util::randomInt(0, clicks.size() - 1)];
 }
 FMOD::Sound* Clickpack::randomSoftClick()
 {
-	if(softclicks.size() <= 0)
+	if (softclicks.size() <= 0)
 		return nullptr;
 
 	return softclicks[util::randomInt(0, softclicks.size() - 1)];
 }
 FMOD::Sound* Clickpack::randomRelease()
 {
-	if(releases.size() <= 0)
+	if (releases.size() <= 0)
 		return nullptr;
 
 	return releases[util::randomInt(0, releases.size() - 1)];
 }
 FMOD::Sound* Clickpack::randomPlatClick()
 {
-	if(platClicks.size() <= 0)
+	if (platClicks.size() <= 0)
 		return nullptr;
 
 	return platClicks[util::randomInt(0, platClicks.size() - 1)];
 }
 FMOD::Sound* Clickpack::randomPlatRelease()
 {
-	if(platReleases.size() <= 0)
+	if (platReleases.size() <= 0)
 		return nullptr;
 
 	return platReleases[util::randomInt(0, platReleases.size() - 1)];

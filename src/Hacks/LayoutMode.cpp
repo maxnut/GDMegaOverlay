@@ -13,7 +13,7 @@ using namespace geode::prelude;
 
 void hideObject(GameObject* obj)
 {
-	if((obj->getParent() && !obj->isVisible()) || obj->m_objectID == 44 || obj->m_objectID == 749 || obj->m_objectID == 12 || obj->m_objectID == 38 ||
+	if ((obj->getParent() && !obj->isVisible()) || obj->m_objectID == 44 || obj->m_objectID == 749 || obj->m_objectID == 12 || obj->m_objectID == 38 ||
 					 obj->m_objectID == 47 || obj->m_objectID == 111 || obj->m_objectID == 8 || obj->m_objectID == 13 ||
 					 obj->m_objectID == 660 || obj->m_objectID == 745 || obj->m_objectID == 101 || obj->m_objectID == 99 ||
 					 obj->m_objectID == 1331)
@@ -42,7 +42,7 @@ void hideObject(GameObject* obj)
 			obj->setOpacity(255);
 			obj->setVisible(true);
 
-			if(!obj->getParent())
+			if (!obj->getParent())
 			{
 				switch((int)obj->m_zLayer)
 				{
@@ -86,7 +86,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::postUpdate(dt);
 
-		if(!Settings::get<bool>("level/layout_mode", false))
+		if (!Settings::get<bool>("level/layout_mode", false))
 			return;
 
 		//found in gjbasegamelayer::createbackground
@@ -117,7 +117,7 @@ class $modify(ShaderLayer)
 	void visit()
 	{
 		bool enabled = Settings::get<bool>("level/layout_mode", false);
-		if(enabled)
+		if (enabled)
 		{
 			CCNode::visit();
 			return;
@@ -131,12 +131,12 @@ class $modify(EffectGameObject)
 {
 	void triggerObject(GJBaseGameLayer* p0, int p1, gd::vector<int> const* p2)
 	{
-		if(!Settings::get<bool>("level/layout_mode", false))
+		if (!Settings::get<bool>("level/layout_mode", false))
 			return EffectGameObject::triggerObject(p0, p1, p2);
 
 		int id = this->m_objectID;
 
-		if(id == 899 || id == 1006 || id == 1007 || id == 105 || id == 29 || id == 56 || id == 915 || id == 30 || id == 58)
+		if (id == 899 || id == 1006 || id == 1007 || id == 105 || id == 29 || id == 56 || id == 915 || id == 30 || id == 58)
 			return;
 
 		EffectGameObject::triggerObject(p0, p1, p2);
@@ -145,7 +145,7 @@ class $modify(EffectGameObject)
 
 void lightningFlash(GJBaseGameLayer* self, cocos2d::CCPoint* a, cocos2d::CCPoint* b, cocos2d::ccColor3B* c, float d, float e, int f, bool g, float h)
 {
-	if(Settings::get<bool>("level/layout_mode", false))
+	if (Settings::get<bool>("level/layout_mode", false))
 		return;
 	
 	reinterpret_cast<void(__thiscall *)(GJBaseGameLayer *, cocos2d::CCPoint*, cocos2d::CCPoint*, cocos2d::ccColor3B*, float, float, int, bool, float)>(base::get() + 0x1C8D50)(self, a, b, c, d, e, f, g, h);

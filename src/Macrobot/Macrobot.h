@@ -79,7 +79,7 @@ namespace Macrobot
 			if (obj.contains("correction"))
 			{
 				Correction c;
-				if(obj["correction"].contains("frame"))
+				if (obj["correction"].contains("frame"))
 					c.frame = obj["correction"]["frame"];
 				c.player2 = obj["correction"]["player2"];
 				c.checkpoint.xVel = obj["correction"]["xVel"];

@@ -25,14 +25,14 @@ class $modify(PlayLayer)
 
 		bool enabled = Settings::get<bool>("level/auto_deafen/enabled", false);
 
-		if(!enabled)
+		if (!enabled)
 			return;
 
 		float deafenPercent = Settings::get<float>("level/auto_deafen/percent", 50.f);
 
 		float percent = PlayLayer::getCurrentPercent();
 
-		if(!this->m_player1->m_isDead && !this->m_player2->m_isDead && percent > deafenPercent && !AutoDeafen::deafened)
+		if (!this->m_player1->m_isDead && !this->m_player2->m_isDead && percent > deafenPercent && !AutoDeafen::deafened)
 		{
 			AutoDeafen::toggleDeafen();
 			AutoDeafen::deafened = true;
@@ -43,7 +43,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::destroyPlayer(p0, p1);
 
-		if(p0 && p0->m_isDead && AutoDeafen::deafened)
+		if (p0 && p0->m_isDead && AutoDeafen::deafened)
 		{
 			AutoDeafen::toggleDeafen();
 			AutoDeafen::deafened = false;
@@ -54,7 +54,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::resetLevel();
 
-		if(AutoDeafen::deafened)
+		if (AutoDeafen::deafened)
 		{
 			AutoDeafen::toggleDeafen();
 			AutoDeafen::deafened = false;
@@ -65,7 +65,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::levelComplete();
 
-		if(AutoDeafen::deafened)
+		if (AutoDeafen::deafened)
 		{
 			AutoDeafen::toggleDeafen();
 			AutoDeafen::deafened = false;
@@ -76,7 +76,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::onQuit();
 
-		if(AutoDeafen::deafened)
+		if (AutoDeafen::deafened)
 		{
 			AutoDeafen::toggleDeafen();
 			AutoDeafen::deafened = false;

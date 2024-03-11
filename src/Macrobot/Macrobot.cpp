@@ -69,7 +69,7 @@ class $modify(PlayLayer)
 			PlayLayer::loadFromCheckpoint(checkpoint);
 
 			checkpointData.p1.apply(this->m_player1, true);
-			if(MBO(bool, this, 878))
+			if (MBO(bool, this, 878))
 				checkpointData.p2.apply(this->m_player2, true);
 		}
 		else
@@ -118,13 +118,13 @@ class $modify(PlayLayer)
 					this->m_player1->pushButton(PlayerButton::Left);
 			}
 
-			if(playerMode == RECORDING)
+			if (playerMode == RECORDING)
 			{
 				//TODO only do this when necessary
 				bool isDual = MBO(bool, this, 878);
 
 				Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8 + 1, false, true);
-				if(isDual)
+				if (isDual)
 					Macrobot::recordAction(PlayerButton::Jump, this->m_gameState.m_unk1f8 + 1, false, false);
 			}
 		}
@@ -137,7 +137,7 @@ class $modify(PlayerObject)
 {
 	void pushButton(PlayerButton btn)
 	{
-		if((playerMode == PLAYBACK && !botInput) || resetFrame)
+		if ((playerMode == PLAYBACK && !botInput) || resetFrame)
 			return;
 		PlayerObject::pushButton(btn);
 		
@@ -145,7 +145,7 @@ class $modify(PlayerObject)
 
 		if (pl && playerMode == RECORDING && !resetFrame)
 		{
-			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
+			if (!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
 				return;
 
 			recordAction(btn, pl->m_gameState.m_unk1f8, true, this == pl->m_player1);
@@ -154,7 +154,7 @@ class $modify(PlayerObject)
 
 	void releaseButton(PlayerButton btn)
 	{
-		if((playerMode == PLAYBACK && !botInput) || resetFrame)
+		if ((playerMode == PLAYBACK && !botInput) || resetFrame)
 			return;
 		PlayerObject::releaseButton(btn);
 
@@ -162,7 +162,7 @@ class $modify(PlayerObject)
 
 		if (pl && playerMode == RECORDING && !resetFrame)
 		{
-			if(!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
+			if (!pl->m_levelSettings->m_twoPlayerMode && this == pl->m_player2)
 				return;
 
 			if (btn == PlayerButton::Right && direction == 1)
@@ -198,9 +198,9 @@ class $modify(GJBaseGameLayer)
 {
 	void update(float dt)
 	{
-		if(Settings::get<bool>("macrobot/frame_step/enabled", false))
+		if (Settings::get<bool>("macrobot/frame_step/enabled", false))
 		{
-			if(PlayLayer::get()->m_gameState.m_unk1f8 < targetSteps)
+			if (PlayLayer::get()->m_gameState.m_unk1f8 < targetSteps)
 				GJBaseGameLayer::update(dt);
 			return;
 		}
@@ -244,7 +244,7 @@ void Macrobot::handleAction(Action& action)
 	if ((CorrectionType)Settings::get<int>("macrobot/corrections") == ACTION && action.correction.has_value())
 		action.correction->checkpoint.apply(action.correction->player2 ? pl->m_player2 : pl->m_player1, false);
 
-	if(!Settings::get<bool>("macrobot/clicks/enabled", false))
+	if (!Settings::get<bool>("macrobot/clicks/enabled", false))
 		return;
 
 	float timestamp = action.frame / macro.framerate;
@@ -252,10 +252,10 @@ void Macrobot::handleAction(Action& action)
 	std::unordered_map<int, bool> &downForKey = player1 ? downForKey1 : downForKey2;
 	std::unordered_map<int, float> &timeForKey = player1 ? timeForKey1 : timeForKey2;
 
-	if(downForKey.contains(button) && downForKey[button] == down)
+	if (downForKey.contains(button) && downForKey[button] == down)
 		return;
 
-	if(!timeForKey.contains(button))
+	if (!timeForKey.contains(button))
 		timeForKey[button] = 0;
 
 	downForKey[button] = down;
@@ -313,7 +313,7 @@ void Macrobot::MPlayerCheckpoint::fromPlayer(PlayerObject *player, bool fullCapt
 {
 	// playerObject + 2280 isplatformer
 	// playerObject + 2160 xVelPlatformer
-	if(!player)
+	if (!player)
 		return;
 
 	cocos2d::CCPoint position = player->m_position;
@@ -461,7 +461,7 @@ bool Macrobot::load(const std::string& file)
 {
 	auto opt = loadMacro(file);
 
-	if(!opt)
+	if (!opt)
 	{
 		FLAlertLayer::create("Error", "Could not load macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok")->show();
 		return false;
@@ -469,7 +469,7 @@ bool Macrobot::load(const std::string& file)
 
 	macro = opt.value();
 
-	if(macro.botInfo.version != "1.1")
+	if (macro.botInfo.version != "1.1")
 	{
 		macro = Macro();
 		FLAlertLayer::create("Error", "This macro was recorded on an older macrobot version!", "Ok")->show();
@@ -497,7 +497,7 @@ void Macrobot::drawMacroTable()
 	GUI::inputText("Search", &searchText);
 
 	ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, {10, 10});
-	if(!ImGui::BeginTable("MacroTable", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable |
+	if (!ImGui::BeginTable("MacroTable", 6, ImGuiTableFlags_RowBg | ImGuiTableFlags_PadOuterX | ImGuiTableFlags_Resizable |
 									ImGuiTableFlags_Borders | ImGuiTableFlags_NoBordersInBody))
 	{
 		ImGui::PopStyleVar();
@@ -516,7 +516,7 @@ void Macrobot::drawMacroTable()
 	{
 		Macro& macro = pair.second;
 
-		if(!searchText.empty() && pair.first.find(searchText) == std::string::npos)
+		if (!searchText.empty() && pair.first.find(searchText) == std::string::npos)
 			continue;
 
 		ImGui::TableNextRow();
@@ -551,7 +551,7 @@ void Macrobot::drawMacroTable()
 
 			auto level = GameLevelManager::get()->getSavedLevel(macro.levelInfo.id);
 
-			if(level && load(pair.first))
+			if (level && load(pair.first))
 			{
 				auto layer = PlayLayer::create(level, false, false);
 				auto scene = CCScene::create();
@@ -575,7 +575,7 @@ void Macrobot::drawMacroTable()
 	ImGui::EndTable();
 	ImGui::PopStyleVar();
 
-	if(needReload)
+	if (needReload)
 		getMacros();
 }
 
@@ -661,7 +661,7 @@ void Macrobot::getMacros()
 		{
 			std::string name = string::wideToUtf8(entry.path().stem().wstring());
 			auto macroOpt = loadMacro(name, false);
-			if(macroOpt)
+			if (macroOpt)
 				macroList.insert({name, macroOpt.value()});
 		}
 	}

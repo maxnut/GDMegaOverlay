@@ -21,9 +21,9 @@ uintptr_t addr = 0;
 
 void glViewportHook(GLint a, GLint b, GLsizei c, GLsizei d)
 {
-	if(visiting && recorder.m_recording && inShader)
+	if (visiting && recorder.m_recording && inShader)
 	{
-		if(c != 2608 && d != 2608)
+		if (c != 2608 && d != 2608)
 		{
 			c = Settings::get<int>("recorder/resolution/x", 1920);
 			d = Settings::get<int>("recorder/resolution/y", 1080);
@@ -109,7 +109,7 @@ void Recorder::start_audio()
 	auto path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
 	bool hasVideo = ghc::filesystem::exists(path);
 
-	if(!hasVideo)
+	if (!hasVideo)
 	{
 		FLAlertLayer::create("Error", ("The render for the level has not been found!\n" + string::wideToUtf8(path.wstring())).c_str(), "Ok")->show();
 		return;
@@ -423,7 +423,7 @@ void Record::renderWindow()
 			FLAlertLayer::create("Error", "FFmpeg not found", "Ok")->show();
 	}
 
-	if(GUI::shouldRender() && disabled && ImGui::IsItemHovered())
+	if (GUI::shouldRender() && disabled && ImGui::IsItemHovered())
 		ImGui::SetTooltip("You need to be playing a macro to record");
 
 	if (disabled)
@@ -465,7 +465,7 @@ void Record::renderWindow()
 			FLAlertLayer::create("Error", "FFmpeg not found", "Ok")->show();
 	}
 
-	if(GUI::shouldRender() && disabled && ImGui::IsItemHovered())
+	if (GUI::shouldRender() && disabled && ImGui::IsItemHovered())
 		ImGui::SetTooltip("You need to be playing a macro to record");
 
 	if (disabled)
