@@ -92,7 +92,7 @@ void Clickpacks::drawGUI()
 					Mod::get()->setSavedValue<std::string>("clickpacks/path", result);
 				}
 				else
-					FLAlertLayer::create("Error", "The folder is not a valid clickpack!", "Ok")->show();
+					Common::showWithPriority(FLAlertLayer::create("Error", "The folder is not a valid clickpack!", "Ok"));
 			}
 		}
 

@@ -15,7 +15,8 @@
 			"res/Style.style",
 			"res/arial.ttf",
 			"res/get_ffmpeg/*",
-			"res/default_windows.json"
+			"res/default_windows.json",
+			"res/shadow.png"
 		]
 	}
 }

@@ -31,5 +31,9 @@ namespace GUI
 		void draw();
 
 		bool visibleInScreen();
+
+		void customTitlebar();
+
+		void dropShadow(float size, ImU8 opacity);
 	};
 };

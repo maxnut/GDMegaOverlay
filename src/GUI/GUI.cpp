@@ -126,6 +126,7 @@ void GUI::init()
 	windowPositions = json::object();
 	GUI::loadStyle(Mod::get()->getResourcesDir() / "Style.style");
 	shortcuts.clear();
+	shadowTexture = cocos2d::CCTextureCache::get()->addImage(string::wideToUtf8((Mod::get()->getResourcesDir() / "shadow.png").wstring()).c_str(), true);
 	load();
 }
 

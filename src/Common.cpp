@@ -301,7 +301,7 @@ void Common::uncompleteLevel()
 {
 	if (!PlayLayer::get())
 	{
-		FLAlertLayer::create("Error", "Enter a level first!", "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", "Enter a level first!", "Ok"));
 		return;
 	}
 	GJGameLevel* level = PlayLayer::get()->m_level;
@@ -318,4 +318,13 @@ void Common::uncompleteLevel()
 	level->m_bestTime = 0;
 
 	GameLevelManager::sharedState()->saveLevel(level);
+}
+
+void Common::showWithPriority(FLAlertLayer* alert)
+{
+	alert->show();
+	if (auto delegate = typeinfo_cast<CCTouchDelegate*>(alert)) {
+        if (auto handler = CCTouchDispatcher::get()->findHandler(delegate))
+            CCTouchDispatcher::get()->setPriority(-600, handler->getDelegate());
+    }
 }
