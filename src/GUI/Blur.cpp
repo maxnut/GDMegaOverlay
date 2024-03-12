@@ -251,6 +251,7 @@ void Blur::blurWindowBackground()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	draw_list->PushClipRectFullScreen();
+
 	draw_list->AddCallback(blurCallback, nullptr);
 
 	//add rect filled doesnt have tex coords so i add them manually

@@ -7,6 +7,7 @@
 #include "util.hpp"
 
 class GameObject;
+class FLAlertLayer;
 
 namespace cocos2d
 {
@@ -32,4 +33,6 @@ namespace Common
 	float getTPS();
 
 	void updateCheating();
+
+	void showWithPriority(FLAlertLayer* alert);
 };

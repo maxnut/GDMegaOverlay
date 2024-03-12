@@ -234,6 +234,9 @@ void initGUI()
 
 		GUI::checkbox("Auto Deafen", "level/auto_deafen/enabled");
 
+		if(ImGui::IsItemHovered())
+			ImGui::SetTooltip("To use auto deafen, set a mute keybind in discord with ALT + the key you want to use");
+
 		GUI::arrowButton("Auto Deafen Settings");
 		GUI::modalPopup(
 			"Auto Deafen Settings",
@@ -330,6 +333,8 @@ void initGUI()
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Mod::get()->setSavedValue<float>("menu/window/opacity", windowOpacity);
 
+		GUI::checkbox("Title Gradient", "menu/title_gradient/enabled", true);
+
 		GUI::checkbox("Rainbow Menu", "menu/window/rainbow/enabled");
 
 		GUI::arrowButton("Rainbow Menu Settings");
@@ -352,6 +357,15 @@ void initGUI()
 				GUI::inputInt("Blur Steps", "menu/blur/steps", 10, 5, 20);
 			};
 
+		GUI::checkbox("Drop Shadow", "menu/drop_shadow/enabled", true);
+
+		GUI::arrowButton("Drop Shadow Settings");
+		GUI::modalPopup(
+			"Drop Shadow Settings",
+			[] {
+				GUI::inputFloat("Shadow Size", "menu/drop_shadow/size", 24.f, 12.f, 100.f);
+			},
+			ImGuiWindowFlags_AlwaysAutoResize);
 
 		GUI::checkbox("Blur Background", "menu/blur/enabled");
 		

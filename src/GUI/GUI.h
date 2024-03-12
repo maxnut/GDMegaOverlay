@@ -8,6 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 
+#include <cocos2d.h>
 
 using json = nlohmann::json;
 
@@ -30,6 +31,8 @@ namespace GUI
 	inline bool canToggle = false;
 
 	inline float hideTimer = 0.0f;
+
+	inline cocos2d::CCTexture2D* shadowTexture = nullptr;
 
 	inline std::function<void()> lateInit;
 

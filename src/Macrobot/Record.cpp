@@ -111,7 +111,7 @@ void Recorder::start_audio()
 
 	if (!hasVideo)
 	{
-		FLAlertLayer::create("Error", ("The render for the level has not been found!\n" + string::wideToUtf8(path.wstring())).c_str(), "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", ("The render for the level has not been found!\n" + string::wideToUtf8(path.wstring())).c_str(), "Ok"));
 		return;
 	}
 
@@ -239,7 +239,7 @@ void Recorder::start()
 
 void Recorder::stop()
 {
-	FLAlertLayer::create("Info", "Macro rendererd successfully!", "Ok")->show();
+	Common::showWithPriority(FLAlertLayer::create("Info", "Macro rendererd successfully!", "Ok"));
 	m_renderer.end();
 	m_recording = false;
 }
@@ -310,7 +310,7 @@ void Recorder::capture_frame()
 
 void Recorder::stop_audio()
 {
-	FLAlertLayer::create("Info", "Sound recorded successfully!", "Ok")->show();
+	Common::showWithPriority(FLAlertLayer::create("Info", "Sound recorded successfully!", "Ok"));
 	AudioRecord::stop();
 	m_recording_audio = false;
 
@@ -420,7 +420,7 @@ void Record::renderWindow()
 		if (ghc::filesystem::exists("ffmpeg.exe"))
 			Record::recorder.start();
 		else
-			FLAlertLayer::create("Error", "FFmpeg not found", "Ok")->show();
+			Common::showWithPriority(FLAlertLayer::create("Error", "FFmpeg not found", "Ok"));
 	}
 
 	if (GUI::shouldRender() && disabled && ImGui::IsItemHovered())
@@ -462,7 +462,7 @@ void Record::renderWindow()
 		if (ghc::filesystem::exists("ffmpeg.exe"))
 			recorder.start_audio();
 		else
-			FLAlertLayer::create("Error", "FFmpeg not found", "Ok")->show();
+			Common::showWithPriority(FLAlertLayer::create("Error", "FFmpeg not found", "Ok"));
 	}
 
 	if (GUI::shouldRender() && disabled && ImGui::IsItemHovered())

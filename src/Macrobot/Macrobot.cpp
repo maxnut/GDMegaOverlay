@@ -43,7 +43,7 @@ class $modify(CCKeyboardDispatcher)
 
 		int convertedKey = ConvertKeyEnum(key);
 
-		if (convertedKey == advanceKey)
+		if (convertedKey == advanceKey && PlayLayer::get())
 			targetSteps = PlayLayer::get()->m_gameState.m_unk1f8 + Settings::get<int>("macrobot/frame_step/steps", 1);
 
 		return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
@@ -400,13 +400,13 @@ void Macrobot::save(const std::string& file)
 {
 	if (macro.inputs.size() <= 0)
 	{
-		FLAlertLayer::create("Error", "No inputs in macro!", "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", "No inputs in macro!", "Ok"));
 		return;
 	}
 
 	if (file == "")
 	{
-		FLAlertLayer::create("Error", "Macro name is empty!", "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", "Macro name is empty!", "Ok"));
 		return;
 	}
 
@@ -414,7 +414,7 @@ void Macrobot::save(const std::string& file)
 
 	if (!f)
 	{
-		FLAlertLayer::create("Error", "Could not save macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", "Could not save macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok"));
 		f.close();
 		return;
 	}
@@ -430,7 +430,7 @@ void Macrobot::save(const std::string& file)
 	f.write(reinterpret_cast<const char *>(data.data()), data.size());
 	f.close();
 
-	FLAlertLayer::create("Info", fmt::format("{} saved with {} inputs.", file, macro.inputs.size()), "Ok")->show();
+	Common::showWithPriority(FLAlertLayer::create("Info", fmt::format("{} saved with {} inputs.", file, macro.inputs.size()), "Ok"));
 }
 
 
@@ -463,7 +463,7 @@ bool Macrobot::load(const std::string& file)
 
 	if (!opt)
 	{
-		FLAlertLayer::create("Error", "Could not load macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", "Could not load macro!\n" + (Mod::get()->getSaveDir() / "macros" / (file + ".gdr")).string() + "!", "Ok"));
 		return false;
 	}
 
@@ -472,11 +472,11 @@ bool Macrobot::load(const std::string& file)
 	if (macro.botInfo.version != "1.1")
 	{
 		macro = Macro();
-		FLAlertLayer::create("Error", "This macro was recorded on an older macrobot version!", "Ok")->show();
+		Common::showWithPriority(FLAlertLayer::create("Error", "This macro was recorded on an older macrobot version!", "Ok"));
 		return false;
 	}
 
-	FLAlertLayer::create("Info", fmt::format("{} loaded with {} inputs.", file, macro.inputs.size()), "Ok")->show();
+	Common::showWithPriority(FLAlertLayer::create("Info", fmt::format("{} loaded with {} inputs.", file, macro.inputs.size()), "Ok"));
 	PhysicsBypass::calculateTickrate();
 	
 	return true;
@@ -581,56 +581,56 @@ void Macrobot::drawMacroTable()
 
 void Macrobot::drawWindow()
 {
-	if (!GUI::shouldRender())
-		return;
-	
-	if (ImGui::RadioButton("Disable", (int*)&Macrobot::playerMode, (int)DISABLED))
+	if (GUI::shouldRender())
 	{
-		Common::calculateFramerate();
-		PhysicsBypass::calculateTickrate();
+		if (ImGui::RadioButton("Disable", (int*)&Macrobot::playerMode, (int)DISABLED))
+		{
+			Common::calculateFramerate();
+			PhysicsBypass::calculateTickrate();
+		}
+		if (ImGui::RadioButton("Record", (int*)&Macrobot::playerMode, (int)RECORDING))
+		{
+			Common::calculateFramerate();
+			PhysicsBypass::calculateTickrate();
+			if (PlayLayer::get())
+				PlayLayer::get()->resetLevelFromStart();
+		}
+		if (ImGui::RadioButton("Play", (int*)&Macrobot::playerMode, (int)PLAYBACK))
+		{
+			Common::calculateFramerate();
+			PhysicsBypass::calculateTickrate();
+		}
+
+		ImGui::PushItemWidth(80);
+		GUI::inputText("Macro Name", &macroName);
+		GUI::inputText("Macro Description", &macroDescription);
+		ImGui::PopItemWidth();
+
+		if (GUI::button("Save##macro"))
+			save(macroName);
+		GUI::sameLine();
+		if (GUI::button("Load##macropopup"))
+		{
+			getMacros();
+			ImGui::OpenPopup("Load Macro");
+		}
+
+		GUI::modalPopup("Load Macro", []{
+			if (macroList.size() > 0)
+				drawMacroTable();
+			else
+				ImGui::Text("There are no macros to load! Create some macros first.");
+		});
+
+		int corrections = Settings::get<int>("macrobot/corrections");
+
+		if (GUI::combo("Corrections", &corrections, correctionType, 2))
+			Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);
+
+		GUI::checkbox("Click Sounds", "macrobot/clicks/enabled");
+		GUI::arrowButton("Clickpacks");
+		Clickpacks::drawGUI();
 	}
-	if (ImGui::RadioButton("Record", (int*)&Macrobot::playerMode, (int)RECORDING))
-	{
-		Common::calculateFramerate();
-		PhysicsBypass::calculateTickrate();
-		if (PlayLayer::get())
-			PlayLayer::get()->resetLevelFromStart();
-	}
-	if (ImGui::RadioButton("Play", (int*)&Macrobot::playerMode, (int)PLAYBACK))
-	{
-		Common::calculateFramerate();
-		PhysicsBypass::calculateTickrate();
-	}
-
-	ImGui::PushItemWidth(80);
-	GUI::inputText("Macro Name", &macroName);
-	GUI::inputText("Macro Description", &macroDescription);
-	ImGui::PopItemWidth();
-
-	if (GUI::button("Save##macro"))
-		save(macroName);
-	GUI::sameLine();
-	if (GUI::button("Load##macropopup"))
-	{
-		getMacros();
-		ImGui::OpenPopup("Load Macro");
-	}
-
-	GUI::modalPopup("Load Macro", []{
-		if (macroList.size() > 0)
-			drawMacroTable();
-		else
-			ImGui::Text("There are no macros to load! Create some macros first.");
-	});
-
-	int corrections = Settings::get<int>("macrobot/corrections");
-
-	if (GUI::combo("Corrections", &corrections, correctionType, 2))
-		Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);
-
-	GUI::checkbox("Click Sounds", "macrobot/clicks/enabled");
-	GUI::arrowButton("Clickpacks");
-	Clickpacks::drawGUI();
 
 	GUI::checkbox("Frame Step", "macrobot/frame_step/enabled");
 
