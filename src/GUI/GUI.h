@@ -13,6 +13,7 @@
 using json = nlohmann::json;
 
 class WindowAction;
+class ImGuiStyle;
 
 namespace GUI
 {
@@ -31,6 +32,9 @@ namespace GUI
 	inline bool canToggle = false;
 
 	inline float hideTimer = 0.0f;
+	inline float uiSizeFactor = 1.f;
+
+	inline ImGuiStyle loadedStyle;
 
 	inline cocos2d::CCTexture2D* shadowTexture = nullptr;
 

@@ -270,6 +270,10 @@ class $modify(PlayLayer)
 					
 					hasObjects = true;
 					auto obj = s1->at(k);
+
+					if(!obj || obj->retainCount() == 0)
+						continue;
+
 					for(auto &pair : Common::sectionLoopFunctions)
 					{
 						if (Settings::get<bool>(pair.second, false))

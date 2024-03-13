@@ -601,10 +601,8 @@ void Macrobot::drawWindow()
 			PhysicsBypass::calculateTickrate();
 		}
 
-		ImGui::PushItemWidth(80);
 		GUI::inputText("Name##macro", &macroName);
 		GUI::inputText("Description##macro", &macroDescription);
-		ImGui::PopItemWidth();
 
 		if (GUI::button("Save##macro"))
 			save(macroName);

@@ -43,8 +43,7 @@ void Window::draw()
 	if (GUI::isVisible && visibleInScreen())
 	{
 		if (maxSize.x != 0 && maxSize.y != 0)
-			ImGui::SetNextWindowSizeConstraints(minSize, maxSize);
-
+			ImGui::SetNextWindowSizeConstraints({minSize.x * GUI::uiSizeFactor, minSize.y * GUI::uiSizeFactor}, {maxSize.x * GUI::uiSizeFactor, maxSize.y * GUI::uiSizeFactor});
 		bool blurEnabled = Settings::get<bool>("menu/blur/enabled", false);
 		bool blurGD = Settings::get<bool>("menu/blur/gd", false);
 		float windowTransparency = Settings::get<float>("menu/window/opacity", 0.98f);
@@ -65,6 +64,8 @@ void Window::draw()
 
 		if(Settings::get<bool>("menu/drop_shadow/enabled", true))
 			dropShadow(Settings::get<float>("menu/drop_shadow/size", 24.f), 255);
+
+		ImGui::SetWindowFontScale(Settings::get<float>("menu/ui_scale", 1.f));
 
 		if (ImGui::IsMouseDragging(0, 0.1f) && ImGui::IsWindowFocused())
 		{
@@ -95,6 +96,95 @@ void Window::draw()
 		ImGui::End();
 }
 
+//stole directly from imgui source
+void RenderWindowTitleBarContents(ImGuiWindow* window, const ImRect& title_bar_rect, const char* name, bool* p_open)
+{
+    ImGuiContext& g = *GImGui;
+    ImGuiStyle& style = g.Style;
+    ImGuiWindowFlags flags = window->Flags;
+
+    const bool has_close_button = (p_open != NULL);
+    const bool has_collapse_button = !(flags & ImGuiWindowFlags_NoCollapse) && (style.WindowMenuButtonPosition != ImGuiDir_None);
+
+    // Close & Collapse button are on the Menu NavLayer and don't default focus (unless there's nothing else on that layer)
+    // FIXME-NAV: Might want (or not?) to set the equivalent of ImGuiButtonFlags_NoNavFocus so that mouse clicks on standard title bar items don't necessarily set nav/keyboard ref?
+    const ImGuiItemFlags item_flags_backup = g.CurrentItemFlags;
+    g.CurrentItemFlags |= ImGuiItemFlags_NoNavDefaultFocus;
+    window->DC.NavLayerCurrent = ImGuiNavLayer_Menu;
+
+    // Layout buttons
+    // FIXME: Would be nice to generalize the subtleties expressed here into reusable code.
+    float pad_l = style.FramePadding.x;
+    float pad_r = style.FramePadding.x;
+    float button_sz = g.FontSize;
+    ImVec2 close_button_pos;
+    ImVec2 collapse_button_pos;
+    if (has_close_button)
+    {
+        pad_r += button_sz;
+        close_button_pos = ImVec2(title_bar_rect.Max.x - pad_r - style.FramePadding.x, title_bar_rect.Min.y);
+    }
+    if (has_collapse_button && style.WindowMenuButtonPosition == ImGuiDir_Right)
+    {
+        pad_r += button_sz;
+        collapse_button_pos = ImVec2(title_bar_rect.Max.x - pad_r - style.FramePadding.x, title_bar_rect.Min.y);
+    }
+    if (has_collapse_button && style.WindowMenuButtonPosition == ImGuiDir_Left)
+    {
+        collapse_button_pos = ImVec2(title_bar_rect.Min.x + pad_l - style.FramePadding.x, title_bar_rect.Min.y);
+        pad_l += button_sz;
+    }
+
+    // Collapse button (submitting first so it gets priority when choosing a navigation init fallback)
+    if (has_collapse_button)
+        if (ImGui::CollapseButton(window->GetID("#COLLAPSE"), collapse_button_pos))
+            window->WantCollapseToggle = true; // Defer actual collapsing to next frame as we are too far in the Begin() function
+
+    // Close button
+    if (has_close_button)
+        if (ImGui::CloseButton(window->GetID("#CLOSE"), close_button_pos))
+            *p_open = false;
+
+    window->DC.NavLayerCurrent = ImGuiNavLayer_Main;
+    g.CurrentItemFlags = item_flags_backup;
+
+    // Title bar text (with: horizontal alignment, avoiding collapse/close button, optional "unsaved document" marker)
+    // FIXME: Refactor text alignment facilities along with RenderText helpers, this is WAY too much messy code..
+    const float marker_size_x = (flags & ImGuiWindowFlags_UnsavedDocument) ? button_sz * 0.80f : 0.0f;
+    const ImVec2 text_size = ImGui::CalcTextSize(name, NULL, true) + ImVec2(marker_size_x, 0.0f);
+
+    // As a nice touch we try to ensure that centered title text doesn't get affected by visibility of Close/Collapse button,
+    // while uncentered title text will still reach edges correctly.
+    if (pad_l > style.FramePadding.x)
+        pad_l += g.Style.ItemInnerSpacing.x;
+    if (pad_r > style.FramePadding.x)
+        pad_r += g.Style.ItemInnerSpacing.x;
+    if (style.WindowTitleAlign.x > 0.0f && style.WindowTitleAlign.x < 1.0f)
+    {
+        float centerness = ImSaturate(1.0f - ImFabs(style.WindowTitleAlign.x - 0.5f) * 2.0f); // 0.0f on either edges, 1.0f on center
+        float pad_extend = ImMin(ImMax(pad_l, pad_r), title_bar_rect.GetWidth() - pad_l - pad_r - text_size.x);
+        pad_l = ImMax(pad_l, pad_extend * centerness);
+        pad_r = ImMax(pad_r, pad_extend * centerness);
+    }
+
+    ImRect layout_r(title_bar_rect.Min.x + pad_l, title_bar_rect.Min.y, title_bar_rect.Max.x - pad_r, title_bar_rect.Max.y);
+    ImRect clip_r(layout_r.Min.x, layout_r.Min.y, ImMin(layout_r.Max.x + g.Style.ItemInnerSpacing.x, title_bar_rect.Max.x), layout_r.Max.y);
+    if (flags & ImGuiWindowFlags_UnsavedDocument)
+    {
+        ImVec2 marker_pos;
+        marker_pos.x = ImClamp(layout_r.Min.x + (layout_r.GetWidth() - text_size.x) * style.WindowTitleAlign.x + text_size.x, layout_r.Min.x, layout_r.Max.x);
+        marker_pos.y = (layout_r.Min.y + layout_r.Max.y) * 0.5f;
+        if (marker_pos.x > layout_r.Min.x)
+        {
+            ImGui::RenderBullet(window->DrawList, marker_pos, ImGui::GetColorU32(ImGuiCol_Text));
+            clip_r.Max.x = ImMin(clip_r.Max.x, marker_pos.x - (int)(marker_size_x * 0.5f));
+        }
+    }
+    //if (g.IO.KeyShift) window->DrawList->AddRect(layout_r.Min, layout_r.Max, IM_COL32(255, 128, 0, 255)); // [DEBUG]
+    //if (g.IO.KeyCtrl) window->DrawList->AddRect(clip_r.Min, clip_r.Max, IM_COL32(255, 128, 0, 255)); // [DEBUG]
+    ImGui::RenderTextClipped(layout_r.Min, layout_r.Max, name, NULL, &text_size, style.WindowTitleAlign, &clip_r);
+}
+
 //https://github.com/ocornut/imgui/issues/4722
 void Window::customTitlebar()
 {
@@ -104,7 +194,6 @@ void Window::customTitlebar()
 
 	ImVec2 min = ImGui::GetCurrentWindow()->TitleBarRect().Min;
 	ImVec2 max = ImGui::GetCurrentWindow()->TitleBarRect().Max;
-	auto size_arg = ImVec2(-FLT_MIN, 0.0f);
 
 	auto col_bg = ImGui::GetStyleColorVec4(ImGuiCol_TitleBg);
 
@@ -112,14 +201,6 @@ void Window::customTitlebar()
 	ImVec4 bg_color_2 = {col_bg.x * 1.5f, col_bg.y * 0.5f, col_bg.z * 1.25f, col_bg.w};
 
 	ImGuiContext& g = *GImGui;
-    const ImGuiStyle& style = g.Style;
-	
-	const ImVec2 label_size = ImGui::CalcTextSize(ImGui::GetCurrentWindow()->Name, NULL, true);
-
-	ImVec2 pos = {ImGui::GetCurrentWindow()->DC.CursorPos.x, ImGui::GetWindowPos().y};
-    ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
-
-	const ImRect bb(pos, pos + size);
 
 	int vert_start_idx = draw_list->VtxBuffer.Size;
     draw_list->AddRectFilled(min, max, ImGui::GetColorU32(bg_color_1), g.Style.FrameRounding);
@@ -128,7 +209,7 @@ void Window::customTitlebar()
     if (g.Style.FrameBorderSize > 0.0f)
         draw_list->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border), g.Style.FrameRounding, 0, g.Style.FrameBorderSize);
 
-    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, ImGui::GetCurrentWindow()->Name, NULL, &label_size, style.ButtonTextAlign, &bb);
+	RenderWindowTitleBarContents(ImGui::GetCurrentWindow(), ImGui::GetCurrentWindow()->TitleBarRect(), ImGui::GetCurrentWindow()->Name, (bool*)0);
 
 	draw_list->PopClipRect();
 }

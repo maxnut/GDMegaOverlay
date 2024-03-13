@@ -239,7 +239,7 @@ void GUI::arrowButton(const std::string& popupName)
 
 	float ww = ImGui::GetWindowSize().x;
 
-	GUI::sameLine(ww - 39);
+	GUI::sameLine((ww - (39 * GUI::uiSizeFactor)));
 	if (ImGui::ArrowButton((popupName + "arrow").c_str(), 1))
 		ImGui::OpenPopup(popupName.c_str());
 }
@@ -249,9 +249,9 @@ bool GUI::combo(const std::string& name, int* value, const char* const items[], 
 	if (!GUI::shouldRender())
 		return false;
 
-	ImGui::PushItemWidth(80);
+	GUI::pushItemWidth(80);
 	bool result = ImGui::Combo(name.c_str(), value, items, itemsCount);
-	ImGui::PopItemWidth();
+	GUI::popItemWidth();
 	return result;
 }
 
@@ -260,9 +260,9 @@ bool GUI::inputInt(const std::string& name, int* value, int min, int max)
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(50);
+		GUI::pushItemWidth(50);
 		result = ImGui::InputInt(name.c_str(), value, 0);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	if (*value < min)
@@ -278,9 +278,9 @@ bool GUI::inputText(const std::string& name, std::string* value, float width)
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(width);
+		GUI::pushItemWidth(width);
 		result = ImGui::InputText(name.c_str(), value);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	return result;
@@ -291,9 +291,9 @@ bool GUI::inputInt2(const std::string& name, int* value, int min1, int max1, int
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(90);
+		GUI::pushItemWidth(90);
 		result = ImGui::InputInt2(name.c_str(), value, 0);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	if (value[0] < min1)
@@ -314,9 +314,9 @@ bool GUI::inputFloat2(const std::string& name, float* value, float min1, float m
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(90);
+		GUI::pushItemWidth(90);
 		result = ImGui::InputFloat2(name.c_str(), value, 0);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	if (value[0] < min1)
@@ -337,9 +337,9 @@ bool GUI::inputFloat(const std::string& name, float* value, float min, float max
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(50);
+		GUI::pushItemWidth(50);
 		result = ImGui::InputFloat(name.c_str(), value);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	if (*value < min)
@@ -381,9 +381,9 @@ bool GUI::dragInt(const std::string& name, int* value, int min, int max)
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(50);
+		GUI::pushItemWidth(50);
 		result = ImGui::DragInt(name.c_str(), value);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	if (*value < min)
@@ -399,9 +399,9 @@ bool GUI::dragFloat(const std::string& name, float* value, float min, float max)
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(50);
+		GUI::pushItemWidth(50);
 		result = ImGui::DragFloat(name.c_str(), value);
-		ImGui::PopItemWidth();
+		GUI::popItemWidth();
 	}
 
 	if (*value < min)
@@ -466,12 +466,12 @@ void GUI::textURL(const std::string& text, const std::string& link)
 			ImGui::FocusWindow(nullptr);
 			web::openLinkInBrowser(link.c_str());
 		}
-		AddUnderLine(ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+		AddUnderLine(GUI::loadedStyle.Colors[ImGuiCol_ButtonHovered]);
 		ImGui::SetTooltip("Open in browser\n%s", link.c_str());
 	}
 	else
 	{
-		AddUnderLine(ImGui::GetStyle().Colors[ImGuiCol_Button]);
+		AddUnderLine(GUI::loadedStyle.Colors[ImGuiCol_Button]);
 	}
 }
 
@@ -550,4 +550,20 @@ void GUI::sameLine(float offset_from_start_x, float spacing_w)
 		return;
 
 	ImGui::SameLine(offset_from_start_x, spacing_w);
+}
+
+void GUI::pushItemWidth(float width)
+{
+	if (!GUI::shouldRender())
+		return;
+
+	ImGui::PushItemWidth(width * GUI::uiSizeFactor);
+}
+
+void GUI::popItemWidth()
+{
+	if (!GUI::shouldRender())
+		return;
+
+	ImGui::PopItemWidth();
 }

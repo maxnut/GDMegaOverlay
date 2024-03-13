@@ -109,7 +109,12 @@ ImVec2 GUI::getJsonSize(const std::string& name, ImVec2 defaultSize)
 		windowPositions[name]["h"] = defaultSize.y;
 	}
 
-	return {windowPositions[name]["w"].get<float>(), windowPositions[name]["h"].get<float>()};
+	auto winSize = CCDirector::sharedDirector()->getOpenGLView()->getViewPortRect();
+
+	if (windowPositions[name]["w"] > 1 || windowPositions[name]["h"] > 1)
+		winSize.size = cocos2d::CCSize(1.f, 1.f);
+
+	return {windowPositions[name]["w"].get<float>() * winSize.size.width, windowPositions[name]["h"].get<float>() * winSize.size.height};
 }
 
 void GUI::setJsonSize(const std::string& name, ImVec2 size)
@@ -121,7 +126,9 @@ void GUI::setJsonSize(const std::string& name, ImVec2 size)
 void GUI::init()
 {
 	hasLateInit = false;
-	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF(string::wideToUtf8((Mod::get()->getResourcesDir() / "arial.ttf").wstring()).c_str(), 14);
+	uiSizeFactor = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
+	Blur::compiled = false;
+	auto fnt = ImGui::GetIO().Fonts->AddFontFromFileTTF(string::wideToUtf8((Mod::get()->getResourcesDir() / "arial.ttf").wstring()).c_str(), 14.f * uiSizeFactor);
 	ImGui::GetIO().FontDefault = fnt;
 	windowPositions = json::object();
 	GUI::loadStyle(Mod::get()->getResourcesDir() / "Style.style");
@@ -137,8 +144,15 @@ void GUI::setLateInit(const std::function<void()>& func)
 
 void GUI::draw()
 {
+	uiSizeFactor = CCDirector::sharedDirector()->getOpenGLView()->getFrameSize().width / 1920.0f;
+	uiSizeFactor *= Settings::get<float>("menu/ui_scale", 1.f);
+
 	if (!isVisible && !shortcutLoop)
 		return;
+
+	ImGui::GetStyle() = loadedStyle;
+
+	ImGui::GetStyle().ScaleAllSizes(uiSizeFactor);
 
 	for (WindowAction* ac : windowActions)
 		ac->step(ImGui::GetIO().DeltaTime);
@@ -245,6 +259,8 @@ void GUI::save()
 	{
 		windowPositions[w.name]["x"] = (float)w.position.x / (float)ImGui::GetIO().DisplaySize.x;
 		windowPositions[w.name]["y"] = (float)w.position.y / (float)ImGui::GetIO().DisplaySize.y;
+		windowPositions[w.name]["w"] = (float)w.size.x / (float)ImGui::GetIO().DisplaySize.x;
+		windowPositions[w.name]["h"] = (float)w.size.y / (float)ImGui::GetIO().DisplaySize.y;
 	}
 
 	std::ofstream f(Mod::get()->getSaveDir() / "windows.json");
@@ -355,26 +371,22 @@ void GUI::resetDefault()
 
 void GUI::saveStyle(const ghc::filesystem::path& name)
 {
-	ImGuiStyle style = ImGui::GetStyle();
 	std::ofstream styleFile(name, std::ios::binary);
 	if (styleFile)
-		styleFile.write((const char*)&style, sizeof(ImGuiStyle));
+		styleFile.write((const char*)&loadedStyle, sizeof(ImGuiStyle));
 	styleFile.close();
 }
 void GUI::loadStyle(const ghc::filesystem::path& name)
 {
-	ImGuiStyle& style = ImGui::GetStyle();
 	std::ifstream styleFile(name, std::ios::binary);
 	if (styleFile)
-		styleFile.read((char*)&style, sizeof(ImGuiStyle));
+		styleFile.read((char*)&loadedStyle, sizeof(ImGuiStyle));
 	
 	styleFile.close();
 }
 
 void GUI::setStyle()
 {
-	ImGuiStyle& style = ImGui::GetStyle();
-
 	float r = Settings::get<float>("menu/window/color/r", 1.f);
 	float g = Settings::get<float>("menu/window/color/g", 0.f);
 	float b = Settings::get<float>("menu/window/color/b", 0.f);
@@ -388,22 +400,22 @@ void GUI::setStyle()
 			r, g, b
 		);
 
-		style.Colors[ImGuiCol_Border] = { r, g, b, 1 };
-		style.Colors[ImGuiCol_TitleBg] = { r, g, b, 1 };
-		style.Colors[ImGuiCol_TitleBgCollapsed] = { r, g, b, 1 };
-		style.Colors[ImGuiCol_TitleBgActive] = { r, g, b, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_Border] = { r, g, b, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TitleBg] = { r, g, b, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TitleBgCollapsed] = { r, g, b, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TitleBgActive] = { r, g, b, 1 };
 
-		style.Colors[ImGuiCol_Tab] = { r * .85f, g * .85f, b * .85f, 1 };
-		style.Colors[ImGuiCol_TabActive] = { r * .85f, g * .85f, b * .85f, 1 };
-		style.Colors[ImGuiCol_TabHovered] = { r * .70f, g * .70f, b * .70f, 1 };
-		style.Colors[ImGuiCol_TabUnfocused] = { r * .60f, g * .60f, b * .60f, 1 };
-		style.Colors[ImGuiCol_TabUnfocusedActive] = { r * .60f, g * .60f, b * .60f, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_Tab] = { r * .85f, g * .85f, b * .85f, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TabActive] = { r * .85f, g * .85f, b * .85f, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TabHovered] = { r * .70f, g * .70f, b * .70f, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TabUnfocused] = { r * .60f, g * .60f, b * .60f, 1 };
+		GUI::loadedStyle.Colors[ImGuiCol_TabUnfocusedActive] = { r * .60f, g * .60f, b * .60f, 1 };
 	}
 	else
 	{
-		style.Colors[ImGuiCol_TitleBg] = { r, g, b, 1.f };
-		style.Colors[ImGuiCol_TitleBgActive] = { r, g, b, 1.f };
-		style.Colors[ImGuiCol_TitleBgCollapsed] = { r, g, b, 1.f };
+		GUI::loadedStyle.Colors[ImGuiCol_TitleBg] = { r, g, b, 1.f };
+		GUI::loadedStyle.Colors[ImGuiCol_TitleBgActive] = { r, g, b, 1.f };
+		GUI::loadedStyle.Colors[ImGuiCol_TitleBgCollapsed] = { r, g, b, 1.f };
 	}
 }
 

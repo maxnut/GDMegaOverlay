@@ -333,6 +333,8 @@ void initGUI()
 		if (GUI::inputFloat("Window Opacity", &windowOpacity, 0.f, 1.f))
 			Mod::get()->setSavedValue<float>("menu/window/opacity", windowOpacity);
 
+		GUI::inputFloat("UI Scale", "menu/ui_scale", 1.f, 0.1f, 2.f);
+
 		GUI::checkbox("Title Gradient", "menu/title_gradient/enabled", true);
 
 		GUI::checkbox("Rainbow Menu", "menu/window/rainbow/enabled");

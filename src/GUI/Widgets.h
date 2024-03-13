@@ -46,7 +46,8 @@ namespace GUI
 	void marker(const std::string&, const std::string&);
 	void textURL(const std::string&, const std::string&);
 	void sameLine(float offset_from_start_x = 0, float spacing_w = -1);
-
+	void pushItemWidth(float width);
+	void popItemWidth();
 
 	bool customCheckbox(const char* label, bool* v);
 };

@@ -150,6 +150,12 @@ void Blur::compileBlurShader()
 	if (compiled || !blur)
 		return;
 
+	if(blurProgram)
+		CC_SAFE_DELETE(blurProgram);
+
+	if(gdRenderTexture)
+		gdRenderTexture = nullptr;
+
 	blurProgram = new cocos2d::CCGLProgram();
 	blurProgram->initWithVertexShaderByteArray(vertexShaderCode, fragmentShaderCode);
 	blurProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
