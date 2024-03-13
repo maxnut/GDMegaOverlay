@@ -273,12 +273,12 @@ bool GUI::inputInt(const std::string& name, int* value, int min, int max)
 	return result;
 }
 
-bool GUI::inputText(const std::string& name, std::string* value)
+bool GUI::inputText(const std::string& name, std::string* value, float width)
 {
 	bool result = false;
 	if (GUI::shouldRender())
 	{
-		ImGui::PushItemWidth(80);
+		ImGui::PushItemWidth(width);
 		result = ImGui::InputText(name.c_str(), value);
 		ImGui::PopItemWidth();
 	}

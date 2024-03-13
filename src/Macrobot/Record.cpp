@@ -116,7 +116,7 @@ void Recorder::start_audio()
 	}
 
 	levelDone = false;
-	m_after_end_duration = Settings::get<float>("recorder/after_end", 5.f);
+	m_after_end_duration = Settings::get<float>("recorder/after_end", 4.f);
 	m_after_end_extra_time = 0.f;
 
 	recorder.m_recording_audio = true;
@@ -138,17 +138,30 @@ void Recorder::start()
 	m_height = resolution[1];
 	m_fps = framerate;
 
-	std::string codec = Settings::get<std::string>("recorder/codec", "h264_nvenc");
+	std::string codec = Settings::get<std::string>("recorder/codec", "");
 	if (codec != "")
 		m_codec = codec;
 
 	std::string extraArgs =
-		Settings::get<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
+		Settings::get<std::string>("recorder/extraArgs", "");
 
 	if (extraArgs != "")
 		m_extra_args = extraArgs;
-	// if (hacks.extraArgsAfter != "")
-	m_extra_args_after = ""; // hacks.extraArgsAfter;
+
+	std::string extraArgsAfter =
+		Settings::get<std::string>("recorder/extraArgsAfter", "-pix_fmt rgb0 -qp 16 -rc-lookahead 16 -preset slow");
+
+	m_extra_args_after = "";
+	if (extraArgsAfter != "")
+		m_extra_args_after = extraArgsAfter;
+
+	std::string extraArgsVideo =
+		Settings::get<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
+
+	m_extra_args_video = "";
+	if (extraArgsVideo != "")
+		m_extra_args_video = extraArgsVideo;
+	
 	m_recording = true;
 	m_frame_has_data = false;
 	m_current_frame.resize(m_width * m_height * 3, 0);
@@ -158,7 +171,7 @@ void Recorder::start()
 	int bitrate = Settings::get<int>("recorder/bitrate", 30);
 	m_bitrate = std::to_string(bitrate) + "M";
 
-	float afterEnd = Settings::get<float>("recorder/after_end", 5.f);
+	float afterEnd = Settings::get<float>("recorder/after_end", 4.f);
 
 	m_after_end_extra_time = 0.f;
 	m_after_end_duration = afterEnd; // hacks.afterEndDuration;
@@ -209,7 +222,10 @@ void Recorder::start()
 			else
 				stream << "-pix_fmt yuv420p ";
 
-			stream << "-vf \"vflip\" -an " << renderedVideo; // i hope just putting it in "" escapes it
+			stream << "-vf \"vflip";
+			if(!m_extra_args_video.empty())
+				stream << "," << m_extra_args_video;
+			stream << "\" -an " << renderedVideo; // i hope just putting it in "" escapes it
 			auto process = subprocess::Popen(stream.str());
 			while (m_recording || m_frame_has_data)
 			{
@@ -502,31 +518,34 @@ void Record::renderWindow()
 	if (ImGui::IsItemDeactivatedAfterEdit())
 		Mod::get()->setSavedValue<int>("recorder/bitrate", bitrate);
 
-	std::string codec = Settings::get<std::string>("recorder/codec", "");
-
-	if (GUI::inputText("Codec", &codec))
-		Mod::get()->setSavedValue<std::string>("recorder/codec", codec);
-
-	std::string extraArgs = Settings::get<std::string>("recorder/extraArgs", "");
-	if (GUI::inputText("Extra Args", &extraArgs))
-		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", extraArgs);
-
 	int framerate = Settings::get<int>("recorder/fps", 60);
 	GUI::inputInt("Framerate", &framerate);
 
 	if (ImGui::IsItemDeactivatedAfterEdit())
 		Mod::get()->setSavedValue<int>("recorder/fps", framerate);
 
-	float afterEnd = Settings::get<float>("recorder/after_end", 5.f);
-	GUI::inputFloat("Show Endscreen For", &afterEnd);
+	float afterEnd = Settings::get<float>("recorder/after_end", 4.f);
+	GUI::inputFloat("Show End For", &afterEnd);
 
 	if (ImGui::IsItemDeactivatedAfterEdit())
 		Mod::get()->setSavedValue<float>("recorder/after_end", afterEnd);
+
+	if (GUI::button("CPU"))
+	{
+		Mod::get()->setSavedValue<std::string>("recorder/codec", "");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", "");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgsAfter", "-pix_fmt rgb0 -qp 16 -rc-lookahead 16 -preset slow");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
+	}
+	
+	GUI::sameLine();
 
 	if (GUI::button("NVIDIA"))
 	{
 		Mod::get()->setSavedValue<std::string>("recorder/codec", "h264_nvenc");
 		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", "-hwaccel cuda -hwaccel_output_format cuda");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgsAfter", "-pix_fmt rgb0 -qp 16 -rc-lookahead 16 -preset slow");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
 	}
 
 	GUI::sameLine();
@@ -535,7 +554,34 @@ void Record::renderWindow()
 	{
 		Mod::get()->setSavedValue<std::string>("recorder/codec", "h264_amf");
 		Mod::get()->setSavedValue<std::string>("recorder/extraArgs", "");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgsAfter", "-pix_fmt rgb0 -qp 16 -rc-lookahead 16 -preset slow");
+		Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
 	}
+
+	if(GUI::button("Advanced Settings"))
+		ImGui::OpenPopup("Advanced Settings##popup");
+
+	if(ImGui::IsItemHovered())
+		ImGui::SetTooltip("It is reccomended to use presets and not change these settings unless you know what you're doing!");
+
+	GUI::modalPopup("Advanced Settings##popup", []{
+		std::string codec = Settings::get<std::string>("recorder/codec", "");
+
+		if (GUI::inputText("Codec", &codec))
+			Mod::get()->setSavedValue<std::string>("recorder/codec", codec);
+
+		std::string extraArgs = Settings::get<std::string>("recorder/extraArgs", "");
+		if (GUI::inputText("First Args", &extraArgs, 200))
+			Mod::get()->setSavedValue<std::string>("recorder/extraArgs", extraArgs);
+
+		std::string extraArgsAfter = Settings::get<std::string>("recorder/extraArgsAfter", "-pix_fmt rgb0 -qp 16 -rc-lookahead 16 -preset slow");
+		if (GUI::inputText("Second Args", &extraArgsAfter, 200))
+			Mod::get()->setSavedValue<std::string>("recorder/extraArgsAfter", extraArgsAfter);
+
+		std::string extraArgsVideo = Settings::get<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
+		if (GUI::inputText("Video Args", &extraArgsVideo, 200))
+			Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", extraArgsVideo);
+	});
 
 	GUI::marker("[INFO]",
 				"Press start recording to get a smooth recording of the level. "

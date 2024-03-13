@@ -367,7 +367,8 @@ void initGUI()
 			},
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		GUI::checkbox("Blur Background", "menu/blur/enabled");
+		if(GUI::checkbox("Blur Background", "menu/blur/enabled"))
+			Blur::compileBlurShader();
 		
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("WARNING: this option is very performance heavy!");
@@ -378,7 +379,8 @@ void initGUI()
 			blurSettings,
 			ImGuiWindowFlags_AlwaysAutoResize);
 
-		GUI::checkbox("Blur GD", "menu/blur/gd");
+		if(GUI::checkbox("Blur GD", "menu/blur/gd"))
+			Blur::compileBlurShader();
 
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip("WARNING: this option is very performance heavy!");

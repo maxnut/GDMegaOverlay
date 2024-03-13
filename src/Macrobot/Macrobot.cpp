@@ -602,8 +602,8 @@ void Macrobot::drawWindow()
 		}
 
 		ImGui::PushItemWidth(80);
-		GUI::inputText("Macro Name", &macroName);
-		GUI::inputText("Macro Description", &macroDescription);
+		GUI::inputText("Name##macro", &macroName);
+		GUI::inputText("Description##macro", &macroDescription);
 		ImGui::PopItemWidth();
 
 		if (GUI::button("Save##macro"))

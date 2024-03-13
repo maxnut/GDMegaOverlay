@@ -57,14 +57,14 @@ void Window::draw()
 
 		ImGui::Begin(name.c_str(), (bool*)0, flags);
 
-		if(Settings::get<bool>("menu/drop_shadow/enabled", true))
-			dropShadow(Settings::get<float>("menu/drop_shadow/size", 24.f), 255);
-
 		if(Settings::get<bool>("menu/title_gradient/enabled", true))
 			customTitlebar();
 
 		if(blurEnabled && !blurGD)
 			Blur::blurWindowBackground();
+
+		if(Settings::get<bool>("menu/drop_shadow/enabled", true))
+			dropShadow(Settings::get<float>("menu/drop_shadow/size", 24.f), 255);
 
 		if (ImGui::IsMouseDragging(0, 0.1f) && ImGui::IsWindowFocused())
 		{
@@ -149,6 +149,7 @@ void Window::dropShadow(float size, ImU8 opacity)
 	float uv3 = 1.0f;      // right/bottom region
 	ImU32 col = (opacity << 24) | 0xFFFFFF;
 	ImDrawList* dl = ImGui::GetWindowDrawList();
+
 	dl->PushClipRectFullScreen();
 	dl->AddImage(tex_id, {p.x - size, p.y - size}, {p.x,        p.y       }, {uv0, uv0}, {uv1, uv1}, col);
 	dl->AddImage(tex_id, {p.x,        p.y - size}, {m.x,        p.y       }, {uv1, uv0}, {uv2, uv1}, col);

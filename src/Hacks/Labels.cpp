@@ -295,11 +295,14 @@ void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 
 	if (labelsCreated)
 	{
+		bool hide = Settings::get<bool>("labels/hideAll", false);
 		for (Label& l : labels)
 		{
 			int opacity = Settings::get<int>("labels/" + l.settingName + "/opacity", 150);
-			l.pointer->setOpacity(opacity);
-			l.process();
+			l.pointer->setOpacity(hide ? 0 : opacity);
+			
+			if(!hide)
+				l.process();
 		}
 	}
 
@@ -335,8 +338,10 @@ class $modify(PlayerObject)
 			clicks.push_back(GetTickCount());
 			clickRegistered = true;
 		}
+		if(!click)
+			totalClicks++;
+		
 		click = true;
-		totalClicks++;
 		PlayerObject::pushButton(btn);
 	}
 
@@ -470,6 +475,7 @@ void Labels::settingsForLabel(const std::string& labelSettingName, std::function
 
 void Labels::renderWindow()
 {
+	GUI::checkbox("Hide All", "labels/hideAll");
 	settingsForLabel("Cheat Indicator", [] {});
 	settingsForLabel("Framerate", [] {});
 	settingsForLabel("CPS", [] {

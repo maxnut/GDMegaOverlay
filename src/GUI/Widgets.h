@@ -28,7 +28,7 @@ namespace GUI
 	bool button(const std::string&);
 	bool checkbox(const std::string&, bool*);
 	bool checkbox(const std::string&, const std::string&, bool = false);
-	bool inputText(const std::string&, std::string*);
+	bool inputText(const std::string&, std::string*, float = 80);
 	bool inputInt(const std::string&, int*, int = -INT_MAX, int = INT_MAX);
 	bool inputInt(const std::string&, const std::string&, int, int = -INT_MAX, int = INT_MAX);
 	bool inputInt2(const std::string&, int*, int = -INT_MAX, int = INT_MAX, int = -INT_MAX, int = INT_MAX);
