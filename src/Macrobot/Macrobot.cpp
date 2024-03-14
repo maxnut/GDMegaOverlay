@@ -35,13 +35,16 @@ class $modify(CCKeyboardDispatcher)
 
 		if (key == enumKeyCodes::KEY_A || key == enumKeyCodes::KEY_ArrowLeft)
 			direction = down ? -1 : 0;
-
-		if (!down || arr)
-			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
 		
 		int advanceKey = Settings::get<int>("macrobot/frame_step/key", ImGuiKey_G);
 
 		int convertedKey = ConvertKeyEnum(key);
+
+		if(convertedKey == advanceKey)
+			holdingAdvance = down;
+
+		if (!down || arr)
+			return CCKeyboardDispatcher::dispatchKeyboardMSG(key, down, arr);
 
 		if (convertedKey == advanceKey && PlayLayer::get())
 			targetSteps = PlayLayer::get()->m_gameState.m_unk1f8 + Settings::get<int>("macrobot/frame_step/steps", 1);
@@ -78,6 +81,7 @@ class $modify(PlayLayer)
 
 	void resetLevel()
 	{
+		holdingAdvance = false;
 		targetSteps = 0;
 		
 		if (playerMode != DISABLED)
@@ -200,8 +204,17 @@ class $modify(GJBaseGameLayer)
 	{
 		if (Settings::get<bool>("macrobot/frame_step/enabled", false))
 		{
+			if(Settings::get<bool>("macrobot/frame_step/hold", false) && holdingAdvance)
+				advanceHoldTime += dt;
+			else
+				advanceHoldTime = 0;
+			
 			if (PlayLayer::get()->m_gameState.m_unk1f8 < targetSteps)
 				GJBaseGameLayer::update(dt);
+
+			if(advanceHoldTime > 0.5f)
+					targetSteps = PlayLayer::get()->m_gameState.m_unk1f8 + 1;
+
 			return;
 		}
 
@@ -564,6 +577,9 @@ void Macrobot::drawMacroTable()
 				Common::calculateFramerate();
 				PhysicsBypass::calculateTickrate();
 
+				layer->stopAllActions();
+				MBO(float, layer, 10960) = 0;//startgamedelayed
+				layer->startGame();
 				layer->resetLevelFromStart();
 
 				ImGui::CloseCurrentPopup();
@@ -625,12 +641,16 @@ void Macrobot::drawWindow()
 		if (GUI::combo("Corrections", &corrections, correctionType, 2))
 			Mod::get()->setSavedValue<int>("macrobot/corrections", corrections);
 
+		GUI::tooltip("The type of correction the macro will use.\nNone: the bot will not correct on playback.\nEvery action: the bot will correct player's position, velocity and rotation every action.");
+
 		GUI::checkbox("Click Sounds", "macrobot/clicks/enabled");
+		GUI::tooltip("Play click sounds when the bot plays an action.");
 		GUI::arrowButton("Clickpacks");
 		Clickpacks::drawGUI();
 	}
 
 	GUI::checkbox("Frame Step", "macrobot/frame_step/enabled");
+	GUI::tooltip("Makes the game only advance physics steps when the frame step button is pressed.");
 
 	GUI::arrowButton("Frame Step Settings");
 	GUI::modalPopup(
@@ -641,6 +661,8 @@ void Macrobot::drawWindow()
 				Mod::get()->setSavedValue<int>("macrobot/frame_step/key", key);
 
 			GUI::inputInt("Advance Steps", "macrobot/frame_step/steps", 1);
+
+			GUI::checkbox("Hold to Advance", "macrobot/frame_step/hold");
 		},
 		ImGuiWindowFlags_AlwaysAutoResize);
 

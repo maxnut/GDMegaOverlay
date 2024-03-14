@@ -62,8 +62,8 @@ void Window::draw()
 		if(blurEnabled && !blurGD)
 			Blur::blurWindowBackground();
 
-		if(Settings::get<bool>("menu/drop_shadow/enabled", true))
-			dropShadow(Settings::get<float>("menu/drop_shadow/size", 24.f), 255);
+		if(Settings::get<bool>("menu/box_shadow/enabled", true))
+			dropShadow(Settings::get<float>("menu/box_shadow/size", 24.f), 255);
 
 		ImGui::SetWindowFontScale(Settings::get<float>("menu/ui_scale", 1.f));
 

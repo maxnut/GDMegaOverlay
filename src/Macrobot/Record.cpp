@@ -57,6 +57,14 @@ class $modify(PlayLayer)
 		PlayLayer::onQuit();
 	}
 
+	bool canPauseGame()
+	{
+		if(recorder.m_recording || recorder.m_recording_audio)
+			return false;
+
+		return PlayLayer::canPauseGame();
+	}
+
 	bool init(GJGameLevel* level, bool unk1, bool unk2)
 	{
 		bool res = PlayLayer::init(level, unk1, unk2);
@@ -116,10 +124,14 @@ void Recorder::start_audio()
 	}
 
 	levelDone = false;
-	m_after_end_duration = Settings::get<float>("recorder/after_end", 4.f);
+	m_after_end_duration = Settings::get<float>("recorder/after_end", 3.4f);
 	m_after_end_extra_time = 0.f;
 
 	recorder.m_recording_audio = true;
+	
+	PlayLayer::get()->stopAllActions();
+	MBO(float, PlayLayer::get(), 10960) = 0;//startgamedelayed
+	PlayLayer::get()->startGame();
 	PlayLayer::get()->resetLevelFromStart();
 	recorder.m_recording = false;
 }
@@ -171,7 +183,7 @@ void Recorder::start()
 	int bitrate = Settings::get<int>("recorder/bitrate", 30);
 	m_bitrate = std::to_string(bitrate) + "M";
 
-	float afterEnd = Settings::get<float>("recorder/after_end", 4.f);
+	float afterEnd = Settings::get<float>("recorder/after_end", 3.4f);
 
 	m_after_end_extra_time = 0.f;
 	m_after_end_duration = afterEnd; // hacks.afterEndDuration;
@@ -182,7 +194,10 @@ void Recorder::start()
 
 	m_song_start_offset = PlayLayer::get()->m_levelSettings->m_songOffset;
 
-	PlayLayer::get()->resetLevel();
+	PlayLayer::get()->stopAllActions();
+	MBO(float, PlayLayer::get(), 10960) = 0;//startgamedelayed
+	PlayLayer::get()->startGame();
+	PlayLayer::get()->resetLevelFromStart();
 
 	std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
 	auto bg_volume = 1;
@@ -404,6 +419,28 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 		{
 			m_extra_t = time - frame_dt;
 			m_last_frame_t = tfx;
+
+			float time = (static_cast<float>(play_layer->m_gameState.m_unk1f8) / Common::getTPS()) * 1000.f;
+			time += PlayLayer::get()->m_levelSettings->m_songOffset * 1000.f;
+
+			FMOD::Channel* audioChannel;
+
+			for(int i = 0; i < 2; i++)
+			{
+				FMODAudioEngine::sharedEngine()->m_system->getChannel(126 + i, &audioChannel);
+				if (audioChannel)
+				{
+					uint32_t channelTime = 0;
+					audioChannel->getPosition(&channelTime, FMOD_TIMEUNIT_MS);
+
+					if(channelTime <= 0)
+						continue;
+
+					if(channelTime - time > 0.15f)
+						audioChannel->setPosition(time, FMOD_TIMEUNIT_MS);
+				}
+			}
+
 			capture_frame();
 		}
 	}
@@ -456,7 +493,7 @@ void Record::renderWindow()
 		ImGui::EndDisabled();
 
 	disabled = !PlayLayer::get() || levelDone || Record::recorder.m_recording || Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
-
+	
 	if (disabled)
 		ImGui::BeginDisabled();
 
@@ -524,7 +561,7 @@ void Record::renderWindow()
 	if (ImGui::IsItemDeactivatedAfterEdit())
 		Mod::get()->setSavedValue<int>("recorder/fps", framerate);
 
-	float afterEnd = Settings::get<float>("recorder/after_end", 4.f);
+	float afterEnd = Settings::get<float>("recorder/after_end", 3.4f);
 	GUI::inputFloat("Show End For", &afterEnd);
 
 	if (ImGui::IsItemDeactivatedAfterEdit())
@@ -537,6 +574,8 @@ void Record::renderWindow()
 		Mod::get()->setSavedValue<std::string>("recorder/extraArgsAfter", "-pix_fmt rgb0 -qp 16 -rc-lookahead 16 -preset slow");
 		Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
 	}
+
+	GUI::tooltip("Applies a preset for optimal rendering with the CPU");
 	
 	GUI::sameLine();
 
@@ -548,6 +587,8 @@ void Record::renderWindow()
 		Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
 	}
 
+	GUI::tooltip("Applies a preset for optimal rendering with NVIDIA GPUs");
+
 	GUI::sameLine();
 
 	if (GUI::button("AMD"))
@@ -558,11 +599,12 @@ void Record::renderWindow()
 		Mod::get()->setSavedValue<std::string>("recorder/extraArgsVideo", "colorspace=all=bt709:iall=bt470bg:fast=1");
 	}
 
+	GUI::tooltip("Applies a preset for optimal rendering with AMD GPUs");
+
 	if(GUI::button("Advanced Settings"))
 		ImGui::OpenPopup("Advanced Settings##popup");
 
-	if(ImGui::IsItemHovered())
-		ImGui::SetTooltip("It is reccomended to use presets and not change these settings unless you know what you're doing!");
+	GUI::tooltip("It is reccomended to use presets and not change these settings unless you know what you're doing!");
 
 	GUI::modalPopup("Advanced Settings##popup", []{
 		std::string codec = Settings::get<std::string>("recorder/codec", "");

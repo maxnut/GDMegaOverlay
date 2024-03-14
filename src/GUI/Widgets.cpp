@@ -567,3 +567,9 @@ void GUI::popItemWidth()
 
 	ImGui::PopItemWidth();
 }
+
+void GUI::tooltip(const std::string tooltip)
+{
+	if(ImGui::IsItemHovered())
+		ImGui::SetTooltip(tooltip.c_str());
+}

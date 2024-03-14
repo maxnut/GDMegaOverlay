@@ -114,7 +114,6 @@ void JsonPatches::drawFromPatches(JsonPatches::patch_group_type& patchGroup)
 		if (GUI::checkbox(name, "patch/" + name, false))
 			togglePatch(patchGroup, name);
 
-		if (ImGui::IsItemHovered())
-			ImGui::SetTooltip(jpatch.description.c_str());
+		GUI::tooltip(jpatch.description);
 	}
 }

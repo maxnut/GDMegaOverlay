@@ -191,8 +191,9 @@ void Common::updateCheating()
 	bool noShaders = Settings::get<bool>("level/no_shaders", false);
 	bool instantComplete = Settings::get<bool>("level/instant_complete", false);
 	bool hitboxMultiplier = Settings::get<bool>("level/hitbox_multiplier", false);
+	bool layoutMode = Settings::get<bool>("level/layout_mode", false);
 
-	if (speedhack != 1.f || Macrobot::playerMode == 0 || (showHitbox && !onDeath) || hidePause || hitboxMultiplier || noShaders || instantComplete)
+	if (speedhack != 1.f || Macrobot::playerMode == 0 || (showHitbox && !onDeath) || hidePause || hitboxMultiplier || noShaders || instantComplete || layoutMode)
 	{
 		isCheating = true;
 		return;
