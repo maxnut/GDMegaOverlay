@@ -43,6 +43,7 @@ inline bool click = false;
 inline bool dead = false;
 inline bool noclipDead = false;
 inline bool lastFrameDead = false;
+inline bool levelCompleted = false;
 
 inline GameObject* anticheatSpike = nullptr;
 

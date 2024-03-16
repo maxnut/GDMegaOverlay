@@ -39,8 +39,10 @@ Labels::Label Labels::setupLabel(const std::string& labelSettingName,
 
 class $modify(PlayLayer)
 {
+
 	bool init(GJGameLevel* p0, bool p1, bool p2)
 	{
+		levelCompleted = false;
 		labels.clear();
 		bool res = PlayLayer::init(p0, p1, p2);
 
@@ -123,7 +125,7 @@ class $modify(PlayLayer)
 
 				if (!noclipDead)
 				{
-					if (acc <= limit)
+					if (acc <= limit && limit > 0)
 						noclipDead = true;
 					pointer->setString(
 						frames == 0
@@ -234,6 +236,7 @@ class $modify(PlayLayer)
 	{
 		PlayLayer::levelComplete();
 		currentRun.second = PlayLayer::getCurrentPercent();
+		levelCompleted = true;
 
 		float currentRunTotal = currentRun.second - currentRun.first;
 		float bestRunTotal = bestRun.second - bestRun.first;
@@ -246,6 +249,7 @@ class $modify(PlayLayer)
 		Common::updateCheating();
 		SafeMode::updateAuto();
 		noclipDead = false;
+		levelCompleted = false;
 		dead = false;
 		totalClicks = 0;
 		frames = 0;
@@ -308,7 +312,8 @@ void Labels::GJBaseGameLayerProcessCommands(GJBaseGameLayer *self)
 
 	clickRegistered = false;
 
-	frames++;
+	if(!levelCompleted)
+		frames++;
 
 	if (dead)
 	{
