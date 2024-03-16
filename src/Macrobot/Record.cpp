@@ -5,8 +5,9 @@
 
 #include "AudioRecord.h"
 #include "Macrobot.h"
-#include <Geode/cocos/platform/CCGL.h>
+#include "portable-file-dialogs.h"
 
+#include <Geode/cocos/platform/CCGL.h>
 #include <Geode/binding/GJGameLevel.hpp>
 #include <Geode/modify/PlayLayer.hpp>
 #include <Geode/modify/ShaderLayer.hpp>
@@ -57,18 +58,9 @@ class $modify(PlayLayer)
 		PlayLayer::onQuit();
 	}
 
-	bool canPauseGame()
-	{
-		if(recorder.m_recording || recorder.m_recording_audio)
-			return false;
-
-		return PlayLayer::canPauseGame();
-	}
-
 	bool init(GJGameLevel* level, bool unk1, bool unk2)
 	{
 		bool res = PlayLayer::init(level, unk1, unk2);
-		endLevelLayer = nullptr;
 		return res;
 	}
 
@@ -82,15 +74,6 @@ class $modify(PlayLayer)
 	{
 		levelDone = false;
 		PlayLayer::resetLevel();
-	}
-};
-
-class $modify(EndLevelLayer)
-{
-	void showLayer(bool unk)
-	{
-		endLevelLayer = this;
-		return EndLevelLayer::showLayer(unk);
 	}
 };
 
@@ -114,7 +97,7 @@ Recorder::Recorder()
 void Recorder::start_audio()
 {
 	std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
-	auto path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
+	ghc::filesystem::path path = renderPath;
 	bool hasVideo = ghc::filesystem::exists(path);
 
 	if (!hasVideo)
@@ -128,6 +111,9 @@ void Recorder::start_audio()
 	m_after_end_extra_time = 0.f;
 
 	recorder.m_recording_audio = true;
+	
+	if (PlayLayer::get()->getChildByID("EndLevelLayer"))
+		PlayLayer::get()->getChildByID("EndLevelLayer")->removeFromParent();
 	
 	PlayLayer::get()->stopAllActions();
 	MBO(float, PlayLayer::get(), 10960) = 0;//startgamedelayed
@@ -186,7 +172,7 @@ void Recorder::start()
 	float afterEnd = Settings::get<float>("recorder/after_end", 3.4f);
 
 	m_after_end_extra_time = 0.f;
-	m_after_end_duration = afterEnd; // hacks.afterEndDuration;
+	m_after_end_duration = afterEnd;
 	m_renderer.m_width = m_width;
 	m_renderer.m_height = m_height;
 	m_renderer.begin();
@@ -194,29 +180,22 @@ void Recorder::start()
 
 	m_song_start_offset = PlayLayer::get()->m_levelSettings->m_songOffset;
 
+	if (PlayLayer::get()->getChildByID("EndLevelLayer"))
+		PlayLayer::get()->getChildByID("EndLevelLayer")->removeFromParent();
+	
 	PlayLayer::get()->stopAllActions();
 	MBO(float, PlayLayer::get(), 10960) = 0;//startgamedelayed
 	PlayLayer::get()->startGame();
 	PlayLayer::get()->resetLevelFromStart();
 
-	std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
 	auto bg_volume = 1;
 	auto sfx_volume = 1;
 
 	auto song_offset = m_song_start_offset;
 
-	if (!ghc::filesystem::is_directory(Mod::get()->getSaveDir() / "renders" / level_id) ||
-		!ghc::filesystem::exists(Mod::get()->getSaveDir() / "renders" / level_id))
-	{
-		ghc::filesystem::create_directory(Mod::get()->getSaveDir() / "renders" / level_id);
-	}
-
-	if (m_recording_audio)
-		return;
-
-	std::thread([&, bg_volume, sfx_volume, song_offset, level_id]()
+	std::thread([&, bg_volume, sfx_volume, song_offset]()
 				{
-		auto renderedVideo = (Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4");
+		ghc::filesystem::path renderedVideo = renderPath;
 
 		{
 			std::stringstream stream;
@@ -270,7 +249,6 @@ void Recorder::start()
 
 void Recorder::stop()
 {
-	Common::showWithPriority(FLAlertLayer::create("Info", "Macro rendererd successfully!", "Ok"));
 	m_renderer.end();
 	m_recording = false;
 }
@@ -341,20 +319,12 @@ void Recorder::capture_frame()
 
 void Recorder::stop_audio()
 {
-	Common::showWithPriority(FLAlertLayer::create("Info", "Sound recorded successfully!", "Ok"));
+	Common::showWithPriority(FLAlertLayer::create("Info", "Macro and sound rendererd successfully!", "Ok"));
 	AudioRecord::stop();
 	m_recording_audio = false;
 
-	GJGameLevel *level =
-		GameManager::get()
-			->getPlayLayer()
-			->m_level; // MBO(gd::GJGameLevel*, PlayLayer::get(), 1504); // found in playlayer_init
-
-	std::string level_id = PlayLayer::get()->m_level->m_levelName.c_str() + ("_" + std::to_string(PlayLayer::get()->m_level->m_levelID.value()));
-
-	ghc::filesystem::path video_path = Mod::get()->getSaveDir() / "renders" / level_id / "rendered_video.mp4";
-
-	ghc::filesystem::path temp_path = Mod::get()->getSaveDir() / "renders" / level_id / "music.mp4";
+	ghc::filesystem::path video_path = renderPath;
+	ghc::filesystem::path temp_path = video_path.parent_path() / "music.mp4";
 
 	std::stringstream ss;
 
@@ -406,10 +376,7 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 			m_after_end_extra_time += dt;
 			m_finished_level = true;
 		}
-
-		/* if (!play_layer->m_hasCompletedLevel)
-			tfx = play_layer->timeForXPos(play_layer->m_pPlayer1->getPositionX());
-		else */
+		
 		tfx += dt;
 		float timewarp = MBO(float, PlayLayer::get(), 724);
 
@@ -447,96 +414,70 @@ void Recorder::handle_recording(GJBaseGameLayer *play_layer, float dt)
 	else
 	{
 		stop();
+
+		if(Settings::get<bool>("recorder/record_audio", false))
+			start_audio();
+		else
+			Common::showWithPriority(FLAlertLayer::create("Info", "Macro rendererd successfully!", "Ok"));
 	}
 }
 
 void Record::renderWindow()
 {
-	bool disabled = !PlayLayer::get() || levelDone || Record::recorder.m_recording_audio || Record::recorder.m_recording || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
-	if (disabled)
-		ImGui::BeginDisabled();
-
-	if (GUI::button("Start Recording"))
+	if(recorder.m_recording || recorder.m_recording_audio)
 	{
-		if (!ghc::filesystem::exists("ffmpeg.exe"))
+		if (GUI::button("Stop Recording"))
 		{
-			auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
-			try
-			{
-				process.close();
-			}
-			catch (const std::exception &e)
-			{
-				std::cout << e.what() << '\n';
-			}
+			if(recorder.m_recording)
+				recorder.stop();
+			else if(recorder.m_recording_audio)
+				recorder.stop_audio();
 		}
-		if (ghc::filesystem::exists("ffmpeg.exe"))
-			Record::recorder.start();
-		else
-			Common::showWithPriority(FLAlertLayer::create("Error", "FFmpeg not found", "Ok"));
 	}
-
-	if (GUI::shouldRender() && disabled && ImGui::IsItemHovered())
-		ImGui::SetTooltip("You need to be playing a macro to record");
-
-	if (disabled)
-		ImGui::EndDisabled();
-
-	disabled = !PlayLayer::get() || levelDone || Record::recorder.m_recording_audio || !Record::recorder.m_recording || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
-	if (disabled)
-		ImGui::BeginDisabled();
-
-	if (GUI::button("Stop Recording"))
-		Record::recorder.stop();
-
-	if (disabled)
-		ImGui::EndDisabled();
-
-	disabled = !PlayLayer::get() || levelDone || Record::recorder.m_recording || Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
-	
-	if (disabled)
-		ImGui::BeginDisabled();
-
-	if (GUI::button("Start Audio"))
+	else
 	{
-		if (!ghc::filesystem::exists("ffmpeg.exe"))
+		bool disabled = !PlayLayer::get() || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
+
+		if(disabled)
+			ImGui::BeginDisabled();
+
+		if (GUI::button("Start Recording"))
 		{
-			auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
-			try
+			if (!ghc::filesystem::exists("ffmpeg.exe"))
 			{
-				process.close();
+				auto process = subprocess::Popen(string::wideToUtf8((Mod::get()->getResourcesDir() / "get_ffmpeg.exe").wstring()));
+				try
+				{
+					process.close();
+				}
+				catch (const std::exception &e)
+				{
+					std::cout << e.what() << '\n';
+				}
 			}
-			catch (const std::exception &e)
+
+			if (ghc::filesystem::exists("ffmpeg.exe"))
 			{
-				std::cout << e.what() << '\n';
+				renderPath = pfd::save_file("Save Render", string::wideToUtf8((Mod::get()->getSaveDir() / "renders").wstring()), { "Video Files", "*.mp4"}).result();
+				
+				if(ghc::filesystem::path(renderPath).extension().string().empty())
+					renderPath.append(".mp4");
+
+				if(!renderPath.empty())
+					Record::recorder.start();
 			}
+			else
+				Common::showWithPriority(FLAlertLayer::create("Error", "FFmpeg not found", "Ok"));
 		}
 
-		if (ghc::filesystem::exists("ffmpeg.exe"))
-			recorder.start_audio();
-		else
-			Common::showWithPriority(FLAlertLayer::create("Error", "FFmpeg not found", "Ok"));
+		if(disabled)
+		{
+			GUI::tooltip("You need to be playing a macro to record!");
+			ImGui::EndDisabled();
+		}
 	}
 
-	if (GUI::shouldRender() && disabled && ImGui::IsItemHovered())
-		ImGui::SetTooltip("You need to be playing a macro to record");
-
-	if (disabled)
-		ImGui::EndDisabled();
-
-	disabled = !PlayLayer::get() || levelDone || Record::recorder.m_recording || !Record::recorder.m_recording_audio || Macrobot::macro.inputs.size() <= 0 || Macrobot::playerMode != 0;
-
-	if (disabled)
-		ImGui::BeginDisabled();
-
-	if (GUI::button("Stop Audio") && Record::recorder.m_recording_audio)
-	{
-		recorder.m_recording_audio = false;
-		AudioRecord::stop();
-	}
-
-	if (disabled)
-		ImGui::EndDisabled();
+	GUI::checkbox("Record audio", "recorder/record_audio");
 
 	int resolution[2];
 	resolution[0] = Settings::get<int>("recorder/resolution/x", 1920);

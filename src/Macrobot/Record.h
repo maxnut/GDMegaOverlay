@@ -9,7 +9,6 @@
 #include <subprocess.hpp>
 #include <string>
 #include <Geode/modify/GJBaseGameLayer.hpp>
-#include <Geode/modify/EndLevelLayer.hpp>
 
 using namespace cocos2d;
 
@@ -71,8 +70,7 @@ namespace Record
 	inline Recorder recorder;
 	inline bool visiting = false;
 	inline bool inShader = false;
-
-	inline EndLevelLayer* endLevelLayer = nullptr;
+	inline std::string renderPath = "";
 
 	void renderWindow();
 }

@@ -20,15 +20,7 @@ class $modify(CCScheduler)
 
 		if (playLayer)
 		{
-			auto uiLayer = reinterpret_cast<cocos2d::CCLayer*>(playLayer->getChildren()->objectAtIndex(8));
-
-			if (typeinfo_cast<EndLevelLayer*>(uiLayer))
-				uiLayer = reinterpret_cast<cocos2d::CCLayer*>(playLayer->getChildren()->objectAtIndex(9));
-
-			if (uiLayer && uiLayer->getChildrenCount() > 0)
-				reinterpret_cast<cocos2d::CCMenu*>(
-					uiLayer->getChildren()->objectAtIndex(0)
-				)->setVisible(!Settings::get<bool>("general/hide_pause/button"));
+			playLayer->getChildByID("UILayer")->getChildByID("pause-button-menu")->setVisible(!Settings::get<bool>("general/hide_pause/button"));
 
 
 			// bool m_isPaused; [PlayLayer + 0x2F17]
@@ -36,10 +28,7 @@ class $modify(CCScheduler)
 				MBO(bool, playLayer, 0x2F17) &&
 				runningScene && runningScene->getChildrenCount() > 1
 			) {
-				auto pauseLayer = reinterpret_cast<cocos2d::CCLayer*>(runningScene->getChildren()->objectAtIndex(1));
-
-				if (pauseLayer)
-					pauseLayer->setVisible(!Settings::get<bool>("general/hide_pause/menu"));
+				runningScene->getChildByID("PauseLayer")->setVisible(!Settings::get<bool>("general/hide_pause/menu"));
 			}
 		}
 

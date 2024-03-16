@@ -61,6 +61,12 @@ class $modify(PlayLayer)
 		checkpoints.clear();
 	}
 
+	void onExit()
+	{
+		botInput = false;
+		PlayLayer::onExit();
+	}
+
 	void loadFromCheckpoint(CheckpointObject * checkpoint)
 	{
 		resetFromStart = false;
@@ -141,8 +147,6 @@ class $modify(PlayerObject)
 {
 	void pushButton(PlayerButton btn)
 	{
-		if ((playerMode == PLAYBACK && !botInput) || resetFrame)
-			return;
 		PlayerObject::pushButton(btn);
 		
 		auto pl = PlayLayer::get();
@@ -158,8 +162,6 @@ class $modify(PlayerObject)
 
 	void releaseButton(PlayerButton btn)
 	{
-		if ((playerMode == PLAYBACK && !botInput) || resetFrame)
-			return;
 		PlayerObject::releaseButton(btn);
 
 		auto pl = PlayLayer::get();
@@ -219,6 +221,14 @@ class $modify(GJBaseGameLayer)
 		}
 
 		GJBaseGameLayer::update(dt);
+	}
+
+	void handleButton(bool down, int button, bool player1)
+	{
+		if ((playerMode == PLAYBACK && !botInput) || resetFrame)
+			return;
+		
+		GJBaseGameLayer::handleButton(down, button, player1);
 	}
 };
 
