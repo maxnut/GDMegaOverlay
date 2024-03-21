@@ -492,7 +492,7 @@ bool Macrobot::load(const std::string& file)
 
 	macro = opt.value();
 
-	if (macro.botInfo.version != "1.1")
+	if (macro.botInfo.name == "Macrobot" && macro.botInfo.version != "1.1")
 	{
 		macro = Macro();
 		Common::showWithPriority(FLAlertLayer::create("Error", "This macro was recorded on an older macrobot version!", "Ok"));
